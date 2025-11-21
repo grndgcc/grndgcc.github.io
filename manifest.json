@@ -1,0 +1,14 @@
+{
+  "name": "İkili Evren Karakter Kartı",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "author": "Siz",
+  "description": "İkili Evren FRP sistemi için karakter kartı eklentisi.",
+  "action": {
+    "title": "Karakter Kartı",
+    "icon": "icon.png",
+    "popover": "index.html",
+    "width": 1020,
+    "height": 800
+  }
+}
