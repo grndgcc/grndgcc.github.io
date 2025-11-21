@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İkili Evren FRP - Karakter Kartı</title>
+    
+    <!-- Gerekli JavaScript Kütüphaneleri (PDF ve Resim Olarak Kaydetmek İçin) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Google Fonts (Gotik ve Okunaklı Fontlar) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Lora:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Lora', serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- TEMA AYARLARI --- */
+        :root {
+            --gold: #c9b037;
+            --dark-gold: #8a7826;
+            --bg-panel: #1e1e1e;
+            --input-bg: #2b2b2b;
+            --border: #444;
+        }
+
+        /* KONTROL PANELİ */
+        .controls {
+            background: var(--bg-panel);
+            padding: 15px;
+            border: 1px solid var(--gold);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(201, 176, 55, 0.2);
+        }
+
+        button, .file-upload {
+            background: #222;
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 8px 15px;
+            cursor: pointer;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1rem;
+            border-radius: 4px;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        button:hover, .file-upload:hover {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 10px var(--dark-gold);
+        }
+
+        input[type="file"] { display: none; }
+
+        /* ANA KART YAPISI */
+        #char-sheet {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--bg-panel);
+            border: 4px double var(--gold);
+            padding: 40px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* Süsleme Köşeleri */
+        #char-sheet::before, #char-sheet::after {
+            content: "⚔";
+            position: absolute;
+            font-size: 2rem;
+            color: var(--gold);
+        }
+        #char-sheet::before { top: 10px; left: 10px; }
+        #char-sheet::after { top: 10px; right: 10px; transform: scaleX(-1); }
+
+        h1, h2, h3 {
+            font-family: 'MedievalSharp', cursive;
+            color: var(--gold);
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 5px;
+            text-shadow: 2px 2px 4px #000;
+        }
+
+        h1 { font-size: 2.5rem; margin-bottom: 30px; letter-spacing: 2px; }
+        h2 { font-size: 1.5rem; text-align: left; margin-top: 20px; }
+
+        /* GRID SİSTEMİ */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        .grid-header { display: grid; grid-template-columns: 150px 1fr; gap: 20px; margin-bottom: 20px; }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-header { grid-template-columns: 1fr; }
+            .portrait-box { margin: 0 auto; }
+        }
+
+        /* PORTRE VE HEADER */
+        .portrait-box {
+            width: 150px;
+            height: 150px;
+            border: 2px solid var(--gold);
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .portrait-box img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .portrait-placeholder { color: #555; font-size: 0.8rem; text-align: center; }
+
+        .header-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        /* INPUTLAR */
+        label { color: #aaa; font-size: 0.85rem; display: block; margin-bottom: 3px; font-weight: bold; }
+        
+        input, textarea, select {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 8px;
+            font-family: 'Lora', serif;
+            box-sizing: border-box;
+            border-radius: 3px;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 5px var(--dark-gold);
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* TABLO YAPISI (Nitelikler & Beceriler) */
+        table { width: 100%; border-collapse: collapse; background: rgba(0,0,0,0.2); }
+        th { text-align: left; color: var(--gold); font-family: 'MedievalSharp', cursive; padding: 5px; border-bottom: 1px solid var(--gold); }
+        td { padding: 5px; border-bottom: 1px solid #333; }
+        
+        .num-input { width: 60px; text-align: center; font-weight: bold; }
+        .auto-success-col { display: none; width: 80px; text-align: center; }
+        
+        /* Yüksek Fantezi Modu Aktifse */
+        body.high-fantasy .auto-success-col { display: table-cell; }
+        body.high-fantasy .auto-header { display: table-cell; }
+
+        /* ÖZEL LİSTELER (Beğeniler vs) */
+        .list-box {
+            background: var(--input-bg);
+            border: 1px solid #333;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .list-title { color: var(--gold); font-weight: bold; border-bottom: 1px dashed #555; margin-bottom: 5px; display: block;}
+
+        /* SOSYAL STATLAR */
+        .social-stat {
+            text-align: center;
+            border: 1px solid var(--gold);
+            padding: 10px;
+            border-radius: 8px;
+            background: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
+        }
+        .social-val { font-size: 1.5rem; text-align: center; border: none; background: transparent; color: var(--gold); font-family: 'MedievalSharp'; }
+
+    </style>
+</head>
+<body>
+
+    <div class="controls" data-html2canvas-ignore="true">
+        <button onclick="toggleMode('low')">🛡️ Düşük Fantezi</button>
+        <button onclick="toggleMode('high')" style="color:#ff5252; border-color:#ff5252;">🔥 Yüksek Fantezi</button>
+        <div style="width:1px; background:#555; margin:0 10px;"></div>
+        <button onclick="saveJSON()"><i class="fa fa-save"></i> Kaydet</button>
+        <label class="file-upload">
+            <i class="fa fa-folder-open"></i> Yükle
+            <input type="file" id="file-input" accept=".json" onchange="loadJSON()">
+        </label>
+        <button onclick="exportPDF()"><i class="fa fa-file-pdf"></i> PDF</button>
+        <button onclick="exportPNG()"><i class="fa fa-image"></i> Resim</button>
+    </div>
+
+    <div id="char-sheet">
+        <h1>İKİLİ EVREN FRP</h1>
+
+        <!-- HEADER -->
+        <div class="grid-header">
+            <div class="portrait-box" onclick="document.getElementById('img-upload').click()">
+                <img id="char-img" src="#" alt="Portre">
+                <div class="portrait-placeholder" id="img-text">Resim Yükle<br>(Tıkla)</div>
+                <input type="file" id="img-upload" style="display:none" accept="image/*" onchange="loadImage(this)">
+            </div>
+            <div class="header-fields">
+                <div><label>Karakter Adı</label><input type="text" id="char-name" class="save-data"></div>
+                <div><label>Oyuncu Adı</label><input type="text" id="player-name" class="save-data"></div>
+                <div><label>Hikaye (Backstory - Özet)</label><textarea id="backstory" class="save-data" style="height: 40px;"></textarea></div>
+                <div><label>Hayat Hedefi</label><input type="text" id="life-goal" class="save-data"></div>
+                <div><label>Yönelim (Alignment)</label><select id="alignment" class="save-data">
+                    <option>Kuralcı İyi</option><option>Tarafsız İyi</option><option>Kaotik İyi</option>
+                    <option>Kuralcı Nötr</option><option selected>Tam Nötr</option><option>Kaotik Nötr</option>
+                    <option>Kuralcı Kötü</option><option>Tarafsız Kötü</option><option>Kaotik Kötü</option>
+                </select></div>
+                <div><label>Hobi</label><input type="text" id="hobby" class="save-data"></div>
+            </div>
+        </div>
+
+        <!-- NİTELİKLER VE BECERİLER -->
+        <div class="grid-2">
+            <!-- Sol: Nitelikler -->
+            <div>
+                <h2>NİTELİKLER (Attributes)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nitelik</th>
+                            <th>Puan (1-5)</th>
+                            <th class="auto-success-col auto-header">Oto. Başarı</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attributes-body">
+                        <!-- JS ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Sağ: Beceriler -->
+            <div>
+                <h2>BECERİLER (Skills)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Beceri</th>
+                            <th>Puan (1-5)</th>
+                            <th class="auto-success-col auto-header">Oto. Başarı</th>
+                        </tr>
+                    </thead>
+                    <tbody id="skills-body">
+                        <!-- JS ile doldurulacak -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SOSYAL VE KİŞİLİK -->
+        <div class="grid-3" style="margin-top: 20px;">
+            <!-- Traitler -->
+            <div style="grid-column: span 2;">
+                <h2>KİŞİLİK ÖZELLİKLERİ (Traits)</h2>
+                <div class="grid-3">
+                    <div><label>Özellik 1</label><select id="trait1" class="save-data trait-select"></select></div>
+                    <div><label>Özellik 2</label><select id="trait2" class="save-data trait-select"></select></div>
+                    <div><label>Özellik 3</label><select id="trait3" class="save-data trait-select"></select></div>
+                </div>
+                <div style="margin-top:10px; display:flex; align-items:center; gap:10px; background:#111; padding:5px; border-radius:5px;">
+                    <label style="margin:0; color:var(--gold);">İLHAM PUANI:</label>
+                    <input type="number" id="inspiration" class="save-data" style="width:60px; text-align:center; font-weight:bold;" value="0">
+                </div>
+            </div>
+
+            <!-- Sosyal Statlar -->
+            <div>
+                <h2>SOSYAL STATLAR</h2>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div class="social-stat">
+                        <label>PRESTİJ</label>
+                        <input type="number" id="prestige" class="save-data social-val" min="-1" max="5" value="0">
+                    </div>
+                    <div class="social-stat">
+                        <label>İNANÇ</label>
+                        <input type="number" id="faith" class="save-data social-val" min="-1" max="5" value="0">
+                    </div>
+                    <div class="social-stat">
+                        <label>ÇEKİCİLİK</label>
+                        <input type="number" id="attractiveness" class="save-data social-val" min="-1" max="5" value="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BEĞENİLER VE ZEVKLER -->
+        <h2>ZEVKLER VE DETAYLAR</h2>
+        <div class="grid-2">
+            <div class="list-box">
+                <span class="list-title">💚 Sevdiği Şeyler (5 Adet)</span>
+                <textarea id="likes" class="save-data" placeholder="- ..."></textarea>
+            </div>
+            <div class="list-box">
+                <span class="list-title">❌ Sevmediği Şeyler (5 Adet)</span>
+                <textarea id="dislikes" class="save-data" placeholder="- ..."></textarea>
+            </div>
+            <div class="list-box">
+                <span class="list-title">🍗 Sevdiği Yemekler (3 Adet)</span>
+                <textarea id="food" class="save-data" placeholder="- ..."></textarea>
+            </div>
+            <div class="list-box">
+                <span class="list-title">🍺 Sevdiği İçecekler (3 Adet)</span>
+                <textarea id="drink" class="save-data" placeholder="- ..."></textarea>
+            </div>
+        </div>
+
+        <!-- ÇATIŞMA VE ENVANTER -->
+        <div class="grid-2" style="margin-top: 20px;">
+            <div>
+                <h2>ÇATIŞMA</h2>
+                <div class="list-box" style="background:rgba(50,0,0,0.2);">
+                    <label>Silahlar</label>
+                    <textarea id="weapons" class="save-data" placeholder="İsim / Hasar / Özellik"></textarea>
+                    <label style="margin-top:10px;">Zırh</label>
+                    <textarea id="armor" class="save-data" placeholder="İsim / Azaltma"></textarea>
+                </div>
+            </div>
+            <div>
+                <h2>ENVANTER & NOTLAR</h2>
+                <textarea id="inventory" class="save-data" style="height: 100%;" placeholder="Diğer ekipmanlar..."></textarea>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center; font-size: 0.8rem; color: #666;">
+            Sistem: İkili Evren FRP Referans Belgesi | Zar Havuzu (d6) Sistemi
+        </div>
+    </div>
+
+    <script>
+        // VERİ YAPILARI
+        const attributes = [
+            { id: 'str', name: 'Güç (Strength)' },
+            { id: 'dex', name: 'Çeviklik (Dexterity)' },
+            { id: 'con', name: 'Dayanıklılık (Constitution)' },
+            { id: 'int', name: 'Zeka (Intelligence)' },
+            { id: 'wis', name: 'Bilgelik (Wisdom)' },
+            { id: 'cha', name: 'Karizma (Charisma)' }
+        ];
+
+        const skills = [
+            { id: 'dip', name: 'Diplomasi (Diplomacy)' },
+            { id: 'mar', name: 'Askeri (Martial)' },
+            { id: 'eco', name: 'Ekonomi (Economy)' },
+            { id: 'intri', name: 'Entrika (Intrigue)' },
+            { id: 'lea', name: 'Öğrenim (Learning)' },
+            { id: 'pro', name: 'Savaşçılık (Prowess)' }
+        ];
+
+        const traitsList = [
+            "Seçiniz...", "Hırslı", "Kibirli", "Paranoyak", "Sahtekar", "Dürüst", "Adil", 
+            "Cesur", "Korkak", "Şefkatli", "Kalpsiz", "Cömert", "Açgözlü", 
+            "Ölçülü", "Obur", "İffetli", "Şehvetli", "Çalışkan", "Tembel", 
+            "Sabırlı", "Sabırsız", "Alçakgönüllü", "Bağışlayıcı", "İntikamcı", 
+            "Utangaç", "Sosyal", "İnatçı", "Alaycı", "Bağnaz"
+        ];
+
+        // BAŞLANGIÇ
+        window.onload = () => {
+            generateTable('attributes-body', attributes);
+            generateTable('skills-body', skills);
+            populateTraits();
+        };
+
+        // TABLO OLUŞTURUCU
+        function generateTable(tbodyId, list) {
+            const tbody = document.getElementById(tbodyId);
+            let html = '';
+            list.forEach(item => {
+                html += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td><input type="number" id="${item.id}_val" class="num-input save-data" value="1" min="1" max="5"></td>
+                    <td class="auto-success-col"><input type="number" id="${item.id}_auto" class="num-input save-data" value="0" style="color:#ff5252;"></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // TRAITLERİ DOLDUR
+        function populateTraits() {
+            const selects = document.querySelectorAll('.trait-select');
+            selects.forEach(sel => {
+                traitsList.forEach(trait => {
+                    const opt = document.createElement('option');
+                    opt.value = trait;
+                    opt.innerText = trait;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        // MOD DEĞİŞİMİ (Düşük / Yüksek Fantezi)
+        function toggleMode(mode) {
+            if(mode === 'high') {
+                document.body.classList.add('high-fantasy');
+                alert("Yüksek Fantezi Modu: Otomatik Başarı sütunları açıldı.");
+            } else {
+                document.body.classList.remove('high-fantasy');
+                alert("Düşük Fantezi Modu: Standart 1-5 ölçeği.");
+            }
+        }
+
+        // RESİM YÜKLEME
+        function loadImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('char-img').src = e.target.result;
+                    document.getElementById('char-img').style.display = 'block';
+                    document.getElementById('img-text').style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // --- KAYDET / YÜKLE / DIŞA AKTAR ---
+        function saveJSON() {
+            const data = {
+                mode: document.body.classList.contains('high-fantasy') ? 'high' : 'low',
+                imgSrc: document.getElementById('char-img').src
+            };
+            document.querySelectorAll('.save-data').forEach(el => {
+                data[el.id] = el.value;
+            });
+            const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = (document.getElementById('char-name').value || 'Karakter') + '.json';
+            link.click();
+        }
+
+        function loadJSON() {
+            const file = document.getElementById('file-input').files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.mode === 'high') toggleMode('high'); else toggleMode('low');
+                    if(data.imgSrc && data.imgSrc.length > 20) {
+                        document.getElementById('char-img').src = data.imgSrc;
+                        document.getElementById('char-img').style.display = 'block';
+                        document.getElementById('img-text').style.display = 'none';
+                    }
+                    for(let key in data) {
+                        const el = document.getElementById(key);
+                        if(el) el.value = data[key];
+                    }
+                } catch(err) { alert("Dosya okunamadı."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function exportPNG() {
+            const element = document.getElementById('char-sheet');
+            html2canvas(element, { 
+                scale: 2,
+                backgroundColor: '#1e1e1e' // Arka plan rengini koru
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = (document.getElementById('char-name').value || 'Karakter') + '.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('char-sheet');
+            
+            // HTML2Canvas ile görüntüyü al
+            html2canvas(element, { 
+                scale: 2,
+                backgroundColor: '#1e1e1e'
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth(); // A4 Genişliği (210mm)
+                const pdfHeight = pdf.internal.pageSize.getHeight(); // A4 Yüksekliği (297mm)
+                
+                // Orantılı boyut hesapla
+                const imgWidth = canvas.width;
+                const imgHeight = canvas.height;
+                const ratio = imgWidth / pdfWidth;
+                const scaledHeight = imgHeight / ratio;
+
+                // Eğer tek sayfaya sığmıyorsa (ki muhtemelen sığar ama önlem)
+                if (scaledHeight > pdfHeight) {
+                    // Sığdırmak için ölçekle (veya çok sayfalı yap - basitlik için tek sayfa fit)
+                    const fitRatio = pdfHeight / scaledHeight;
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth * fitRatio, pdfHeight);
+                } else {
+                    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, scaledHeight);
+                }
+                
+                pdf.save((document.getElementById('char-name').value || 'Karakter') + '.pdf');
+            });
+        }
+    </script>
+</body>
+</html>
