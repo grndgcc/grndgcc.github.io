@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Star Wars Karakter Kartı - Final</title>
+    
+    <!-- İkonlar ve Fontlar -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- PDF ve Resim Kütüphaneleri -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        /* TEMEL AYARLAR - Sayfa kesinlikle görünsün diye varsayılan renkler */
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #121212; /* Koyu Arka Plan */
+            color: #ffffff; /* Beyaz Yazı */
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* TEMA DEĞİŞKENLERİ */
+        :root {
+            --theme-color: #2196f3; /* Jedi Mavisi Varsayılan */
+            --theme-glow: rgba(33, 150, 243, 0.5);
+            --panel-bg: #1e1e1e;
+            --border-color: #444;
+        }
+
+        body.sith-mode {
+            --theme-color: #d32f2f; /* Sith Kırmızısı */
+            --theme-glow: rgba(211, 47, 47, 0.5);
+        }
+
+        /* KONTROL PANELİ */
+        .control-panel {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            background: transparent;
+            color: #fff;
+            border: 1px solid var(--theme-color);
+            padding: 8px 15px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--theme-color);
+            color: #000;
+            box-shadow: 0 0 10px var(--theme-glow);
+        }
+
+        /* KARAKTER KARTI */
+        .char-sheet {
+            width: 100%;
+            max-width: 900px;
+            background: var(--panel-bg);
+            border: 2px solid var(--theme-color);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--theme-glow);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--theme-color);
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+
+        /* Grid Yapısı */
+        .grid-header {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .grid-main {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-main { grid-template-columns: 1fr; }
+        }
+
+        /* Girdiler */
+        .input-group { display: flex; flex-direction: column; }
+        label { font-size: 0.8rem; color: #aaa; margin-bottom: 5px; }
+        
+        input, textarea {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--theme-color);
+        }
+
+        /* Stat (Beceri) Satırları */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #252525;
+            padding: 8px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #fff; /* Sol çizgi */
+        }
+        
+        .stat-name { font-weight: bold; width: 80px; }
+        
+        .stat-ctrl { display: flex; align-items: center; gap: 5px; }
+        
+        .stat-btn-small {
+            width: 25px; height: 25px;
+            background: #444; color: #fff;
+            border: none; cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .stat-val {
+            width: 40px; text-align: center;
+            background: transparent; border: none;
+            font-family: 'Orbitron', sans-serif; font-size: 1.2rem;
+            pointer-events: none;
+        }
+
+        .stat-mod {
+            width: 40px; text-align: center;
+            background: #000; color: var(--theme-color);
+            padding: 5px; border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* Sağ Taraf */
+        .combat-grid { display: flex; gap: 15px; margin-bottom: 15px; }
+        .combat-box {
+            flex: 1; text-align: center;
+            border: 1px solid var(--theme-color);
+            padding: 10px; border-radius: 5px;
+            background: rgba(0,0,0,0.3);
+        }
+        .combat-box input {
+            text-align: center; font-size: 1.5rem;
+            background: transparent; border: none;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        textarea { resize: vertical; min-height: 100px; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Kontroller -->
+    <div class="control-panel" data-html2canvas-ignore="true">
+        <button class="btn" onclick="setTheme('jedi')">JEDI</button>
+        <button class="btn" onclick="setTheme('sith')" style="border-color: #d32f2f;">SITH</button>
+        <div style="width: 1px; background: #555; margin: 0 10px;"></div>
+        <button class="btn" onclick="saveJSON()">KAYDET (JSON)</button>
+        <button class="btn" onclick="document.getElementById('fileInput').click()">YÜKLE (JSON)</button>
+        <input type="file" id="fileInput" style="display:none" onchange="loadJSON()" accept=".json">
+        <button class="btn" onclick="savePDF()">PDF İNDİR</button>
+        <button class="btn" onclick="savePNG()">PNG İNDİR</button>
+    </div>
+
+    <!-- Karakter Kağıdı -->
+    <div id="sheet" class="char-sheet">
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="campaign-name" class="save-field" placeholder="Hikaye / Kampanya Adı" 
+                   style="font-size: 1.5rem; text-align: center; background: transparent; border: none; border-bottom: 2px solid var(--theme-color);">
+        </div>
+
+        <div class="grid-header">
+            <div class="input-group"><label>İsim</label><input type="text" id="char-name" class="save-field"></div>
+            <div class="input-group"><label>Soy İsim</label><input type="text" id="char-surname" class="save-field"></div>
+            <div class="input-group"><label>Irk</label><input type="text" id="char-race" class="save-field"></div>
+            <div class="input-group"><label>Seviye</label><input type="number" id="char-level" class="save-field" value="1" oninput="calcAll()"></div>
+        </div>
+
+        <div class="grid-main">
+            <!-- SOL TARAF: BECERİLER -->
+            <div>
+                <h3>BECERİLER</h3>
+                
+                <!-- Güç -->
+                <div class="stat-row">
+                    <div class="stat-name">GÜÇ</div>
+                    <div class="stat-ctrl">
+                        <button class="stat-btn-small" onclick="changeStat('str', -1)">-</button>
+                        <input type="text" id="str" class="stat-val save-field" value="10">
+                        <button class="stat-btn-small" onclick="changeStat('str', 1)">+</button>
+                    </div>
+                    <div class="stat-mod" id="str-mod">+0</div>
+                </div>
+
+                <!-- Çeviklik -->
+                <div class="stat-row">
+                    <div class="stat-name">ÇEVİKLİK</div>
+                    <div class="stat-ctrl">
+                        <button class="stat-btn-small" onclick="changeStat('dex', -1)">-</button>
+                        <input type="text" id="dex" class="stat-val save-field" value="10">
+                        <button class="stat-btn-small" onclick="changeStat('dex', 1)">+</button>
+                    </div>
+                    <div class="stat-mod" id="dex-mod">+0</div>
+                </div>
+
+                <!-- Beden -->
+                <div class="stat-row">
+                    <div class="stat-name">BEDEN</div>
+                    <div class="stat-ctrl">
+                        <button class="stat-btn-small" onclick="changeStat('con', -1)">-</button>
+                        <input type="text" id="con" class="stat-val save-field" value="10">
+                        <button class="stat-btn-small" onclick="changeStat('con', 1)">+</button>
+                    </div>
+                    <div class="stat-mod" id="con-mod">+0</div>
+                </div>
+
+                <!-- Zeka -->
+                <div class="stat-row">
+                    <div class="stat-name">ZEKA</div>
+                    <div class="stat-ctrl">
+                        <button class="stat-btn-small" onclick="changeStat('int', -1)">-</button>
+                        <input type="text" id="int" class="stat-val save-field" value="10">
+                        <button class="stat-btn-small" onclick="changeStat('int', 1)">+</button>
+                    </div>
+                    <div class="stat-mod" id="int-mod">+0</div>
+                </div>
+
+                <!-- Bilgelik -->
+                <div class="stat-row">
+                    <div class="stat-name">BİLGELİK</div>
+                    <div class="stat-ctrl">
+                        <button class="stat-btn-small" onclick="changeStat('wis', -1)">-</button>
+                        <input type="text" id="wis" class="stat-val save-field" value="10">
+                        <button class="stat-btn-small" onclick="changeStat('wis', 1)">+</button>
+                    </div>
+                    <div class="stat-mod" id="wis-mod">+0</div>
+                </div>
+
+                <!-- Karizma -->
+                <div class="stat-row">
+                    <div class="stat-name">KARİZMA</div>
+                    <div class="stat-ctrl">
+                        <button class="stat-btn-small" onclick="changeStat('cha', -1)">-</button>
+                        <input type="text" id="cha" class="stat-val save-field" value="10">
+                        <button class="stat-btn-small" onclick="changeStat('cha', 1)">+</button>
+                    </div>
+                    <div class="stat-mod" id="cha-mod">+0</div>
+                </div>
+
+                <div class="input-group" style="margin-top: 20px;">
+                    <label>Pasif Farkındalık</label>
+                    <input type="number" id="passive" class="save-field">
+                </div>
+            </div>
+
+            <!-- SAĞ TARAF: DETAYLAR -->
+            <div>
+                <div class="combat-grid">
+                    <div class="combat-box">
+                        <label>CAN (HP)</label>
+                        <input type="text" id="hp" class="save-field">
+                    </div>
+                    <div class="combat-box">
+                        <label>ZIRH SINIFI (AC)</label>
+                        <input type="text" id="ac" class="save-field">
+                    </div>
+                </div>
+
+                <div style="background:#000; padding:10px; margin-bottom:15px; border:1px dashed #555; display:flex; justify-content:space-between;">
+                    <span>Yeterlilik Bonusu</span>
+                    <span id="prof-bonus" style="color:var(--theme-color); font-weight:bold; font-size:1.2rem;">+0</span>
+                </div>
+
+                <div class="input-group">
+                    <h3>FORCE POWERS</h3>
+                    <textarea id="force" class="save-field"></textarea>
+                </div>
+
+                <div class="input-group" style="margin-top:15px;">
+                    <h3>ENVANTER</h3>
+                    <textarea id="inventory" class="save-field"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div style="font-size:0.8rem; color:#666; margin-top:20px; border-top:1px solid #333; padding-top:5px;">
+            Sistem: Başlangıç 28 puan. Max stat 30.
+        </div>
+    </div>
+
+    <script>
+        // --- HESAPLAMALAR ---
+        function changeStat(id, amount) {
+            const el = document.getElementById(id);
+            let val = parseInt(el.value) || 10;
+            val += amount;
+            if(val < 8) val = 8;
+            if(val > 30) val = 30;
+            el.value = val;
+            calcAll();
+        }
+
+        function calcAll() {
+            // Stat Modifier
+            ['str','dex','con','int','wis','cha'].forEach(id => {
+                const val = parseInt(document.getElementById(id).value) || 10;
+                const mod = Math.floor((val - 10) / 2);
+                document.getElementById(id + '-mod').innerText = (mod >= 0 ? '+' : '') + mod;
+            });
+
+            // Proficiency
+            const lvl = parseInt(document.getElementById('char-level').value) || 1;
+            const prof = Math.floor(lvl / 2);
+            document.getElementById('prof-bonus').innerText = '+' + prof;
+        }
+
+        // Sayfa açılınca hesapla
+        window.onload = calcAll;
+
+        // --- TEMA ---
+        function setTheme(mode) {
+            if(mode === 'sith') document.body.classList.add('sith-mode');
+            else document.body.classList.remove('sith-mode');
+        }
+
+        // --- KAYDET / YÜKLE ---
+        function saveJSON() {
+            const data = { theme: document.body.classList.contains('sith-mode') ? 'sith' : 'jedi' };
+            document.querySelectorAll('.save-field').forEach(el => {
+                data[el.id] = el.value;
+            });
+            
+            const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = (data['char-name'] || 'karakter') + '.json';
+            a.click();
+        }
+
+        function loadJSON() {
+            const file = document.getElementById('fileInput').files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    setTheme(data.theme);
+                    for(let key in data) {
+                        if(key === 'theme') continue;
+                        const el = document.getElementById(key);
+                        if(el) el.value = data[key];
+                    }
+                    calcAll();
+                } catch(err) { alert('Dosya hatalı!'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- PDF / PNG ---
+        function savePNG() {
+            html2canvas(document.getElementById('sheet'), {scale:2, backgroundColor:'#1e1e1e'}).then(canvas => {
+                const a = document.createElement('a');
+                a.download = 'karakter.png';
+                a.href = canvas.toDataURL();
+                a.click();
+            });
+        }
+
+        function savePDF() {
+            const { jsPDF } = window.jspdf;
+            html2canvas(document.getElementById('sheet'), {scale:2, backgroundColor:'#1e1e1e'}).then(canvas => {
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const img = canvas.toDataURL('image/jpeg');
+                const props = pdf.getImageProperties(img);
+                const pdfW = pdf.internal.pageSize.getWidth();
+                const pdfH = (props.height * pdfW) / props.width;
+                pdf.addImage(img, 'JPEG', 0, 0, pdfW, pdfH);
+                pdf.save('karakter.pdf');
+            });
+        }
+    </script>
+</body>
+</html>
