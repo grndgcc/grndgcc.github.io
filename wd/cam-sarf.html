@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kromatografi Vialleri ve Cam Sarf - LabTedarik</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome İkonları -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --glass-teal: #20c997; /* Cam ürünleri temsil eden cam göbeği rengi */
+            --dark-blue: #084298;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fff;
+        }
+
+        /* Navbar */
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .nav-link { font-weight: 500; }
+        .nav-link:hover { color: var(--primary-color) !important; }
+
+        /* Header - Cam ve Parlaklık Hissi */
+        .page-header {
+            background: linear-gradient(rgba(13, 110, 253, 0.8), rgba(32, 201, 151, 0.7)), url('https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 80px 0;
+            position: relative;
+        }
+        
+        /* Marka Logoları Alanı (Temsili Metin) */
+        .brand-strip {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            padding: 15px 0;
+        }
+        .brand-name {
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin: 0 20px;
+        }
+
+        /* Ürün Kartları */
+        .vial-card {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            height: 100%;
+            background: #fff;
+        }
+        .vial-card:hover {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+            border-color: var(--glass-teal);
+        }
+        .card-img-wrapper {
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fcfcfc;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 20px;
+        }
+        .card-img-wrapper img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        .glass-type-badge {
+            font-size: 0.75rem;
+            background-color: #e3f2fd;
+            color: var(--dark-blue);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        /* Teknik Tablo */
+        .specs-table th {
+            background-color: var(--glass-teal);
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Bilgi Kutusu */
+        .info-box {
+            border-left: 4px solid var(--glass-teal);
+            background-color: #f0fdf9;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+        footer a { color: #adb5bd; text-decoration: none; }
+        footer a:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigasyon Menüsü -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="index.html">
+                <i class="fa-solid fa-flask"></i> LabTedarik
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="test-kitleri.html">Test Kitleri</a></li>
+                    <li class="nav-item"><a class="nav-link" href="iac.html">IAC (Kolonlar)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="plastik-sarf.html">Plastik Sarf</a></li>
+                    <li class="nav-item"><a class="nav-link active text-primary" href="cam-sarf.html">Cam Sarf</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-primary text-white ms-2 px-3" href="#iletisim">İletişim</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="page-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold">Kromatografi Vialleri ve Cam Sarfları</h1>
+            <p class="lead text-light">Aijiren ve Biocomma Kalitesiyle Analitik Hassasiyet</p>
+        </div>
+    </header>
+
+    <!-- Marka Şeridi -->
+    <div class="brand-strip text-center">
+        <div class="container d-flex justify-content-center align-items-center">
+            <span class="brand-name">Aijiren Tech</span>
+            <span class="text-muted mx-3">|</span>
+            <span class="brand-name" style="color: #0056b3;">biocomma</span>
+        </div>
+    </div>
+
+    <!-- Giriş ve Cam Kalitesi -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <h2 class="fw-bold mb-4 text-dark">USP Tip 1 Borosilikat Cam Güvencesi</h2>
+                    <p class="text-secondary fs-5">
+                        HPLC, GC ve MS analizlerinizde numune bütünlüğünü korumak en önemli önceliğimizdir. 
+                        Stoklarımızda bulunan <strong>Aijiren</strong> ve <strong>Biocomma</strong> marka vialler, 
+                        düşük genleşme katsayısına (33 veya 51 expansion) sahip, kimyasal direnci yüksek 1. sınıf hidrolitik camdan üretilmektedir.
+                    </p>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fa-solid fa-check-double text-success fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold">Yüksek Kimyasal Direnç</h6>
+                                    <p class="small text-muted">Asidik, bazik ve organik solventlere karşı maksimum dayanıklılık.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-start mb-3">
+                                <i class="fa-solid fa-robot text-primary fs-4 me-3 mt-1"></i>
+                                <div>
+                                    <h6 class="fw-bold">Otomasyon Uyumu</h6>
+                                    <p class="small text-muted">Agilent, Shimadzu, Waters ve Thermo autosampler cihazları ile %100 uyum.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="info-box shadow-sm">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-lightbulb text-warning me-2"></i>Neden Amber Vial?</h5>
+                        <p class="mb-0">Işığa duyarlı (fotosensitif) numuneleriniz için UV ışınlarını engelleyen Amber (kahverengi) cam viallerimizi tercih ederek, numune bozulmasının önüne geçebilirsiniz.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ürün Kategorileri -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h3 class="fw-bold text-center mb-5">Vial Çeşitlerimiz</h3>
+            
+            <div class="row g-4">
+                
+                <!-- 2ml Vida Kapaklı (9-425) -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="vial-card">
+                        <div class="card-img-wrapper">
+                            <!-- Temsili HPLC Vial -->
+                            <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="2ml HPLC Vial">
+                        </div>
+                        <div class="card-body">
+                            <span class="glass-type-badge mb-2 d-inline-block">HPLC / GC Standardı</span>
+                            <h5 class="card-title fw-bold">2ml Autosampler Vial (9-425)</h5>
+                            <p class="card-text small text-muted">En yaygın kullanılan geniş ağızlı vida kapaklı vialler. Şeffaf ve Amber seçenekleri.</p>
+                            <ul class="list-unstyled small text-secondary">
+                                <li><i class="fa-solid fa-angle-right me-2"></i>9mm Vida Dişli</li>
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Yazım Alanlı / Alansız</li>
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Aijiren & Biocomma</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Headspace Vialler -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="vial-card">
+                        <div class="card-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="Headspace Vial">
+                        </div>
+                        <div class="card-body">
+                            <span class="glass-type-badge mb-2 d-inline-block">Gaz Kromatografisi</span>
+                            <h5 class="card-title fw-bold">Headspace Vialleri (10ml / 20ml)</h5>
+                            <p class="card-text small text-muted">Uçucu bileşen analizi için basınca dayanıklı, eğimli (beveled) boyun tasarımı.</p>
+                            <ul class="list-unstyled small text-secondary">
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Crimp (Kıvrık) veya Vida Kapak</li>
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Manyetik Kapak Uyumlu</li>
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Yüksek Sıcaklık Dayanımı</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EPA / VOA Vialler -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="vial-card">
+                        <div class="card-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1530973428-5bf2db2e4d71?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="EPA Vial">
+                        </div>
+                        <div class="card-body">
+                            <span class="glass-type-badge mb-2 d-inline-block">Su / Çevre Analizi</span>
+                            <h5 class="card-title fw-bold">EPA / VOA Saklama Vialleri</h5>
+                            <p class="card-text small text-muted">Su numuneleri ve çevresel analizler için 20ml, 40ml ve 60ml saklama vialleri.</p>
+                            <ul class="list-unstyled small text-secondary">
+                                <li><i class="fa-solid fa-angle-right me-2"></i>TOC Analizine Uygun</li>
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Toz Geçirmez Kapak</li>
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Şeffaf / Amber</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- İnsertler (Micro-Insert) -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="vial-card">
+                        <div class="card-img-wrapper">
+                            <img src="https://images.unsplash.com/photo-1620325419616-e5746766020c?ixlib=rb-1.2.1&auto=format&fit=crop&w=400&q=80" alt="Vial Insert">
+                        </div>
+                        <div class="card-body">
+                            <span class="glass-type-badge mb-2 d-inline-block">Mikro Hacim</span>
+                            <h5 class="card-title fw-bold">Cam İnsertler (Micro-Inserts)</h5>
+                            <p class="card-text small text-muted">Çok küçük hacimli numunelerin (150µl - 300µl) 2ml vial içinde analizi için.</p>
+                            <ul class="list-unstyled small text-secondary">
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Konik Tabanlı</li>
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Polimer Ayaklı Yaylı</li>
+                                <li><i class="fa-solid fa-angle-right me-2"></i>Mükemmel Geri Kazanım</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Septum ve Kapak Teknolojisi -->
+    <section class="py-5">
+        <div class="container">
+            <h3 class="fw-bold mb-4">Kapak ve Septum Seçim Rehberi</h3>
+            <div class="row">
+                <div class="col-lg-8">
+                    <p class="text-muted">Aijiren ve Biocomma, enjeksiyon sırasında iğne ucunun zarar görmemesi ve "coring" (parça kopma) oluşmaması için en kaliteli PTFE/Silikon septumları kullanır. "Pre-bonded" kapaklarımızda septum kapağa yapışıktır, böylece analiz sırasında düşmez.</p>
+                    
+                    <div class="table-responsive mt-3">
+                        <table class="table table-bordered specs-table shadow-sm">
+                            <thead>
+                                <tr>
+                                    <th>Septum Tipi</th>
+                                    <th>Malzeme</th>
+                                    <th>Özellikler & Uygulama</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="fw-bold">PTFE / Silikon</td>
+                                    <td>Beyaz PTFE / Kırmızı Silikon</td>
+                                    <td>Standart HPLC/GC analizleri. Yüksek tekrar kapanabilirlik (Resealability).</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Pre-Slit (Yarıklı)</td>
+                                    <td>Yarıklı PTFE / Silikon</td>
+                                    <td>İnce iğneler ve vakum oluşumunu engellemek için. Yüksek hacimli enjeksiyonlar.</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Bonded (Yapışık)</td>
+                                    <td>Kapağa Entegre</td>
+                                    <td>Septumun kapağın içine düşmesini engeller. Otomasyon için en güvenli seçim.</td>
+                                </tr>
+                                <tr>
+                                    <td class="fw-bold">Manyetik Kapak</td>
+                                    <td>Metal Alaşım</td>
+                                    <td>Headspace analizlerinde manyetik taşıyıcı kol ile çalışan cihazlar için (CTC PAL vb).</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card bg-dark text-white h-100">
+                        <div class="card-body p-4 d-flex flex-column justify-content-center">
+                            <h4 class="mb-3"><i class="fa-solid fa-file-pdf me-2"></i>Katalog İndirin</h4>
+                            <p class="opacity-75">Aijiren ve Biocomma'nın tüm vial, kapak, septum ve crimper (kapama pensesi) çeşitlerini içeren detaylı kataloğumuza göz atın.</p>
+                            <button class="btn btn-outline-info btn-lg mt-3">PDF İndir</button>
+                            <hr class="border-secondary my-4">
+                            <h5 class="mb-2">Numune Talebi</h5>
+                            <p class="small opacity-75">Cihazınızla uyumluluğu test etmek için ücretsiz numune vial paketi isteyebilirsiniz.</p>
+                            <a href="#iletisim" class="btn btn-light text-dark fw-bold">Numune İste</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- İletişim / Footer -->
+    <footer id="iletisim">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">LabTedarik</h5>
+                    <p class="small">Aijiren ve Biocomma distribütörü olarak, kromatografi analizleriniz için en saf cam sarf malzemelerini tedarik ediyoruz.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Hızlı Linkler</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html">Ana Sayfa</a></li>
+                        <li><a href="test-kitleri.html">Test Kitleri</a></li>
+                        <li><a href="iac.html">IAC Ürünleri</a></li>
+                        <li><a href="cam-sarf.html">Cam Sarf Malzemeleri</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">İletişim</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="fa-solid fa-location-dot me-2"></i> İstanbul, Türkiye</li>
+                        <li class="mb-2"><i class="fa-solid fa-phone me-2"></i> +90 (212) 000 00 00</li>
+                        <li class="mb-2"><i class="fa-solid fa-envelope me-2"></i> info@labtedarik.com</li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="#" class="me-3"><i class="fa-brands fa-linkedin fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fa-brands fa-instagram fa-lg"></i></a>
+                        <a href="#"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center small">
+                &copy; 2023 LabTedarik. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

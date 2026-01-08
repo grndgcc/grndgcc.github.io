@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Standard Diagnostics Allerjen Kitleri - LabTedarik</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome İkonları -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --gsd-color: #fca311; /* Gold Standard Diagnostics temsili altın/turuncu tonu */
+            --header-bg: #14213d;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* Navbar */
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .nav-link { font-weight: 500; }
+        .nav-link:hover { color: var(--primary-color) !important; }
+
+        /* Özelleştirilmiş Header */
+        .page-header {
+            background: linear-gradient(rgba(20, 33, 61, 0.9), rgba(20, 33, 61, 0.8)), url('https://images.unsplash.com/photo-1606914501449-1a96e8121287?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 70px 0;
+            border-bottom: 5px solid var(--gsd-color);
+        }
+
+        /* Ürün Kategorileri Kartları */
+        .allergen-card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+            background: white;
+            height: 100%;
+        }
+        .allergen-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .allergen-icon {
+            font-size: 2.5rem;
+            color: var(--gsd-color);
+            margin-bottom: 15px;
+        }
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Teknik Tablo */
+        .spec-table thead {
+            background-color: #14213d;
+            color: white;
+        }
+        .spec-table th, .spec-table td {
+            vertical-align: middle;
+            padding: 12px 15px;
+        }
+        .badge-method {
+            background-color: #e9ecef;
+            color: #333;
+            border: 1px solid #ced4da;
+            font-weight: 500;
+        }
+
+        /* Marka Vurgusu */
+        .gsd-badge {
+            background-color: var(--gsd-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+        footer a { color: #adb5bd; text-decoration: none; }
+        footer a:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigasyon Menüsü -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="index.html">
+                <i class="fa-solid fa-flask"></i> LabTedarik
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link active text-primary" href="test-kitleri.html">Test Kitleri</a></li>
+                    <li class="nav-item"><a class="nav-link" href="iac.html">IAC (Kolonlar)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="plastik-sarf.html">Plastik Sarf</a></li>
+                    <li class="nav-item"><a class="nav-link" href="cam-sarf.html">Cam Sarf</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-primary text-white ms-2 px-3" href="#iletisim">İletişim</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Alanı -->
+    <header class="page-header text-center">
+        <div class="container">
+            <span class="gsd-badge">GOLD STANDARD DIAGNOSTICS</span>
+            <h1 class="display-4 fw-bold mt-2">Gıda Allerjen ELISA Kitleri</h1>
+            <p class="lead text-light opacity-75">Hassas, Güvenilir ve AOAC Standartlarında Kantitatif Analiz</p>
+        </div>
+    </header>
+
+    <!-- Giriş Bölümü -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h2 class="fw-bold mb-4">Laboratuvarınız İçin Altın Standart</h2>
+                    <p class="text-secondary fs-5">
+                        Gold Standard Diagnostics, gıda endüstrisi için geliştirdiği kapsamlı immünoassay (ELISA) test kitleri ile alerjen yönetiminde liderdir. Çapraz reaksiyonların minimize edildiği, yüksek geri kazanımlı bu kitler, ham madde ve son ürün kontrolleri için idealdir.
+                    </p>
+                    <ul class="list-unstyled mt-4">
+                        <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> Uluslararası Validasyonlar (AOAC-RI, Simpson)</li>
+                        <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> Otomasyon Sistemlerine (ThunderBolt®) Tam Uyum</li>
+                        <li class="mb-2"><i class="fa-solid fa-circle-check text-success me-2"></i> Spiking Solüsyonları ile Kolay Doğrulama</li>
+                    </ul>
+                </div>
+                <div class="col-lg-6">
+                    <div class="row g-3">
+                        <!-- Özellik Kartları -->
+                        <div class="col-sm-6">
+                            <div class="p-4 bg-white rounded shadow-sm text-center border">
+                                <i class="fa-solid fa-wheat-awn text-warning fa-2x mb-3"></i>
+                                <h6 class="fw-bold">Gluten Analizi</h6>
+                                <p class="small text-muted mb-0">R5 Antikor teknolojisi ile Codex Alimentarius uyumlu.</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-4 bg-white rounded shadow-sm text-center border">
+                                <i class="fa-solid fa-cow text-warning fa-2x mb-3"></i>
+                                <h6 class="fw-bold">Süt & Yumurta</h6>
+                                <p class="small text-muted mb-0">Isıl işlem görmüş ürünlerde bile yüksek hassasiyet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ürün Grupları Grid -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h3 class="text-center fw-bold mb-5">Öne Çıkan Allerjen Grupları</h3>
+            <div class="row g-4">
+                
+                <!-- Gluten -->
+                <div class="col-md-4">
+                    <div class="allergen-card text-center">
+                        <div class="card-body">
+                            <div class="allergen-icon"><i class="fa-solid fa-bread-slice"></i></div>
+                            <h4 class="card-title fw-bold">Gluten / Gliadin</h4>
+                            <p class="card-text text-muted">Çölyak hastaları için güvenli gıda üretiminde kritik önem taşıyan, R5 monoklonal antikor bazlı kitler.</p>
+                            <span class="badge bg-primary">Kantitatif</span>
+                            <span class="badge bg-secondary">Hızlı Test</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kuruyemişler -->
+                <div class="col-md-4">
+                    <div class="allergen-card text-center">
+                        <div class="card-body">
+                            <div class="allergen-icon"><i class="fa-solid fa-bowl-food"></i></div>
+                            <h4 class="card-title fw-bold">Kuruyemişler</h4>
+                            <p class="card-text text-muted">Yer fıstığı, Fındık, Badem, Ceviz, Kaju, Antep Fıstığı ve daha fazlası için spesifik kitler.</p>
+                            <span class="badge bg-primary">Yüksek Spesifite</span>
+                            <span class="badge bg-secondary">Düşük LOD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diğer Allerjenler -->
+                <div class="col-md-4">
+                    <div class="allergen-card text-center">
+                        <div class="card-body">
+                            <div class="allergen-icon"><i class="fa-solid fa-seedling"></i></div>
+                            <h4 class="card-title fw-bold">Diğer Allerjenler</h4>
+                            <p class="card-text text-muted">Soya, Hardal, Susam, Kereviz, Balık ve Kabuklu Deniz Ürünleri (Crustacea) için çözümler.</p>
+                            <span class="badge bg-primary">Geniş Panel</span>
+                            <span class="badge bg-secondary">AB Regülasyonu</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Detaylı Teknik Tablo -->
+    <section class="py-5">
+        <div class="container">
+            <h3 class="fw-bold mb-4">Teknik Özellikler ve Ürün Listesi</h3>
+            <div class="alert alert-info border-0 shadow-sm mb-4">
+                <i class="fa-solid fa-info-circle me-2"></i> Tüm ELISA kitlerimiz 96 kuyucuklu (wells) formatta olup, <strong>ThunderBolt®</strong> otomasyon sistemine uyumludur.
+            </div>
+
+            <div class="table-responsive shadow-sm rounded">
+                <table class="table table-hover spec-table mb-0 bg-white">
+                    <thead>
+                        <tr>
+                            <th>Ürün Adı (ELISA)</th>
+                            <th>Tespit Limiti (LOD)</th>
+                            <th>Ölçüm Aralığı (Range)</th>
+                            <th>İnkübasyon Süresi</th>
+                            <th>Katalog No</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Gluten -->
+                        <tr>
+                            <td class="fw-bold"><i class="fa-solid fa-wheat-awn text-muted me-2"></i>Gluten R5 ELISA</td>
+                            <td>2 ppm</td>
+                            <td>2.5 - 80 ppm</td>
+                            <td>20 + 20 + 20 dk</td>
+                            <td>GSD-GLU-01</td>
+                        </tr>
+                        <!-- Fıstık -->
+                        <tr>
+                            <td class="fw-bold"><i class="fa-solid fa-cookie text-muted me-2"></i>Peanut (Yer Fıstığı) ELISA</td>
+                            <td>0.5 ppm</td>
+                            <td>1 - 40 ppm</td>
+                            <td>20 + 20 + 20 dk</td>
+                            <td>GSD-PEA-02</td>
+                        </tr>
+                        <!-- Fındık -->
+                        <tr>
+                            <td class="fw-bold"><i class="fa-solid fa-circle text-muted me-2"></i>Hazelnut (Fındık) ELISA</td>
+                            <td>1.0 ppm</td>
+                            <td>2 - 60 ppm</td>
+                            <td>20 + 20 + 20 dk</td>
+                            <td>GSD-HAZ-03</td>
+                        </tr>
+                        <!-- Süt -->
+                        <tr>
+                            <td class="fw-bold"><i class="fa-solid fa-bottle-droplet text-muted me-2"></i>Beta-Lactoglobulin (Süt)</td>
+                            <td>0.1 ppm</td>
+                            <td>0.5 - 15 ppm</td>
+                            <td>20 + 20 + 20 dk</td>
+                            <td>GSD-MLK-04</td>
+                        </tr>
+                        <!-- Yumurta -->
+                        <tr>
+                            <td class="fw-bold"><i class="fa-solid fa-egg text-muted me-2"></i>Egg White (Yumurta Akı)</td>
+                            <td>0.2 ppm</td>
+                            <td>0.5 - 25 ppm</td>
+                            <td>20 + 20 + 20 dk</td>
+                            <td>GSD-EGG-05</td>
+                        </tr>
+                        <!-- Soya -->
+                        <tr>
+                            <td class="fw-bold"><i class="fa-solid fa-leaf text-muted me-2"></i>Soy (Soya) ELISA</td>
+                            <td>2 ppm</td>
+                            <td>5 - 100 ppm</td>
+                            <td>20 + 20 + 20 dk</td>
+                            <td>GSD-SOY-06</td>
+                        </tr>
+                        <!-- Badem -->
+                        <tr>
+                            <td class="fw-bold"><i class="fa-solid fa-cookie-bite text-muted me-2"></i>Almond (Badem) ELISA</td>
+                            <td>0.5 ppm</td>
+                            <td>1 - 40 ppm</td>
+                            <td>20 + 20 + 20 dk</td>
+                            <td>GSD-ALM-07</td>
+                        </tr>
+                        <!-- Hardal -->
+                        <tr>
+                            <td class="fw-bold"><i class="fa-solid fa-pepper-hot text-muted me-2"></i>Mustard (Hardal) ELISA</td>
+                            <td>1 ppm</td>
+                            <td>2 - 60 ppm</td>
+                            <td>20 + 20 + 20 dk</td>
+                            <td>GSD-MUS-08</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="text-center mt-5">
+                <p class="text-muted mb-3">Aradığınız spesifik allerjeni listede bulamadınız mı?</p>
+                <a href="#iletisim" class="btn btn-primary btn-lg px-5">Tüm Listeyi İsteyin</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- İletişim / Footer -->
+    <footer id="iletisim">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">LabTedarik</h5>
+                    <p class="small">Gold Standard Diagnostics Türkiye yetkili satıcısı olarak, gıda güvenliği analizlerinizde yanınızdayız.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Hızlı Linkler</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html">Ana Sayfa</a></li>
+                        <li><a href="test-kitleri.html">Test Kitleri</a></li>
+                        <li><a href="iac.html">IAC Ürünleri</a></li>
+                        <li><a href="plastik-sarf.html">Plastik Sarf Malzemeleri</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">İletişim</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="fa-solid fa-location-dot me-2"></i> İstanbul, Türkiye</li>
+                        <li class="mb-2"><i class="fa-solid fa-phone me-2"></i> +90 (212) 000 00 00</li>
+                        <li class="mb-2"><i class="fa-solid fa-envelope me-2"></i> info@labtedarik.com</li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="#" class="me-3"><i class="fa-brands fa-linkedin fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fa-brands fa-instagram fa-lg"></i></a>
+                        <a href="#"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center small">
+                &copy; 2023 LabTedarik. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

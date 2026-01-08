@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabTedarik - Laboratuvar Çözümleri</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome İkonları -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --accent-color: #0dcaf0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Navbar Özelleştirme */
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+        .nav-link {
+            font-weight: 500;
+        }
+        .nav-link:hover {
+            color: var(--primary-color) !important;
+        }
+
+        /* Hero Bölümü (Ana Banner) */
+        .hero-section {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 150px 0;
+            text-align: center;
+        }
+
+        /* Kart Özelleştirmeleri */
+        .category-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: none;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+        }
+        .category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+        }
+        .card-title {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Markalar Bölümü */
+        .partners-section {
+            background-color: #f8f9fa;
+            padding: 50px 0;
+        }
+        .partner-logo {
+            filter: grayscale(100%);
+            opacity: 0.6;
+            transition: all 0.3s;
+            max-height: 60px;
+            margin: 20px;
+        }
+        .partner-logo:hover {
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 40px 0;
+        }
+        footer a {
+            color: #adb5bd;
+            text-decoration: none;
+        }
+        footer a:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigasyon Menüsü -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="index.html">
+                <i class="fa-solid fa-flask"></i> LabTedarik
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.html">Ana Sayfa</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="test-kitleri.html">Test Kitleri</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="iac.html">IAC (Kolonlar)</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="plastik-sarf.html">Plastik Sarf</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="cam-sarf.html">Cam Sarf</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary text-white ms-2 px-3" href="#iletisim">İletişim</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Alanı -->
+    <header class="hero-section">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-4">Laboratuvarınız İçin Güvenilir Çözümler</h1>
+            <p class="lead mb-5">Analitik standartlardan sarf malzemelerine, test kitlerinden otomasyon sistemlerine kadar ihtiyacınız olan her şey tek bir adreste.</p>
+            <a href="#urunler" class="btn btn-primary btn-lg px-5 me-2">Ürünleri İncele</a>
+            <a href="#iletisim" class="btn btn-outline-light btn-lg px-5">Bize Ulaşın</a>
+        </div>
+    </header>
+
+    <!-- Hakkımızda Kısa -->
+    <section class="py-5">
+        <div class="container text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h2 class="fw-bold mb-3">Bilimsel Analizleriniz İçin Global Kalite</h2>
+                    <p class="text-muted">
+                        A-2-S, Biocomma, Gold Standard Diagnostics ve Aokin gibi dünya lideri markaların Türkiye distribütörü olarak; 
+                        gıda güvenliği, klinik teşhis ve laboratuvar analizlerinizde en yüksek hassasiyeti ve kaliteyi sunuyoruz.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ürün Kategorileri -->
+    <section id="urunler" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center fw-bold mb-5">Ürün Gruplarımız</h2>
+            <div class="row g-4">
+                
+                <!-- Test Kitleri -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card category-card shadow-sm">
+                        <!-- Görsel Temsilidir (Placehold) -->
+                        <img src="https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=400" class="card-img-top" alt="Test Kitleri">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">Test Kitleri</h5>
+                            <p class="card-text small text-muted">ELISA kitleri, mikotoksin analizleri, hızlı testler ve Gold Standard Diagnostics & Aokin çözümleri.</p>
+                            <a href="test-kitleri.html" class="btn btn-outline-primary mt-auto">İncele <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IAC -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card category-card shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&q=80&w=400" class="card-img-top" alt="IAC">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">IAC (İmmünoafinite)</h5>
+                            <p class="card-text small text-muted">Aokin ve Biocomma teknolojisi ile yüksek geri kazanımlı temizleme kolonları ve SPE kartuşları.</p>
+                            <a href="iac.html" class="btn btn-outline-primary mt-auto">İncele <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plastik Sarf -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card category-card shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&q=80&w=400" class="card-img-top" alt="Plastik Sarf">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">Plastik Sarf</h5>
+                            <p class="card-text small text-muted">Pipet uçları, santrifüj tüpleri, petri kutuları ve tüm Biocomma plastik laboratuvar gereçleri.</p>
+                            <a href="plastik-sarf.html" class="btn btn-outline-primary mt-auto">İncele <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cam Sarf -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card category-card shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1620325419616-e5746766020c?auto=format&fit=crop&q=80&w=400" class="card-img-top" alt="Cam Sarf">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">Cam Sarf</h5>
+                            <p class="card-text small text-muted">A-2-S standartlarında vialler, balon joje, beher ve hassas analiz için cam malzemeler.</p>
+                            <a href="cam-sarf.html" class="btn btn-outline-primary mt-auto">İncele <i class="fa-solid fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Partnerler -->
+    <section class="partners-section">
+        <div class="container text-center">
+            <h3 class="mb-4">Çözüm Ortaklarımız</h3>
+            <div class="d-flex flex-wrap justify-content-center align-items-center">
+                <!-- Logolar yerine metin temsili kullanılmıştır. Gerçek logoları buraya img tagı ile ekleyebilirsiniz -->
+                <h4 class="partner-logo text-muted mx-4">A-2-S</h4>
+                <h4 class="partner-logo text-muted mx-4">BIOCOMMA</h4>
+                <h4 class="partner-logo text-muted mx-4">GOLD STANDARD DIAGNOSTICS</h4>
+                <h4 class="partner-logo text-muted mx-4">AOKIN</h4>
+            </div>
+        </div>
+    </section>
+
+    <!-- İletişim / Footer -->
+    <footer id="iletisim">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">LabTedarik</h5>
+                    <p class="small">Laboratuvar analizleriniz için dünya standartlarında ürünleri size ulaştırıyoruz. Kalite ve güvenilirlik önceliğimizdir.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Hızlı Linkler</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html">Ana Sayfa</a></li>
+                        <li><a href="test-kitleri.html">Test Kitleri</a></li>
+                        <li><a href="iac.html">IAC Ürünleri</a></li>
+                        <li><a href="plastik-sarf.html">Plastik Sarf Malzemeleri</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">İletişim</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="fa-solid fa-location-dot me-2"></i> İstanbul, Türkiye</li>
+                        <li class="mb-2"><i class="fa-solid fa-phone me-2"></i> +90 (212) 000 00 00</li>
+                        <li class="mb-2"><i class="fa-solid fa-envelope me-2"></i> info@labtedarik.com</li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="#" class="me-3"><i class="fa-brands fa-linkedin fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fa-brands fa-instagram fa-lg"></i></a>
+                        <a href="#"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center small">
+                &copy; 2023 LabTedarik. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

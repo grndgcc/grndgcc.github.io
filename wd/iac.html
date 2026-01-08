@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geniş Kapsamlı IAC Ürün Kataloğu - LabTedarik</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome İkonları -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --aokin-color: #dc3545; /* Aokin kırmızısı temsili */
+            --biocomma-color: #0d6efd; /* Biocomma mavisi temsili */
+            --bg-light: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #fcfcfc;
+        }
+
+        /* Navbar */
+        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .nav-link { font-weight: 500; }
+        .nav-link:hover { color: var(--primary-color) !important; }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1579154204601-01588f351e67?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 60px 0;
+        }
+
+        /* Tab Menü Tasarımı */
+        .nav-pills .nav-link {
+            color: #555;
+            background-color: white;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+        }
+        
+        /* Tablo Tasarımı */
+        .tech-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .tech-table thead {
+            background-color: #f1f3f5;
+        }
+        .tech-table th {
+            font-weight: 600;
+            color: #333;
+        }
+        .tech-table td {
+            vertical-align: middle;
+        }
+
+        /* Marka Başlıkları */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        .brand-logo-text {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-right: 15px;
+        }
+
+        /* Teknik Kartlar */
+        .spec-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+        footer a { color: #adb5bd; text-decoration: none; }
+        footer a:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigasyon Menüsü -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="index.html">
+                <i class="fa-solid fa-flask"></i> LabTedarik
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Ana Sayfa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="test-kitleri.html">Test Kitleri</a></li>
+                    <li class="nav-item"><a class="nav-link active text-primary" href="iac.html">IAC (Kolonlar)</a></li>
+                    <li class="nav-item"><a class="nav-link" href="plastik-sarf.html">Plastik Sarf</a></li>
+                    <li class="nav-item"><a class="nav-link" href="cam-sarf.html">Cam Sarf</a></li>
+                    <li class="nav-item"><a class="nav-link btn btn-primary text-white ms-2 px-3" href="#iletisim">İletişim</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sayfa Başlığı -->
+    <header class="page-header text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold">Profesyonel İmmünoafinite Kolonları (IAC)</h1>
+            <p class="lead text-light">Aokin ve Biocomma'nın Dünya Standartlarındaki Tüm Mikotoksin Temizleme Çözümleri</p>
+        </div>
+    </header>
+
+    <!-- Marka Seçim Sekmeleri -->
+    <section class="py-5">
+        <div class="container">
+            
+            <div class="row justify-content-center mb-5">
+                <div class="col-md-8 text-center">
+                    <ul class="nav nav-pills justify-content-center" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="pills-aokin-tab" data-bs-toggle="pill" data-bs-target="#pills-aokin" type="button" role="tab">
+                                <i class="fa-solid fa-microscope me-2"></i>AOKIN IAC Çözümleri
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pills-biocomma-tab" data-bs-toggle="pill" data-bs-target="#pills-biocomma" type="button" role="tab">
+                                <i class="fa-solid fa-vial me-2"></i>BIOCOMMA Copure® Çözümleri
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="tab-content" id="pills-tabContent">
+                
+                <!-- AOKIN SEKME İÇERİĞİ -->
+                <div class="tab-pane fade show active" id="pills-aokin" role="tabpanel">
+                    <div class="row">
+                        <!-- Aokin Hakkında -->
+                        <div class="col-lg-12 mb-4">
+                            <div class="brand-header">
+                                <span class="brand-logo-text text-danger">aokin</span>
+                                <h3 class="mb-0 text-muted">Hassas Analitik Temizleme Kolonları</h3>
+                            </div>
+                            <p>Aokin immünoafinite kolonları, özellikle zorlu matrislerde (baharat, kahve, kakao vb.) yüksek geri kazanım ve temiz kromatogramlar elde etmek için tasarlanmıştır. HPLC, LC-MS/MS ve Aokin Rapid Kinetik sistemleri ile tam uyumludur.</p>
+                        </div>
+
+                        <!-- Aokin Teknik Özellikler -->
+                        <div class="col-md-4">
+                            <div class="spec-card" style="border-color: #dc3545;">
+                                <h5 class="fw-bold mb-3 text-danger">Teknik Avantajlar</h5>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="fa-solid fa-check-circle text-danger me-2"></i> Ultra yüksek spesifik antikorlar</li>
+                                    <li class="mb-2"><i class="fa-solid fa-check-circle text-danger me-2"></i> %95 üzeri geri kazanım oranı</li>
+                                    <li class="mb-2"><i class="fa-solid fa-check-circle text-danger me-2"></i> 1ml ve 3ml format seçenekleri</li>
+                                    <li class="mb-2"><i class="fa-solid fa-check-circle text-danger me-2"></i> Oda sıcaklığında stabilite (Kısa süreli)</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="alert alert-light border border-danger">
+                                <strong>Uygulama Alanları:</strong> Gıda güvenliği laboratuvarları, Yem fabrikaları, Araştırma enstitüleri.
+                            </div>
+                        </div>
+
+                        <!-- Aokin Ürün Listesi Tablosu -->
+                        <div class="col-12 mt-3">
+                            <h4 class="fw-bold mb-3">Aokin IAC Ürün Portföyü</h4>
+                            <div class="table-responsive">
+                                <table class="table tech-table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Ürün Adı</th>
+                                            <th>Hedef Analit</th>
+                                            <th>Bağlama Kapasitesi</th>
+                                            <th>Format</th>
+                                            <th>Geri Kazanım</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="fw-bold">AokinImmunoClean Afla Total</td>
+                                            <td>Aflatoksin B1, B2, G1, G2</td>
+                                            <td>≥ 300 ng B1</td>
+                                            <td>3 ml Kolon</td>
+                                            <td>> 90%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">AokinImmunoClean Afla M1</td>
+                                            <td>Aflatoksin M1 (Süt/Peynir)</td>
+                                            <td>≥ 100 ng M1</td>
+                                            <td>3 ml Kolon</td>
+                                            <td>> 90%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">AokinImmunoClean OTA</td>
+                                            <td>Okratoksin A</td>
+                                            <td>≥ 500 ng OTA</td>
+                                            <td>3 ml Kolon</td>
+                                            <td>> 95%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">AokinImmunoClean ZON</td>
+                                            <td>Zearalenon (ZEN)</td>
+                                            <td>≥ 1000 ng ZON</td>
+                                            <td>3 ml Kolon</td>
+                                            <td>> 90%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">AokinImmunoClean DON</td>
+                                            <td>Deoksinivalenol</td>
+                                            <td>≥ 2000 ng DON</td>
+                                            <td>3 ml Kolon</td>
+                                            <td>> 85%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">AokinImmunoClean FUM</td>
+                                            <td>Fumonisin B1, B2</td>
+                                            <td>≥ 3000 ng FUM</td>
+                                            <td>3 ml Kolon</td>
+                                            <td>> 90%</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="fw-bold">AokinImmunoClean T2/HT2</td>
+                                            <td>T-2 ve HT-2 Toksin</td>
+                                            <td>≥ 500 ng</td>
+                                            <td>1 ml / 3 ml</td>
+                                            <td>> 80%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BIOCOMMA SEKME İÇERİĞİ -->
+                <div class="tab-pane fade" id="pills-biocomma" role="tabpanel">
+                    <div class="row">
+                        <!-- Biocomma Hakkında -->
+                        <div class="col-lg-12 mb-4">
+                            <div class="brand-header">
+                                <span class="brand-logo-text text-primary">biocomma</span>
+                                <h3 class="mb-0 text-muted">Copure® Yüksek Performanslı IAC</h3>
+                            </div>
+                            <p>Biocomma'nın Copure® serisi, AOAC ve GB standartlarına uygun olarak üretilir. Geniş üretim kapasitesi sayesinde yüksek kaliteyi ekonomik maliyetlerle sunar. Özellikle rutin analiz yapan laboratuvarlar için idealdir.</p>
+                        </div>
+
+                        <!-- Biocomma Teknik Özellikler -->
+                        <div class="col-md-4">
+                            <div class="spec-card" style="border-color: #0d6efd;">
+                                <h5 class="fw-bold mb-3 text-primary">Teknik Avantajlar</h5>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><i class="fa-solid fa-check-circle text-primary me-2"></i> Hızlı akış hızı özelliği</li>
+                                    <li class="mb-2"><i class="fa-solid fa-check-circle text-primary me-2"></i> Mükemmel tekrarlanabilirlik (RSD < %5)</li>
+                                    <li class="mb-2"><i class="fa-solid fa-check-circle text-primary me-2"></i> LC-MS/MS için "clean-up" garantisi</li>
+                                    <li class="mb-2"><i class="fa-solid fa-check-circle text-primary me-2"></i> 18 ay raf ömrü</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="alert alert-light border border-primary">
+                                <strong>Öne Çıkan Özellik:</strong> Biocomma, tek seferde birden fazla toksini temizleyebilen "Multi-Toksin" kolonlarında uzmandır.
+                            </div>
+                        </div>
+
+                        <!-- Biocomma Ürün Listesi Tablosu -->
+                        <div class="col-12 mt-3">
+                            <h4 class="fw-bold mb-3">Biocomma Copure® IAC Ürün Portföyü</h4>
+                            <div class="table-responsive">
+                                <table class="table tech-table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th class="bg-primary text-white">Ürün Kodu</th>
+                                            <th class="bg-primary text-white">Ürün Adı / Açıklama</th>
+                                            <th class="bg-primary text-white">Uygulama</th>
+                                            <th class="bg-primary text-white">Kapasite</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>COIAC1001</td>
+                                            <td><strong>Aflatoxin B1 IAC</strong></td>
+                                            <td>Tahıl, Yem, Yağ</td>
+                                            <td>≥ 200ng</td>
+                                        </tr>
+                                        <tr>
+                                            <td>COIAC1004</td>
+                                            <td><strong>Aflatoxin Total (B1/B2/G1/G2) IAC</strong></td>
+                                            <td>Geniş Kapsamlı Gıda</td>
+                                            <td>≥ 300ng</td>
+                                        </tr>
+                                        <tr>
+                                            <td>COIAC1005</td>
+                                            <td><strong>Aflatoxin M1 IAC</strong></td>
+                                            <td>Süt, Süt Tozu, Peynir</td>
+                                            <td>≥ 100ng</td>
+                                        </tr>
+                                        <tr>
+                                            <td>COIAC2001</td>
+                                            <td><strong>Ochratoxin A (OTA) IAC</strong></td>
+                                            <td>Kahve, Şarap, Baharat</td>
+                                            <td>≥ 200ng</td>
+                                        </tr>
+                                        <tr>
+                                            <td>COIAC3001</td>
+                                            <td><strong>Zearalenone (ZEN) IAC</strong></td>
+                                            <td>Mısır ve Türevleri</td>
+                                            <td>≥ 1000ng</td>
+                                        </tr>
+                                        <tr>
+                                            <td>COIAC4001</td>
+                                            <td><strong>Deoxynivalenol (DON) IAC</strong></td>
+                                            <td>Buğday, Un</td>
+                                            <td>≥ 2000ng</td>
+                                        </tr>
+                                        <tr>
+                                            <td>COIAC5001</td>
+                                            <td><strong>Fumonisin (FB1/FB2/FB3) IAC</strong></td>
+                                            <td>Mısır Bazlı Gıdalar</td>
+                                            <td>≥ 3000ng</td>
+                                        </tr>
+                                        <tr>
+                                            <td>COIAC6001</td>
+                                            <td><strong>T-2 / HT-2 Toxin IAC</strong></td>
+                                            <td>Yulaf, Arpa</td>
+                                            <td>≥ 500ng</td>
+                                        </tr>
+                                        <tr class="table-warning">
+                                            <td>COIAC8003</td>
+                                            <td><strong>Multi-Toxin IAC (Afla+OTA+ZEN)</strong></td>
+                                            <td>Karma Yem Analizleri</td>
+                                            <td>Kombine</td>
+                                        </tr>
+                                        <tr class="table-warning">
+                                            <td>COIAC8005</td>
+                                            <td><strong>Multi-Toxin IAC (Afla+ZEN+DON+T2)</strong></td>
+                                            <td>Kompleks Tahıl Analizi</td>
+                                            <td>Kombine</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Kullanım Yönergeleri / Ortak Bilgi -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <h3 class="text-center fw-bold mb-4">IAC Kolonları Nasıl Kullanılır?</h3>
+            <div class="row g-4 text-center">
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <i class="fa-solid fa-flask fa-3x text-secondary mb-3"></i>
+                            <h5 class="fw-bold">1. Ekstraksiyon</h5>
+                            <p class="small text-muted">Numunenizi uygun solvent (metanol/su veya asetonitril/su) ile ekstrakte edin ve süzün.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <i class="fa-solid fa-filter fa-3x text-secondary mb-3"></i>
+                            <h5 class="fw-bold">2. Yükleme</h5>
+                            <p class="small text-muted">Süzüntüyü PBS ile seyrelterek IAC kolonundan geçirin. Toksin antikorlara bağlanır.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <i class="fa-solid fa-hands-bubbles fa-3x text-secondary mb-3"></i>
+                            <h5 class="fw-bold">3. Yıkama</h5>
+                            <p class="small text-muted">Kolonu saf su veya yıkama tamponu ile yıkayarak istenmeyen safsızlıkları uzaklaştırın.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <i class="fa-solid fa-droplet fa-3x text-secondary mb-3"></i>
+                            <h5 class="fw-bold">4. Elüsyon</h5>
+                            <p class="small text-muted">%100 Metanol veya Asetonitril ile toksini kolondan alın ve HPLC'ye verin.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- İletişim / Footer -->
+    <footer id="iletisim">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">LabTedarik</h5>
+                    <p class="small">Laboratuvar analizleriniz için dünya standartlarında ürünleri size ulaştırıyoruz. Kalite ve güvenilirlik önceliğimizdir.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">Hızlı Linkler</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.html">Ana Sayfa</a></li>
+                        <li><a href="test-kitleri.html">Test Kitleri</a></li>
+                        <li><a href="iac.html">IAC Ürünleri</a></li>
+                        <li><a href="plastik-sarf.html">Plastik Sarf Malzemeleri</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="fw-bold mb-3">İletişim</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2"><i class="fa-solid fa-location-dot me-2"></i> İstanbul, Türkiye</li>
+                        <li class="mb-2"><i class="fa-solid fa-phone me-2"></i> +90 (212) 000 00 00</li>
+                        <li class="mb-2"><i class="fa-solid fa-envelope me-2"></i> info@labtedarik.com</li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="#" class="me-3"><i class="fa-brands fa-linkedin fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fa-brands fa-instagram fa-lg"></i></a>
+                        <a href="#"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center small">
+                &copy; 2023 LabTedarik. Tüm Hakları Saklıdır.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
