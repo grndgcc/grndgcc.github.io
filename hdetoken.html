@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTRPG Token Master</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        :root { --gold: #d4af37; --dark: #121212; }
+        body { font-family: 'Arial', sans-serif; background: var(--dark); color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .wrapper { max-width: 600px; width: 100%; background: #1e1e1e; padding: 20px; border-radius: 15px; border: 1px solid var(--gold); text-align: center; }
+        
+        /* Kesim Alanı ve Overlay */
+        .img-container { 
+            position: relative; 
+            width: 100%; 
+            height: 400px; 
+            background: #000; 
+            margin: 20px 0; 
+            overflow: hidden;
+        }
+        #image { max-width: 100%; }
+
+        /* KESİM ESNASINDA ÇERÇEVEYİ GÖSTEREN CSS */
+        .cropper-view-box, .cropper-face { border-radius: 50%; }
+        .overlay-frame {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 320px; /* Cropper alanıyla uyumlu olmalı */
+            height: 320px;
+            pointer-events: none; /* Altındaki cropper'ı tıklamaya engel olmaz */
+            z-index: 10;
+            display: none;
+        }
+
+        .controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .btn { padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-upload { background: var(--gold); color: black; }
+        .btn-save { background: #28a745; color: white; display: none; }
+        #linkArea { margin-top: 15px; padding: 10px; background: #333; border-radius: 5px; word-break: break-all; display: none; border: 1px dashed var(--gold); }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <h2>Token Oluşturucu</h2>
+    
+    <div class="controls">
+        <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="img-container">
+        <img id="image">
+        <!-- Kesim sırasında görünen çerçeve -->
+        <img src="https://grndgcc.github.io/kirpilmis_resim_1768334938625.png" class="overlay-frame" id="guideFrame">
+    </div>
+
+    <div id="btnGroup" style="display:none; gap:10px; justify-content: center;">
+        <button id="downloadBtn" class="btn btn-upload" style="background:#555;">Sadece İndir</button>
+        <button id="saveToServerBtn" class="btn btn-save" style="display:inline-block;">Sunucuya Yükle & Link Al</button>
+    </div>
+
+    <div id="linkArea"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    let cropper;
+    const image = document.getElementById('image');
+    const guideFrame = document.getElementById('guideFrame');
+    const fileInput = document.getElementById('fileInput');
+    const btnGroup = document.getElementById('btnGroup');
+    const linkArea = document.getElementById('linkArea');
+
+    const frameSrc = 'https://grndgcc.github.io/kirpilmis_resim_1768334938625.png';
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                if(cropper) cropper.destroy();
+                image.src = ev.target.result;
+                btnGroup.style.display = 'flex';
+                guideFrame.style.display = 'block';
+
+                cropper = new Cropper(image, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 0.8,
+                    ready() {
+                        // Kılavuz çerçeveyi cropper kutusuna göre hizala
+                        updateOverlay();
+                    },
+                    cropmove() { updateOverlay(); }
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function updateOverlay() {
+        const cropBox = cropper.getCropBoxData();
+        const container = cropper.getContainerData();
+        guideFrame.style.width = cropBox.width + 'px';
+        guideFrame.style.height = cropBox.height + 'px';
+        guideFrame.style.top = cropBox.top + 'px';
+        guideFrame.style.left = cropBox.left + 'px';
+        guideFrame.style.transform = 'none';
+    }
+
+    async function generateTokenBlob() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // 1. Karakteri Daire Kes
+        const croppedCanvas = cropper.getCroppedCanvas({ width: 512, height: 512 });
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(256, 256, 240, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(croppedCanvas, 0, 0, 512, 512);
+        ctx.restore();
+
+        // 2. Çerçeveyi Üste Koy
+        const borderImg = new Image();
+        borderImg.crossOrigin = "anonymous";
+        borderImg.src = frameSrc;
+        
+        return new Promise((resolve) => {
+            borderImg.onload = () => {
+                ctx.drawImage(borderImg, 0, 0, 512, 512);
+                canvas.toBlob(blob => resolve(blob), 'image/png');
+            };
+        });
+    }
+
+    // İNDİRME TUŞU
+    document.getElementById('downloadBtn').onclick = async () => {
+        const blob = await generateTokenBlob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'token.png';
+        a.click();
+    };
+
+    // SUNUCUYA YÜKLEME VE LİNK ALMA TUŞU
+    document.getElementById('saveToServerBtn').onclick = async () => {
+        const blob = await generateTokenBlob();
+        const formData = new FormData();
+        formData.append('tokenImage', blob, 'token-' + Date.now() + '.png');
+
+        linkArea.style.display = 'block';
+        linkArea.innerHTML = "Yükleniyor...";
+
+        try {
+            const response = await fetch('upload.php', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if(result.url) {
+                linkArea.innerHTML = `Token hazır: <a href="${result.url}" target="_blank" style="color:var(--gold)">${result.url}</a>`;
+            } else {
+                linkArea.innerHTML = "Hata: " + result.error;
+            }
+        } catch (err) {
+            linkArea.innerHTML = "Yükleme başarısız. PHP dosyasını kontrol edin.";
+        }
+    };
+</script>
+</body>
+</html>
