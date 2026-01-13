@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sade Token Maker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .container { max-width: 500px; width: 100%; text-align: center; background: #222; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        
+        /* Cropper Alanı */
+        .img-box { position: relative; width: 100%; height: 350px; background: #000; margin: 15px 0; overflow: hidden; border-radius: 5px; }
+        #image { max-width: 100%; }
+
+        /* KESİM ESNASINDA ÇERÇEVEYİ GÖSTEREN KATMAN */
+        .cropper-view-box, .cropper-face { border-radius: 50%; }
+        #guideFrame {
+            position: absolute; pointer-events: none; z-index: 10; display: none;
+        }
+
+        .btn { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 5px; transition: 0.2s; }
+        .btn-blue { background: #3498db; color: white; }
+        .btn-green { background: #27ae60; color: white; }
+        .btn-orange { background: #e67e22; color: white; }
+        #linkResult { margin-top: 15px; font-size: 13px; word-break: break-all; color: #f1c40f; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h3>TTRPG Token Maker</h3>
+    
+    <input type="file" id="fileInput" accept="image/*" style="margin-bottom: 10px;">
+    
+    <div class="img-box">
+        <img id="image">
+        <!-- Canlı Çerçeve -->
+        <img src="https://grndgcc.github.io/kirpilmis_resim_1768334938625.png" id="guideFrame">
+    </div>
+
+    <div id="actions" style="display:none;">
+        <button id="downloadBtn" class="btn btn-blue">İndir (.png)</button>
+        <button id="uploadBtn" class="btn btn-orange">İnternete Yükle & Link Al</button>
+    </div>
+
+    <div id="linkResult"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    let cropper;
+    const image = document.getElementById('image');
+    const guideFrame = document.getElementById('guideFrame');
+    const fileInput = document.getElementById('fileInput');
+    const actions = document.getElementById('actions');
+    const linkResult = document.getElementById('linkResult');
+
+    const frameURL = 'https://grndgcc.github.io/kirpilmis_resim_1768334938625.png';
+
+    fileInput.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            if(cropper) cropper.destroy();
+            image.src = ev.target.result;
+            actions.style.display = 'block';
+            guideFrame.style.display = 'block';
+
+            cropper = new Cropper(image, {
+                aspectRatio: 1,
+                viewMode: 1,
+                dragMode: 'move',
+                guides: false,
+                crop() {
+                    // Çerçeveyi kesim kutusuna göre hizala
+                    const data = cropper.getCropBoxData();
+                    guideFrame.style.width = data.width + 'px';
+                    guideFrame.style.height = data.height + 'px';
+                    guideFrame.style.top = data.top + 'px';
+                    guideFrame.style.left = data.left + 'px';
+                }
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
+    async function createFinalCanvas() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512; canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // 1. Karakteri Daire Keserek Çiz
+        const cropped = cropper.getCroppedCanvas({ width: 512, height: 512 });
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(256, 256, 245, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(cropped, 0, 0, 512, 512);
+        ctx.restore();
+
+        // 2. Çerçeveyi Üste Ekle
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = frameURL;
+        return new Promise(res => {
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, 512, 512);
+                res(canvas);
+            };
+        });
+    }
+
+    // İNDİRME
+    document.getElementById('downloadBtn').onclick = async () => {
+        const canvas = await createFinalCanvas();
+        const link = document.createElement('a');
+        link.download = 'token.png';
+        link.href = canvas.toDataURL();
+        link.click();
+    };
+
+    // BULUTA YÜKLEME (ImgBB kullanarak)
+    document.getElementById('uploadBtn').onclick = async () => {
+        linkResult.innerHTML = "Yükleniyor... Lütfen bekleyin.";
+        const canvas = await createFinalCanvas();
+        
+        canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            formData.append('image', blob);
+
+            try {
+                // Not: Bu ücretsiz bir anonim yükleme servisidir. 
+                // Gerçek projelerde kendi API key'inizi kullanmanız önerilir.
+                const res = await fetch('https://api.imgbb.com/1/upload?key=6047781a81f3b0606f36294726e6378e', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                const url = data.data.url;
+                linkResult.innerHTML = `Link hazır: <a href="${url}" target="_blank" style="color:white">${url}</a>`;
+            } catch (err) {
+                linkResult.innerHTML = "Yükleme hatası oluştu.";
+            }
+        });
+    };
+</script>
+</body>
+</html>
