@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İkili Evren - Online VTT</title>
+    <title>İkili Evren - Online VTT (URL)</title>
     
-    <!-- Fontlar -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -13,7 +12,7 @@
     <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <!-- Storage SDK kaldırıldı gerek yok -->
 
     <style>
         :root {
@@ -54,7 +53,6 @@
         button:hover { background: rgba(197,160,89,0.15); border-color: #fff; }
         button:active { transform: scale(0.96); }
         button.active { background: var(--accent-red); color: white; border-color: white; }
-        button:disabled { opacity: 0.5; cursor: wait; }
 
         input, select, textarea {
             background: rgba(0,0,0,0.5); color: white; border: 1px solid #444;
@@ -86,7 +84,7 @@
         }
         .dock-btn.active-mode { border-color: var(--gold-text); background: var(--accent-red); }
 
-        /* PANELS */
+        /* SIDEBAR */
         #sidebar {
             position: fixed; top: 0; left: 0; height: 100%; width: 340px; z-index: 1500;
             padding: 20px; display: flex; flex-direction: column; gap: 15px;
@@ -245,7 +243,7 @@
         </div>
     </div>
 
-    <!-- UI -->
+    <!-- UI KATMANLARI -->
     <div id="weather-overlay"></div>
     <div id="ruler-info" style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:black; border:1px solid var(--gold-text); padding:5px 15px; border-radius:20px; display:none; z-index:2000; pointer-events:none;">0m</div>
 
@@ -267,14 +265,21 @@
             <h3 id="user-display" style="color:var(--gold-text);">USER</h3> <button onclick="toggleSidebar()" style="background:none; border:none; color:white;">X</button>
         </div>
         <div class="control-group gm-only">
-            <span>HARİTA</span> <input type="file" id="map-upload" accept="image/*">
-            <div style="margin-top:5px;display:flex;gap:5px;">
+            <span>HARİTA (URL)</span> 
+            <input type="text" id="map-url" placeholder="Resim Linki">
+            <button onclick="setMapURL()" style="width:100%; margin-top:5px;">YÜKLE</button>
+            
+            <div style="margin-top:10px;display:flex;gap:5px;">
                 <input type="number" id="grid-size" value="50" onchange="updateGrid()" placeholder="px">
                 <input type="number" id="grid-scale" value="1.5" step="0.5" onchange="updateGrid()" placeholder="m">
             </div>
             <label style="font-size:0.8rem;display:block;margin-top:5px;"><input type="checkbox" id="grid-show" onchange="updateGrid()" checked style="width:auto;"> Grid</label>
         </div>
-        <div class="control-group"><span>TOKEN</span> <input type="file" id="token-upload" accept="image/*"></div>
+        <div class="control-group">
+            <span>TOKEN (URL)</span> 
+            <input type="text" id="token-url" placeholder="Resim Linki">
+            <button onclick="addTokenURL()" style="width:100%; margin-top:5px;">EKLE</button>
+        </div>
         <div class="control-group"><span>AYARLAR</span> <label style="font-size:0.8rem;display:block;"><input type="checkbox" id="show-tooltips" onchange="toggleTooltips()" checked style="width:auto;"> Hover Özeti</label></div>
         <div class="control-group gm-only">
             <select id="weather-select" onchange="changeWeather()" style="margin-bottom:5px;">
@@ -376,23 +381,26 @@
             appId: "1:936507038276:web:8d96057ad709bad5883a11",
             measurementId: "G-9XNKZWRBBS"
         };
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const storage = firebase.storage();
 
         // --- SABİTLER ---
-        const CREDENTIALS = { 'gm1': 'gm111', 'player1': '111', 'player2': '222', 'player3': '333' };
+        const DEFAULT_PASSWORDS = { 'gm1': 'gm111', 'player1': '111', 'player2': '222', 'player3': '333' };
         const ATTRS = { 'Strength': 'KUVVET', 'Dexterity': 'ÇEVİKLİK', 'Constitution': 'DAYANIKLILIK', 'Intelligence': 'ZEKA', 'Wisdom': 'İRFAN', 'Charisma': 'KARİZMA' };
         const SKILLS = { 'Diplomacy': 'Diplomasi', 'Martial': 'Savaş Sanatı', 'Economy': 'Ekonomi', 'Intrigue': 'Entrika', 'Learning': 'Bilgi', 'Prowess': 'Yiğitlik' };
         const TRAITS = ["Hırslı", "Kibirli", "Paranoyak", "Sahtekar", "Dürüst", "Adil", "Cesur", "Korkak", "Şefkatli", "Kalpsiz", "Cömert", "Açgözlü", "Ölçülü", "Obur", "İffetli", "Şehvetli", "Çalışkan", "Tembel", "Sabırlı", "Sabırsız", "Alçakgönüllü", "Bağışlayıcı", "İntikamcı", "Utangaç", "Sosyal", "İnatçı", "Alaycı", "Bağnaz"];
         const CONDITIONS = ["Öldü", "Yaralandı", "Bayıldı", "Taşlaştı", "Korktu", "Dehşete Düştü", "Sersemleşti", "Utandı", "Aptallaştı", "Sinirlendi", "Öfke Krizinde", "Mutlu", "Mutsuz", "Üzgün", "Melankolik"];
 
-        let currentRoom = null, currentUser=null, isGM=false;
+        let currentRoom = null;
+        let currentUser=null, isGM=false;
+        
         let gameState = {
             mapSrc: null, grid: {show:true, size:50, scale:1.5},
             weather: "", initiative: {list:[], round:1, currentIdx:0},
             activity: {paused:false, scores:{}, speaking:null},
-            inspiration: {}, chat: [], tokens: []
+            inspiration: {}, chat: [], 
+            tokens: [], users: {} 
         };
 
         let activeTokenId=null, sheetLocked=false, selAttr=null, selSkill=null;
@@ -401,72 +409,187 @@
         let showTooltips = true;
         let localSpeechTime = 0;
 
-        // --- GİRİŞ ---
+        // --- GİRİŞ & FIREBASE ---
         async function attemptLogin() {
-            const room = document.getElementById('room-input').value.trim();
+            const roomName = document.getElementById('room-input').value.trim();
             const role = document.getElementById('role-select').value;
             const pass = document.getElementById('password-input').value;
-            if(!room) { alert("Oda adı girin."); return; }
-            
+
+            if(!roomName) { alert("Lütfen bir oda adı giriniz."); return; }
+
             showLoading(true);
+
             try {
-                const ref = db.collection('rooms').doc(room);
-                const doc = await ref.get();
-                if(!doc.exists) {
-                    if(pass !== CREDENTIALS[role]) throw new Error("Yeni oda için varsayılan şifreleri kullanın.");
-                    await ref.set({ users:CREDENTIALS, mapSrc:null, grid:{show:true,size:50,scale:1.5}, weather:"", initiative:{list:[],round:1,currentIdx:0}, activity:{paused:false,scores:{},speaking:null}, inspiration:{}, chat:[], tokens:[] });
+                const roomRef = db.collection('rooms').doc(roomName);
+                const doc = await roomRef.get();
+
+                if (!doc.exists) {
+                    if (pass !== DEFAULT_PASSWORDS[role]) {
+                        alert("Yeni oda oluşturulurken varsayılan şifreleri kullanmalısınız (örn: gm111, 111).");
+                        showLoading(false);
+                        return;
+                    }
+                    await roomRef.set({
+                        users: DEFAULT_PASSWORDS,
+                        mapSrc: null, grid: {show:true, size:50, scale:1.5}, weather: "",
+                        initiative: {list:[], round:1, currentIdx:0},
+                        activity: {paused:false, scores:{}, speaking:null},
+                        inspiration: {}, chat: [], tokens: []
+                    });
                 } else {
-                    if(doc.data().users && doc.data().users[role] !== pass) throw new Error("Hatalı Şifre");
+                    const data = doc.data();
+                    if (data.users && data.users[role] !== pass) {
+                        alert("Hatalı Şifre!");
+                        showLoading(false);
+                        return;
+                    }
                 }
+
+                currentRoom = roomName;
+                currentUser = role;
+                isGM = role.startsWith('gm');
                 
-                currentRoom=room; currentUser=role; isGM=role.startsWith('gm');
                 document.getElementById('login-screen').style.display='none';
-                document.getElementById('user-display').innerText=role.toUpperCase();
+                document.getElementById('user-display').innerText = role.toUpperCase();
                 if(isGM) document.querySelectorAll('.gm-only').forEach(e=>e.style.display='block');
-                
+
                 const saved = localStorage.getItem('vtt_journal_'+currentUser+'_'+currentRoom);
                 if(saved) document.getElementById('journal-text').value = saved;
-                
+
                 const opts = `<option value="">Özellik...</option>` + TRAITS.map(t=>`<option>${t}</option>`).join('');
                 document.querySelectorAll('.trait-select').forEach(s=>s.innerHTML=opts);
 
-                ref.onSnapshot(snap => { if(snap.exists) { gameState=snap.data(); renderAll(); } });
-                initZoomPan(); initMic();
-            } catch(e) { alert(e.message); } finally { showLoading(false); }
+                roomRef.onSnapshot((snapshot) => {
+                    if (snapshot.exists) {
+                        gameState = snapshot.data();
+                        renderAll();
+                    }
+                });
+
+                initZoomPan();
+                initMic();
+
+            } catch (error) {
+                console.error("Login Error:", error);
+                alert("Bağlantı hatası: " + error.message);
+            } finally {
+                showLoading(false);
+            }
         }
 
-        function updateState() { if(currentRoom) { if(gameState.chat.length>50) gameState.chat=gameState.chat.slice(-50); db.collection('rooms').doc(currentRoom).update(gameState).catch(console.error); } }
-        async function uploadImage(file) {
-            if(!file)return null; showLoading(true);
-            try { const ref=storage.ref().child(`rooms/${currentRoom}/${Date.now()}_${file.name}`); await ref.put(file); showLoading(false); return await ref.getDownloadURL(); }
-            catch(e){ showLoading(false); alert("Yükleme hatası: "+e.message); return null; }
+        function updateState() {
+            if(!currentRoom) return;
+            if(gameState.chat.length > 50) gameState.chat = gameState.chat.slice(-50);
+            db.collection('rooms').doc(currentRoom).update(gameState).catch(err => console.error("Sync Error", err));
         }
-        function showLoading(s) { document.getElementById('loading-overlay').style.display=s?'flex':'none'; }
-        document.getElementById('journal-text').addEventListener('input', function(){ if(currentUser&&currentRoom) localStorage.setItem('vtt_journal_'+currentUser+'_'+currentRoom, this.value); });
 
-        // --- MAP RENDER ---
-        function renderAll() { renderMap(); renderInit(); renderAct(); renderInsp(); renderChat(); applyWeather(); if(!isGM){ document.getElementById('grid-size').value=gameState.grid.size; document.getElementById('grid-scale').value=gameState.grid.scale; } }
-        
+        document.getElementById('journal-text').addEventListener('input', function(){ 
+            if(currentUser && currentRoom) localStorage.setItem('vtt_journal_'+currentUser+'_'+currentRoom, this.value); 
+        });
+
+        // --- URL BAZLI YÜKLEME ---
+        function setMapURL() {
+            const url = document.getElementById('map-url').value;
+            if(url) { gameState.mapSrc = url; updateState(); }
+        }
+
+        function addTokenURL() {
+            const url = document.getElementById('token-url').value;
+            if(url) {
+                gameState.tokens.push({
+                    id: Date.now(), owner: currentUser, x:100, y:100, 
+                    imgSrc: url, scale:1, stats:{}, meta:{align:"",traits:['','','']}, 
+                    vision:10, locked:false, statuses:[]
+                });
+                updateState();
+            }
+        }
+
+        function showLoading(show) { document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none'; }
+
+        // --- RENDER ---
+        function renderAll() { 
+            renderMap(); renderInit(); renderAct(); renderInsp(); renderChat(); applyWeather();
+            if(!isGM) { 
+                document.getElementById('grid-size').value=gameState.grid.size; 
+                document.getElementById('grid-scale').value=gameState.grid.scale; 
+            } 
+        }
+
+        // --- HARİTA (ZOOM & PAN) ---
+        function initZoomPan() {
+            const area = document.getElementById('game-area');
+            const cont = document.getElementById('map-container');
+            let isPanning = false, startX=0, startY=0;
+
+            function applyTransform() { cont.style.transform = `translate(${mapTransform.x}px, ${mapTransform.y}px) scale(${mapTransform.scale})`; }
+
+            area.addEventListener('wheel', e => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.min(Math.max(0.1, mapTransform.scale * delta), 5);
+                const rect = area.getBoundingClientRect();
+                const mx = e.clientX - rect.left; const my = e.clientY - rect.top;
+                mapTransform.x = mx - (mx - mapTransform.x) * (newScale / mapTransform.scale);
+                mapTransform.y = my - (my - mapTransform.y) * (newScale / mapTransform.scale);
+                mapTransform.scale = newScale;
+                applyTransform();
+            }, {passive:false});
+
+            area.addEventListener('contextmenu', e => e.preventDefault());
+            area.addEventListener('mousedown', e => {
+                if(e.button===2) { isPanning=true; startX=e.clientX - mapTransform.x; startY=e.clientY - mapTransform.y; area.style.cursor='grabbing'; }
+            });
+            window.addEventListener('mousemove', e => {
+                if(isPanning) { e.preventDefault(); mapTransform.x = e.clientX - startX; mapTransform.y = e.clientY - startY; applyTransform(); }
+            });
+            window.addEventListener('mouseup', () => { isPanning=false; area.style.cursor='default'; });
+
+            let initialDist = 0, initialScale = 1;
+            area.addEventListener('touchstart', e => {
+                if(e.touches.length===2) {
+                    initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                    initialScale = mapTransform.scale;
+                }
+            }, {passive:false});
+            area.addEventListener('touchmove', e => {
+                if(e.touches.length===2) {
+                    e.preventDefault();
+                    const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                    const delta = dist / initialDist;
+                    mapTransform.scale = Math.min(Math.max(0.1, initialScale * delta), 5);
+                    applyTransform();
+                }
+            }, {passive:false});
+        }
+
+        // --- MAP RENDER & DRAG ---
         function renderMap() {
             const m = document.getElementById('game-map');
-            if(gameState.mapSrc && m.src!==gameState.mapSrc) { m.src=gameState.mapSrc; m.onload=()=>{resizeCvs();drawGrid();drawFog();}; m.style.display='block'; }
+            if(gameState.mapSrc && m.src!==gameState.mapSrc) { m.src = gameState.mapSrc; m.onload = () => { resizeCvs(); drawGrid(); drawFog(); }; m.style.display='block'; }
             else if(!gameState.mapSrc) { m.style.display='none'; clearCvs(); }
             else { drawGrid(); drawFog(); }
 
             const mc = document.getElementById('map-container');
             document.querySelectorAll('.token').forEach(e=>e.remove());
+            
             gameState.tokens.forEach(t=>{
-                const size=70*(t.scale||1);
-                const el=document.createElement('div'); el.className='token';
+                const size = 70 * (t.scale||1);
+                const el = document.createElement('div'); el.className='token';
                 el.style.width=size+'px'; el.style.height=size+'px';
                 el.style.left=t.x+'px'; el.style.top=t.y+'px';
                 el.style.backgroundImage=`url(${t.imgSrc})`;
                 
                 const isOwn = t.owner===currentUser || isGM;
+                
+                // Fog
                 let vis=isGM;
                 if(!vis) {
                     const mines=gameState.tokens.filter(x=>x.owner===currentUser);
-                    for(let m of mines) { const rad=((m.vision||10)/gameState.grid.scale)*gameState.grid.size; if(Math.hypot(t.x-m.x,t.y-m.y)<rad) vis=true; }
+                    for(let m of mines) {
+                        const rad = ((m.vision||10) / gameState.grid.scale) * gameState.grid.size;
+                        if(Math.hypot(t.x-m.x, t.y-m.y) < rad) vis=true;
+                    }
                 }
                 if(!vis) el.classList.add('hidden-in-fog');
 
@@ -479,118 +602,255 @@
                     el.appendChild(g);
                 } else el.classList.add('other-token');
 
-                const n=document.createElement('div'); n.className='token-name'; n.innerText=(t.name||t.owner).toUpperCase(); el.appendChild(n);
-                if(t.statuses?.length>0) {
+                // Name & Statuses
+                const n = document.createElement('div'); n.className='token-name'; n.innerText=(t.name||t.owner).toUpperCase(); el.appendChild(n);
+                
+                if(t.statuses && t.statuses.length>0) {
                     if(t.statuses.includes("Öldü")) el.classList.add('is-dead');
-                    const sb=document.createElement('div'); sb.className='token-statuses';
-                    t.statuses.forEach(s=>{if(s!=="Öldü")sb.innerHTML+=`<span class="status-badge">${s}</span>`}); el.appendChild(sb);
+                    const sb = document.createElement('div'); sb.className='token-statuses';
+                    t.statuses.forEach(s => { if(s!=="Öldü") sb.innerHTML+=`<span class="status-badge">${s}</span>`; });
+                    el.appendChild(sb);
                 }
+
                 if(showTooltips) {
-                    const tip=document.createElement('div'); tip.className='token-tooltip';
-                    const hp=t.stats['Constitution']?t.stats['Constitution'].split(',')[0]*2+10:10;
-                    const traits=t.meta?.traits?t.meta.traits.filter(x=>x).join(', '):'-';
-                    tip.innerHTML=`<div class="tt-header">${(t.name||"Adsız")}</div><div class="tt-row"><span>HP:</span> <b>~${hp}</b></div><div class="tt-row"><span>Yön:</span> <span>${t.meta?.align||"-"}</span></div><div class="tt-row"><span>Kişilik:</span> <span style="font-size:0.65rem">${traits}</span></div>`;
+                    const tip = document.createElement('div'); tip.className='token-tooltip';
+                    const hp = t.stats['Constitution'] ? t.stats['Constitution'].split(',')[0]*2+10 : 10;
+                    let traits = t.meta?.traits ? t.meta.traits.filter(x=>x).join(', ') : '-';
+                    let info = `<div class="tt-header">${(t.name||"Adsız")}</div>
+                                <div class="tt-row"><span>HP:</span> <b>~${hp}</b></div>
+                                <div class="tt-row"><span>Yönelim:</span> <span>${t.meta?.align||"-"}</span></div>
+                                <div class="tt-row"><span>Kişilik:</span> <span style="font-size:0.65rem">${traits}</span></div>
+                                <hr style="border:0; border-bottom:1px solid #444; margin:2px 0;">
+                                <div class="tt-row"><span>KUV:</span> <b>${getS(t,'Strength').b}</b> <span>ÇEV:</span> <b>${getS(t,'Dexterity').b}</b></div>`;
+                    tip.innerHTML = info;
                     el.appendChild(tip);
                 }
                 mc.appendChild(el);
             });
         }
 
-        // --- ZOOM & PAN & DRAG ---
-        function initZoomPan() {
-            const area=document.getElementById('game-area'), cont=document.getElementById('map-container');
-            let isPanning=false, startX=0, startY=0;
-            function apply() { cont.style.transform = `translate(${mapTransform.x}px, ${mapTransform.y}px) scale(${mapTransform.scale})`; }
-
-            area.addEventListener('wheel', e => {
-                e.preventDefault(); const delta = e.deltaY>0?0.9:1.1;
-                const newScale = Math.min(Math.max(0.1, mapTransform.scale*delta), 5);
-                const rect=area.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top;
-                mapTransform.x = mx - (mx - mapTransform.x)*(newScale/mapTransform.scale);
-                mapTransform.y = my - (my - mapTransform.y)*(newScale/mapTransform.scale);
-                mapTransform.scale = newScale; apply();
-            }, {passive:false});
-
-            area.addEventListener('contextmenu',e=>e.preventDefault());
-            area.addEventListener('mousedown',e=>{if(e.button===2){isPanning=true;startX=e.clientX-mapTransform.x;startY=e.clientY-mapTransform.y;area.style.cursor='grabbing';}});
-            window.addEventListener('mousemove',e=>{if(isPanning){e.preventDefault();mapTransform.x=e.clientX-startX;mapTransform.y=e.clientY-startY;apply();}});
-            window.addEventListener('mouseup',()=>{isPanning=false;area.style.cursor='default';});
-
-            // Mobile Pinch
-            let initDist=0, initScale=1;
-            area.addEventListener('touchstart',e=>{if(e.touches.length===2){initDist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);initScale=mapTransform.scale;}},{passive:false});
-            area.addEventListener('touchmove',e=>{if(e.touches.length===2){e.preventDefault();const dist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);const delta=dist/initDist;mapTransform.scale=Math.min(Math.max(0.1,initScale*delta),5);apply();}},{passive:false});
-        }
-
-        function addDrag(el,id) {
-            let start=null, initPos=null; const img=document.getElementById('game-map');
-            const startD=(x,y)=>{if(rulerMode)return false;start={x,y};initPos={left:parseInt(el.style.left||0),top:parseInt(el.style.top||0)};return true;}
-            const moveD=(x,y)=>{
-                if(!start)return;
-                let nx=initPos.left+(x-start.x)/mapTransform.scale, ny=initPos.top+(y-start.y)/mapTransform.scale;
-                const w=img.naturalWidth||800, h=img.naturalHeight||600;
-                nx=Math.max(0,Math.min(nx,w-70)); ny=Math.max(0,Math.min(ny,h-70));
-                el.style.left=nx+'px'; el.style.top=ny+'px';
+        function addDrag(el, id) {
+            let start=null, initPos=null;
+            const mapImg = document.getElementById('game-map');
+            
+            const startD = (x,y) => {
+                if(rulerMode) return false;
+                start={x,y}; initPos={left:parseInt(el.style.left||0), top:parseInt(el.style.top||0)};
+                return true;
             }
-            const endD=()=>{if(!start)return;start=null;const t=gameState.tokens.find(x=>x.id===id);if(t){t.x=parseInt(el.style.left);t.y=parseInt(el.style.top);updateState();}}
-            el.onmousedown=e=>{if(e.button===0&&startD(e.clientX,e.clientY)){const mm=ev=>moveD(ev.clientX,ev.clientY);const mu=()=>{endD();window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu)};window.addEventListener('mousemove',mm);window.addEventListener('mouseup',mu)}};
-            el.ontouchstart=e=>{startD(e.touches[0].clientX,e.touches[0].clientY)};
-            el.ontouchmove=e=>{if(start){e.preventDefault();moveD(e.touches[0].clientX,e.touches[0].clientY)}};
+            const moveD = (x,y) => {
+                if(!start) return;
+                let nx = initPos.left + (x - start.x) / mapTransform.scale;
+                let ny = initPos.top + (y - start.y) / mapTransform.scale;
+                const w = mapImg.naturalWidth||800; const h = mapImg.naturalHeight||600;
+                nx = Math.max(0, Math.min(nx, w - 70)); ny = Math.max(0, Math.min(ny, h - 70));
+                el.style.left = nx+'px'; el.style.top = ny+'px';
+            }
+            const endD = () => {
+                if(!start) return; start=null;
+                const t=gameState.tokens.find(x=>x.id===id);
+                if(t){ t.x=parseInt(el.style.left); t.y=parseInt(el.style.top); updateState(); }
+            }
+            el.onmousedown=e=>{ if(e.button===0 && startD(e.clientX,e.clientY)) {
+                const mm=ev=>moveD(ev.clientX,ev.clientY);
+                const mu=()=>{endD(); window.removeEventListener('mousemove',mm); window.removeEventListener('mouseup',mu);}
+                window.addEventListener('mousemove',mm); window.addEventListener('mouseup',mu);
+            }};
+            el.ontouchstart=e=>{ const t=e.touches[0]; startD(t.clientX,t.clientY); };
+            el.ontouchmove=e=>{ if(start) { e.preventDefault(); const t=e.touches[0]; moveD(t.clientX,t.clientY); } };
             el.ontouchend=endD;
         }
 
         // --- CETVEL ---
-        function toggleRuler(){rulerMode=!rulerMode;rulerStartPoint=null;const b=document.getElementById('btn-ruler'),a=document.getElementById('game-area'),c=document.getElementById('ruler-canvas').getContext('2d');if(rulerMode){b.classList.add('active-mode');a.classList.add('ruler-active')}else{b.classList.remove('active-mode');a.classList.remove('ruler-active');c.clearRect(0,0,9999,9999);document.getElementById('ruler-info').style.display='none'}}
-        function getMapPt(e){const r=document.getElementById('map-container').getBoundingClientRect();let cx=e.clientX,cy=e.clientY;if(e.touches&&e.touches[0]){cx=e.touches[0].clientX;cy=e.touches[0].clientY;}return{x:(cx-r.left)/mapTransform.scale,y:(cy-r.top)/mapTransform.scale}}
-        const gA=document.getElementById('game-area');
-        gA.addEventListener('mousedown',e=>{if(!rulerMode||e.button!==0)return;tempStart=getMapPt(e);isDraggingRuler=false});
-        window.addEventListener('mousemove',e=>{if(!rulerMode)return;const c=getMapPt(e),ctx=document.getElementById('ruler-canvas').getContext('2d'),o=rulerStartPoint||tempStart;if(!o)return;if(tempStart)isDraggingRuler=true;ctx.clearRect(0,0,9999,9999);ctx.beginPath();ctx.strokeStyle='#f1c40f';ctx.lineWidth=3;ctx.setLineDash([10,5]);ctx.moveTo(o.x,o.y);ctx.lineTo(c.x,c.y);ctx.stroke();const m=(Math.hypot(c.x-o.x,c.y-o.y)/gameState.grid.size)*gameState.grid.scale;const i=document.getElementById('ruler-info');i.style.display='block';i.innerText=m.toFixed(1)+"m"});
-        window.addEventListener('mouseup',e=>{if(!rulerMode)return;if(tempStart&&isDraggingRuler&&!rulerStartPoint){tempStart=null;document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999);document.getElementById('ruler-info').style.display='none'}else if(tempStart&&!isDraggingRuler){if(!rulerStartPoint)rulerStartPoint=tempStart;else{rulerStartPoint=null;document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999);document.getElementById('ruler-info').style.display='none'}tempStart=null}});
-        gA.addEventListener('touchstart',e=>{if(rulerMode){tempStart=getMapPt(e);isDraggingRuler=false}});
-        gA.addEventListener('touchend',e=>{if(rulerMode){if(tempStart&&!isDraggingRuler){if(!rulerStartPoint)rulerStartPoint=tempStart;else{rulerStartPoint=null;document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999);}}tempStart=null}});
+        function toggleRuler() {
+            rulerMode = !rulerMode; rulerStartPoint = null;
+            const btn = document.getElementById('btn-ruler');
+            const area = document.getElementById('game-area');
+            const ctx = document.getElementById('ruler-canvas').getContext('2d');
+            if(rulerMode) { btn.classList.add('active-mode'); area.classList.add('ruler-active'); }
+            else { btn.classList.remove('active-mode'); area.classList.remove('ruler-active'); ctx.clearRect(0,0,9999,9999); document.getElementById('ruler-info').style.display='none'; }
+        }
+        function getMapPt(e) {
+            const rect = document.getElementById('map-container').getBoundingClientRect();
+            let cx=e.clientX, cy=e.clientY;
+            if(e.touches && e.touches[0]) { cx=e.touches[0].clientX; cy=e.touches[0].clientY; }
+            return { x: (cx - rect.left) / mapTransform.scale, y: (cy - rect.top) / mapTransform.scale };
+        }
+        const gArea = document.getElementById('game-area');
+        gArea.addEventListener('mousedown', e => { if(!rulerMode || e.button!==0) return; tempStart = getMapPt(e); isDraggingRuler = false; });
+        window.addEventListener('mousemove', e => {
+            if(!rulerMode) return;
+            const curr = getMapPt(e);
+            const ctx = document.getElementById('ruler-canvas').getContext('2d');
+            const origin = rulerStartPoint || tempStart;
+            if(!origin) return;
+            if(tempStart) isDraggingRuler = true;
+            ctx.clearRect(0,0,9999,9999);
+            ctx.beginPath(); ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 3; ctx.setLineDash([10,5]);
+            ctx.moveTo(origin.x, origin.y); ctx.lineTo(curr.x, curr.y); ctx.stroke();
+            const m = (Math.hypot(curr.x - origin.x, curr.y - origin.y) / gameState.grid.size) * gameState.grid.scale;
+            const info = document.getElementById('ruler-info'); info.style.display='block'; info.innerText = m.toFixed(1) + "m";
+        });
+        window.addEventListener('mouseup', e => {
+            if(!rulerMode) return;
+            if(tempStart && isDraggingRuler && !rulerStartPoint) { tempStart = null; document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999); document.getElementById('ruler-info').style.display='none'; } 
+            else if(tempStart && !isDraggingRuler) {
+                if(!rulerStartPoint) rulerStartPoint = tempStart; 
+                else { rulerStartPoint = null; document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999); document.getElementById('ruler-info').style.display='none'; }
+                tempStart = null;
+            }
+        });
+        gArea.addEventListener('touchstart', e=>{if(rulerMode){tempStart=getMapPt(e); isDraggingRuler=false;}});
+        gArea.addEventListener('touchend', e=>{if(rulerMode){ if(tempStart && !isDraggingRuler){ if(!rulerStartPoint) rulerStartPoint=tempStart; else { rulerStartPoint=null; document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999); } } tempStart=null; }});
 
-        // --- SHEET & ZAR ---
+        // --- SOHBET ---
+        function sendChat() {
+            const inp = document.getElementById('chat-input'); const t = inp.value.trim();
+            if(!t) return;
+            gameState.chat.push({u:currentUser, t:t, type:'text'}); 
+            updateState(); inp.value="";
+        }
+        function sendGif() { const u=prompt("GIF Linki:"); if(u) { gameState.chat.push({u:currentUser, t:u, type:'gif'}); updateState(); } }
+        function renderChat() {
+            const c=document.getElementById('chat-content');
+            c.innerHTML=gameState.chat.map(m=>`<div class="chat-msg"><b>${m.u.toUpperCase()}:</b> ${m.type==='gif'?`<img src="${m.t}" class="chat-gif">`:m.t}</div>`).join('');
+            c.scrollTop=c.scrollHeight;
+        }
+
+        // --- MİKROFON ---
+        async function initMic() {
+            try {
+                const s = await navigator.mediaDevices.getUserMedia({audio:true});
+                const ac = new AudioContext(); const an = ac.createAnalyser();
+                ac.createMediaStreamSource(s).connect(an); an.fftSize = 512;
+                const d = new Uint8Array(an.frequencyBinCount);
+                const loop = () => {
+                    if(!gameState.activity.paused) {
+                        an.getByteFrequencyData(d); let sm=0; for(let x of d)sm+=x; 
+                        if(sm/d.length > 15) localSpeechTime += 0.1;
+                    }
+                    setTimeout(()=>requestAnimationFrame(loop),100);
+                };
+                loop();
+                setInterval(()=>{ 
+                    if(localSpeechTime > 0) {
+                        db.collection('rooms').doc(currentRoom).update({ [`activity.scores.${currentUser}`]: localSpeechTime });
+                    }
+                }, 3000);
+            } catch(e) { console.log(e); }
+        }
+
+        // --- SHEET & STATS ---
         function openSheet(id) {
             activeTokenId=id; const t=gameState.tokens.find(x=>x.id===id);
             if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']}; if(!t.statuses)t.statuses=[];
             document.getElementById('char-sheet-modal').style.display='flex';
             document.getElementById('sheet-name').innerText=(t.name||t.owner).toUpperCase();
-            document.getElementById('sheet-token-name').value=t.name||"";
-            document.getElementById('sheet-token-scale').value=t.scale||1;
-            document.getElementById('sheet-align').value=t.meta.align||"";
-            const ts=document.querySelectorAll('.trait-select'); ts.forEach((s,i)=>s.value=t.meta.traits[i]||"");
-            if(isGM){document.getElementById('gm-vision').value=t.vision||10;document.getElementById('btn-gm-pos').style.background=t.locked?"var(--accent-red)":"#333";renderStatusGrid(t);}
+            document.getElementById('sheet-token-name').value = t.name || "";
+            document.getElementById('sheet-token-scale').value = t.scale || 1;
+            document.getElementById('sheet-align').value = t.meta.align || "";
+            const ts = document.querySelectorAll('.trait-select'); ts.forEach((s,i) => s.value = t.meta.traits[i] || "");
+            
+            if(isGM) {
+                document.getElementById('gm-vision').value = t.vision||10;
+                document.getElementById('btn-gm-pos').style.background = t.locked ? "var(--accent-red)" : "#333";
+                renderStatusGrid(t);
+            }
             sheetLocked=false; toggleLock(); toggleLock(); renderStats(t);
         }
-        function closeSheet(){document.getElementById('char-sheet-modal').style.display='none';updateState()}
-        function saveSheetMeta(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.name=document.getElementById('sheet-token-name').value;t.scale=parseFloat(document.getElementById('sheet-token-scale').value);t.meta.align=document.getElementById('sheet-align').value;const ts=document.querySelectorAll('.trait-select');t.meta.traits=[ts[0].value,ts[1].value,ts[2].value];updateState()}
-        function renderStatusGrid(t){const g=document.getElementById('status-grid');g.innerHTML="";CONDITIONS.forEach(c=>{const a=t.statuses.includes(c);const b=document.createElement('button');b.className=`status-btn ${a?'active-status':''}`;b.innerText=c;b.onclick=()=>{if(a)t.statuses=t.statuses.filter(x=>x!==c);else t.statuses.push(c);renderStatusGrid(t);updateState()};g.appendChild(b)})}
-        function gmDeleteToken(){if(confirm("Sil?")){gameState.tokens=gameState.tokens.filter(x=>x.id!==activeTokenId);closeSheet();updateState()}}
-        function gmTogglePosLock(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.locked=!t.locked;openSheet(activeTokenId);updateState()}
-        function gmUpdateToken(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.vision=parseFloat(document.getElementById('gm-vision').value)||10;updateState()}
-        function renderStats(t){const al=document.getElementById('attr-list'), sl=document.getElementById('skill-list'); al.innerHTML=""; sl.innerHTML=""; const cr=(k,tr,tp)=>{const s=getS(t,k);return `<div class="stat-row"><span style="color:var(--gold-text);font-size:0.75rem">${tr}</span><div class="input-group"><input type="number" min="1" max="5" value="${s.b}" onchange="upS('${k}',this.value,'${s.a}')"></div><div class="input-group"><input type="number" min="0" value="${s.a}" onchange="upS('${k}','${s.b}',this.value)"></div><button class="stat-btn-locked" onclick="selS('${k}','${tp}',this)">${tr}: ${s.b} + ${s.a}</button></div>`}; for(let k in ATTRS)al.innerHTML+=cr(k,ATTRS[k],'attr'); for(let k in SKILLS)sl.innerHTML+=cr(k,SKILLS[k],'skill');}
-        window.upS=function(k,b,a){setS(gameState.tokens.find(x=>x.id===activeTokenId),k,b,a)}
-        window.selS=function(k,tp,btn){if(!sheetLocked)return;if(tp==='attr'){selAttr=(selAttr===k)?null:k;document.querySelectorAll('#attr-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selAttr)btn.classList.add('selected')}else{selSkill=(selSkill===k)?null:k;document.querySelectorAll('#skill-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selSkill)btn.classList.add('selected')}document.getElementById('sheet-status').innerText=`Seçim: ${selAttr?ATTRS[selAttr]:'-'} + ${selSkill?SKILLS[selSkill]:'-'}`}
-        function toggleLock(){sheetLocked=!sheetLocked;const b=document.querySelector('.sheet-body'),btn=document.getElementById('btn-lock');if(sheetLocked){b.classList.add('locked-mode');btn.innerText="AÇ";renderStats(gameState.tokens.find(x=>x.id===activeTokenId))}else{b.classList.remove('locked-mode');btn.innerText="KİLİTLE";selAttr=null;selSkill=null}}
+        function closeSheet() { document.getElementById('char-sheet-modal').style.display='none'; updateState(); }
+        function saveSheetMeta() {
+            const t=gameState.tokens.find(x=>x.id===activeTokenId);
+            t.name = document.getElementById('sheet-token-name').value;
+            t.scale = parseFloat(document.getElementById('sheet-token-scale').value);
+            t.meta.align = document.getElementById('sheet-align').value;
+            const ts = document.querySelectorAll('.trait-select'); t.meta.traits = [ts[0].value, ts[1].value, ts[2].value];
+            updateState();
+        }
+        function renderStatusGrid(t) {
+            const g = document.getElementById('status-grid'); g.innerHTML="";
+            CONDITIONS.forEach(c => {
+                const active = t.statuses.includes(c);
+                const btn = document.createElement('button'); btn.className = `status-btn ${active?'active-status':''}`;
+                btn.innerText = c;
+                btn.onclick = () => { if(active) t.statuses = t.statuses.filter(x=>x!==c); else t.statuses.push(c); renderStatusGrid(t); updateState(); };
+                g.appendChild(btn);
+            });
+        }
+        function gmDeleteToken() { if(confirm("Silinsin mi?")){ gameState.tokens = gameState.tokens.filter(x=>x.id!==activeTokenId); closeSheet(); updateState(); } }
+        function gmTogglePosLock() { const t=gameState.tokens.find(x=>x.id===activeTokenId); t.locked=!t.locked; openSheet(activeTokenId); updateState(); }
+        function gmUpdateToken() { const t=gameState.tokens.find(x=>x.id===activeTokenId); t.vision=parseFloat(document.getElementById('gm-vision').value)||10; updateState(); }
+
+        function renderStats(t) {
+            const al=document.getElementById('attr-list'), sl=document.getElementById('skill-list'); al.innerHTML=""; sl.innerHTML="";
+            const cr=(k,tr,tp)=>{ const s=getS(t,k); return `<div class="stat-row"><span style="color:var(--gold-text);font-size:0.75rem">${tr}</span><div class="input-group"><input type="number" min="1" max="5" value="${s.b}" onchange="upS('${k}',this.value,'${s.a}')"></div><div class="input-group"><input type="number" min="0" value="${s.a}" onchange="upS('${k}','${s.b}',this.value)"></div><button class="stat-btn-locked" onclick="selS('${k}','${tp}',this)">${tr}: ${s.b} + ${s.a}</button></div>`; };
+            for(let k in ATTRS) al.innerHTML += cr(k,ATTRS[k],'attr');
+            for(let k in SKILLS) sl.innerHTML += cr(k,SKILLS[k],'skill');
+        }
+        window.upS=function(k,b,a){ setS(gameState.tokens.find(x=>x.id===activeTokenId),k,b,a); }
+        window.selS=function(k,tp,btn){
+            if(!sheetLocked)return;
+            if(tp==='attr'){ selAttr=(selAttr===k)?null:k; document.querySelectorAll('#attr-list .stat-btn-locked').forEach(b=>b.classList.remove('selected')); if(selAttr)btn.classList.add('selected'); }
+            else{ selSkill=(selSkill===k)?null:k; document.querySelectorAll('#skill-list .stat-btn-locked').forEach(b=>b.classList.remove('selected')); if(selSkill)btn.classList.add('selected'); }
+            document.getElementById('sheet-status').innerText = `Seçim: ${selAttr?ATTRS[selAttr]:'-'} + ${selSkill?SKILLS[selSkill]:'-'}`;
+        }
+        function toggleLock(){ sheetLocked=!sheetLocked; const b=document.querySelector('.sheet-body'), btn=document.getElementById('btn-lock'); if(sheetLocked){b.classList.add('locked-mode');btn.innerText="AÇ"; renderStats(gameState.tokens.find(x=>x.id===activeTokenId));}else{b.classList.remove('locked-mode');btn.innerText="KİLİTLE"; selAttr=null; selSkill=null;} }
         function getS(t,k){const v=t.stats[k]||"1,0";const p=v.split(',');return{b:parseInt(p[0])||1,a:parseInt(p[1])||0}}
         function setS(t,k,b,a){t.stats[k]=`${b},${a}`}
 
-        function rollStats(){if(!selAttr&&!selSkill)return;const t=gameState.tokens.find(x=>x.id===activeTokenId);let b=0,a=0;if(selAttr){const s=getS(t,selAttr);b+=s.b;a+=s.a}if(selSkill){const s=getS(t,selSkill);b+=s.b;a+=s.a}let res=rollD(b);let total=res.h+a;broadcastLog(`<div style="border-left:3px solid var(--accent-green);padding-left:5px"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${res.d}]<br>Sonuç: ${res.h}+${a}=<b>${total}</b><div class="log-actions"><button onclick="actPush(${b},${a},${total})">ZORLA</button><button onclick="actInsp(${b},${a})">İLHAM</button><button onclick="actCombo(${b},${a})">ZORLA & İLHAM</button></div></div>`)}
-        function actPush(b,a,p){let ph=p-a;let f=b-ph;if(f<=0)return alert("Zorlanamaz");let r=rollD(f);let n=p+r.h;broadcastLog(`<div style="border-left:2px dashed #aaa;padding-left:5px;margin-top:5px"><i>Zorlama</i> [${r.d}]<br>YENİ: <b>${n}</b><div class="log-actions"><button onclick="actInsp(${b},${a})">İLHAM</button></div></div>`)}
-        function actInsp(b,a){useInsp(1);let r=rollD(b);let t=r.h+a;updateState();broadcastLog(`<div style="border-top:1px solid #555;padding-top:5px;margin-top:5px"><b>✨ İLHAM</b> (Harc:1)<br>Yeni: [${r.d}]<br>Sonuç: <b>${t}</b><div class="log-actions"><button onclick="actPush(${b},${a},${t})">ZORLA</button></div></div>`)}
-        function actCombo(b,a){const tg=parseInt(prompt("Hedef?",4));if(!tg)return;const lm=parseInt(prompt("Limit?",5));if(!lm)return;let s=0,bt=0,lt="";while(s<lm){s++;let r1=rollD(b),h=r1.h,f=b-h,p=0;if(f>0){let r2=rollD(f);p=r2.h}let t=h+p+a;lt+=`[#${s}:${t}] `;if(t>=tg){bt=t;break}if(t>bt)bt=t}useInsp(s);updateState();broadcastLog(`<div style="background:rgba(200,150,0,0.1);padding:5px;margin-top:5px"><b>🔥 COMBO</b> (Harc:${s})<br><small>${lt}</small><br>SONUÇ: <b>${bt}</b></div>`)}
-        function rollD(n){let h=0,d=[];for(let i=0;i<n;i++){let r=Math.floor(Math.random()*6)+1;d.push(r);if(r===6)h++}return{h,d}}
-        function useInsp(n){if(!gameState.inspiration[currentUser])gameState.inspiration[currentUser]=0;gameState.inspiration[currentUser]+=n}
+        // --- ZAR ---
+        function rollStats() {
+            if(!selAttr && !selSkill) return;
+            const t = gameState.tokens.find(x=>x.id===activeTokenId);
+            let b=0, a=0;
+            if(selAttr) { const s=getS(t,selAttr); b+=s.b; a+=s.a; }
+            if(selSkill) { const s=getS(t,selSkill); b+=s.b; a+=s.a; }
+            let res = rollD(b); let total = res.h + a;
+            
+            const logHtml = `<div style="border-left:3px solid var(--accent-green); padding-left:5px;"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${res.d}]<br>Sonuç: ${res.h} + ${a} (Oto) = <b>${total}</b><div class="log-actions"><button onclick="actPush(${b}, ${a}, ${total})">ZORLA</button><button onclick="actInsp(${b}, ${a})">İLHAM</button><button onclick="actCombo(${b}, ${a})">ZORLA & İLHAM</button></div></div>`;
+            addLog(logHtml);
+            // Push log to chat so everyone sees it (Ephemeral log simulation)
+            gameState.chat.push({u:"SİSTEM", t:logHtml, type:'html'}); updateState();
+        }
+        window.actPush = function(base, auto, prevTotal) {
+            let prevHits = prevTotal - auto; let fails = base - prevHits;
+            if(fails <= 0) return alert("Zorlanacak zar yok!");
+            let res = rollD(fails); let newTotal = prevTotal + res.h;
+            const html = `<div style="border-left:2px dashed #aaa; padding-left:5px; margin-top:5px;"><i>Zorlama...</i> [${res.d}] (+${res.h})<br>YENİ SONUÇ: <b>${newTotal}</b><div class="log-actions"><button onclick="actInsp(${base}, ${auto})">İLHAM</button></div></div>`;
+            addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState();
+        }
+        window.actInsp = function(base, auto) {
+            useInsp(1); let res = rollD(base); let total = res.h + auto; 
+            const html = `<div style="border-top:1px solid #555; padding-top:5px; margin-top:5px;"><b>✨ İLHAM</b> (Harcanan: 1)<br>Yeni Atış: [${res.d}]<br>Sonuç: <b>${total}</b><div class="log-actions"><button onclick="actPush(${base}, ${auto}, ${total})">ZORLA</button></div></div>`;
+            addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState();
+        }
+        window.actCombo = function(base, auto) {
+            const target = parseInt(prompt("Hedef?", 4)); if(!target) return;
+            const limit = parseInt(prompt("Limit?", 5)); if(!limit) return;
+            let spent=0, bestTotal=0, logTxt = "";
+            while(spent < limit) {
+                spent++;
+                let r1 = rollD(base); let hits = r1.h;
+                let fails = base - hits; let pushed = 0;
+                if(fails > 0) { let r2 = rollD(fails); pushed = r2.h; }
+                let total = hits + pushed + auto;
+                logTxt += `[#${spent}: ${total}] `;
+                if(total >= target) { bestTotal=total; break; }
+                if(total > bestTotal) bestTotal=total;
+            }
+            useInsp(spent); 
+            const html = `<div style="background:rgba(200,150,0,0.1); padding:5px; margin-top:5px;"><b>🔥 COMBO</b> (Harc: ${spent})<br><small>${logTxt}</small><br>SONUÇ: <b style="color:${bestTotal>=target?'#2ecc71':'#e74c3c'}">${bestTotal}</b></div>`;
+            addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState();
+        }
+        function rollD(n) { let h=0, d=[]; for(let i=0;i<n;i++){let r=Math.floor(Math.random()*6)+1; d.push(r); if(r===6)h++;} return {h,d}; }
+        function useInsp(n) { if(!gameState.inspiration[currentUser]) gameState.inspiration[currentUser]=0; gameState.inspiration[currentUser]+=n; }
 
-        function sendChat(){const i=document.getElementById('chat-input'),t=i.value.trim();if(!t)return;gameState.chat.push({u:currentUser,t:t,type:'text'});updateState();i.value=""}
-        function sendGif(){const u=prompt("GIF Link:");if(u){gameState.chat.push({u:currentUser,t:u,type:'gif'});updateState()}}
-        function renderChat(){const c=document.getElementById('chat-content');c.innerHTML=gameState.chat.map(m=>`<div class="chat-msg"><b>${m.u.toUpperCase()}:</b> ${m.type==='gif'?`<img src="${m.t}" class="chat-gif">`:m.t}</div>`).join('');c.scrollTop=c.scrollHeight}
-
+        // --- UTILS & CORE ---
         function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
         function togglePanel(id){document.getElementById(id).classList.toggle('visible')}
         function toggleTooltips(){showTooltips=document.getElementById('show-tooltips').checked; renderMap();}
-        function addLog(h){const c=document.getElementById('log-content');const d=document.createElement('div');d.className='log-entry';d.innerHTML=h;c.prepend(d)}
-        function clearLog(){document.getElementById('log-content').innerHTML=""}
+        function addLog(h){const c=document.getElementById('log-content'); const d=document.createElement('div'); d.className='log-entry'; d.innerHTML=h; c.prepend(d);}
+        function clearLog(){document.getElementById('log-content').innerHTML="";}
         function resizeCvs(){const i=document.getElementById('game-map'),w=i.naturalWidth||800,h=i.naturalHeight||600;['grid-canvas','fog-canvas','ruler-canvas'].forEach(id=>{const c=document.getElementById(id);c.width=w;c.height=h})}
         function clearCvs(){['grid-canvas','fog-canvas'].forEach(id=>document.getElementById(id).getContext('2d').clearRect(0,0,9999,9999))}
         function drawGrid(){const c=document.getElementById('grid-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);if(!gameState.grid.show)return;x.beginPath();x.strokeStyle='rgba(255,255,255,0.1)';for(let i=0;i<=c.width;i+=gameState.grid.size){x.moveTo(i,0);x.lineTo(i,c.height)}for(let j=0;j<=c.height;j+=gameState.grid.size){x.moveTo(0,j);x.lineTo(c.width,j)}x.stroke()}
@@ -608,11 +868,6 @@
         function renderInsp(){const l=document.getElementById('insp-list');l.innerHTML="";Object.entries(gameState.inspiration).forEach(([u,v])=>{if(v>0)l.innerHTML+=`<div class="list-item"><span>${u.toUpperCase()}</span><span style="color:var(--gold-text);font-weight:bold">${v}</span></div>`})}
         function resetInsp(){if(isGM){gameState.inspiration={};updateState();}}
         function resetAll(){if(isGM&&confirm("Emin misin?")){gameState={mapSrc:null,grid:{show:true,size:50,scale:1.5},weather:"",initiative:{list:[],round:1,currentIdx:0},activity:{paused:false,scores:{}},inspiration:{},chat:[],tokens:[]};updateState();}}
-        
-        async function initMic(){try{const s=await navigator.mediaDevices.getUserMedia({audio:true});const ac=new AudioContext(),an=ac.createAnalyser();ac.createMediaStreamSource(s).connect(an);an.fftSize=512;const d=new Uint8Array(an.frequencyBinCount);const l=()=>{if(!gameState.activity.paused){an.getByteFrequencyData(d);let sm=0;for(let x of d)sm+=x;if(sm/d.length>15)localSpeechTime+=0.1}setTimeout(()=>requestAnimationFrame(l),100)};l();setInterval(()=>{if(localSpeechTime>0){gameState.activity.scores[currentUser]=localSpeechTime;db.collection('rooms').doc(currentRoom).update({[`activity.scores.${currentUser}`]:localSpeechTime})}},3000)}catch(e){console.log(e)}}
-
-        document.getElementById('map-upload').addEventListener('change',async e=>{if(isGM&&e.target.files[0]){const u=await uploadImage(e.target.files[0]);if(u){gameState.mapSrc=u;updateState()}}});
-        document.getElementById('token-upload').addEventListener('change',async e=>{if(e.target.files[0]){const u=await uploadImage(e.target.files[0]);if(u){gameState.tokens.push({id:Date.now(),owner:currentUser,x:100,y:100,imgSrc:u,scale:1,stats:{},meta:{align:"",traits:['','','']},vision:10,locked:false,statuses:[]});updateState()}}});
 
     </script>
 </body>
