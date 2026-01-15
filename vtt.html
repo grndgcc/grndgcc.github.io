@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>İkili Evren - Ultimate GM Edition</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --glass-bg: rgba(15, 15, 20, 0.95);
+            --glass-border: rgba(197, 160, 89, 0.4);
+            --gold-text: #c5a059;
+            --text-main: #e0e0e0;
+            --accent-red: #8e2525;
+            --accent-green: #2e5a38;
+            --blur-amt: 12px;
+        }
+
+        * { box-sizing: border-box; touch-action: none; }
+
+        body {
+            margin: 0; padding: 0; font-family: 'Lato', sans-serif;
+            background-color: var(--bg-color); color: var(--text-main);
+            overflow: hidden; display: flex; height: 100vh; width: 100vw;
+            background-image: radial-gradient(circle at center, #1f2833 0%, #000000 100%);
+        }
+
+        h1, h2, h3, h4, button { font-family: 'Cinzel', serif; }
+
+        /* UI */
+        .glass-panel {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 6px; box-shadow: 0 4px 30px rgba(0,0,0,0.7);
+            color: var(--text-main); pointer-events: auto;
+        }
+
+        button {
+            background: linear-gradient(180deg, rgba(50,50,50,0.9) 0%, rgba(20,20,20,1) 100%);
+            border: 1px solid var(--glass-border); color: var(--gold-text);
+            padding: 8px 10px; border-radius: 4px; cursor: pointer;
+            font-weight: bold; font-size: 0.75rem; transition: 0.2s;
+        }
+        button:hover { background: rgba(197,160,89,0.15); border-color: #fff; }
+        button:active { transform: scale(0.96); }
+        button.active { background: var(--accent-red); color: white; border-color: white; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+        input, select, textarea {
+            background: rgba(0,0,0,0.5); color: white; border: 1px solid #444;
+            padding: 8px; border-radius: 3px; width: 100%; font-family: 'Lato', sans-serif; text-align: center;
+        }
+        input:focus, textarea:focus { outline: none; border-color: var(--gold-text); }
+        textarea { text-align: left; resize: none; }
+
+        /* DOCK */
+        #ui-dock {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; padding: 10px 20px; z-index: 2000;
+            border-radius: 30px; border: 1px solid var(--gold-text); background: rgba(0,0,0,0.95);
+        }
+        .dock-btn {
+            width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; border: 1px solid #555; background: #222;
+        }
+        .dock-btn.active-mode { border-color: var(--gold-text); background: var(--accent-red); }
+
+        /* PANELS */
+        #sidebar {
+            position: fixed; top: 0; left: 0; height: 100%; width: 340px; z-index: 1500;
+            padding: 20px; display: flex; flex-direction: column; gap: 15px;
+            transform: translateX(-360px); transition: transform 0.3s ease;
+        }
+        #sidebar.open { transform: translateX(0); }
+        
+        .float-panel {
+            position: fixed; z-index: 500; padding: 10px; display: none; flex-direction: column;
+            min-width: 240px; max-width: 320px; max-height: 80vh;
+        }
+        .float-panel.visible { display: flex; }
+        .float-header { 
+            font-family: 'Cinzel', serif; font-weight: bold; color: var(--gold-text); 
+            border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 5px; 
+            display: flex; justify-content: space-between; cursor: move; 
+        }
+
+        #panel-initiative { top: 70px; right: 20px; }
+        #panel-activity { top: 70px; left: 360px; }
+        #panel-inspiration { top: 20px; right: 280px; width: 180px; text-align: center; }
+        #panel-log { bottom: 100px; right: 20px; width: 320px; height: 300px; }
+        #panel-chat { bottom: 100px; left: 20px; width: 300px; height: 350px; }
+        #panel-journal { top: 100px; left: 50%; transform: translateX(-50%); width: 400px; height: 500px; }
+
+        .list-container { flex-grow: 1; overflow-y: auto; font-size: 0.9rem; scrollbar-width: thin; }
+        .list-item { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .list-item.active { background: rgba(197, 160, 89, 0.2); border-left: 2px solid var(--gold-text); }
+
+        /* GAME AREA */
+        #game-area { position: absolute; top:0; left:0; width:100%; height:100%; overflow: hidden; cursor: default; z-index: 0; }
+        #map-container { position: absolute; top:0; left:0; transform-origin: 0 0; }
+        #game-map { position: absolute; z-index: 1; pointer-events: none; }
+        canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
+        #grid-canvas { z-index: 2; }
+        #fog-canvas { z-index: 3; }
+        #ruler-canvas { z-index: 20; }
+        #weather-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; }
+        .ruler-active { cursor: crosshair !important; }
+
+        /* TOKENS */
+        .token {
+            width: 70px; height: 70px; position: absolute; z-index: 10; border-radius: 50%;
+            border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.8);
+            background-size: cover; background-position: center; transition: border-color 0.2s;
+        }
+        .token.my-token { border-color: var(--accent-green); cursor: grab; }
+        .token.other-token { border-color: var(--accent-red); }
+        .token.locked-token { cursor: not-allowed; border-style: dashed; }
+        .token:active { cursor: grabbing; }
+        
+        .token-name {
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 4px;
+            font-size: 0.7rem; white-space: nowrap; pointer-events: none; color: white;
+        }
+        
+        .token-tooltip {
+            position: absolute; bottom: 75px; left: 50%; transform: translateX(-50%);
+            background: var(--glass-bg); border: 1px solid var(--gold-text);
+            padding: 8px; border-radius: 5px; width: 180px; pointer-events: none;
+            display: none; z-index: 100; text-align: left; font-size: 0.8rem;
+        }
+        .token:hover .token-tooltip { display: block; }
+        
+        .token-gear {
+            position: absolute; bottom: -5px; right: -5px; width: 24px; height: 24px;
+            background: var(--gold-text); color: black; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 14px;
+            cursor: pointer; z-index: 25; border: 1px solid black;
+        }
+
+        /* CHARACTER SHEET & GM CONTROLS */
+        #char-sheet-modal {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 800px; max-width: 95%; height: 750px; max-height: 95%; z-index: 5000;
+            padding: 0; flex-direction: column;
+        }
+        .gm-controls-area {
+            background: rgba(142, 37, 37, 0.1); border-bottom: 1px solid var(--accent-red);
+            padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: center;
+        }
+        .sheet-body { padding: 20px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .stat-row { 
+            display: grid; grid-template-columns: 100px 1fr 1fr; gap: 5px; align-items: center;
+            margin-bottom: 5px; padding: 4px; background: rgba(255,255,255,0.03); border-radius: 4px;
+        }
+        .stat-btn-locked { grid-column: 1 / span 3; text-align: left; width: 100%; background: transparent; color:white; border:none; padding:10px; display:none; }
+        .locked-mode .input-group { display: none; }
+        .locked-mode .stat-btn-locked { display: block; }
+        .locked-mode .stat-btn-locked.selected { background: var(--gold-text); color: black; }
+
+        /* LOG & CHAT */
+        .log-entry { margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; font-size: 0.85rem; }
+        .log-actions { margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap; }
+        .chat-msg { margin-bottom: 5px; word-wrap: break-word; font-size:0.9rem;}
+        .chat-msg b { color: var(--gold-text); }
+        .chat-gif { max-width: 100%; border-radius: 4px; margin-top:5px;}
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            #ui-dock { width: 95%; justify-content: space-between; padding: 8px; bottom: 10px; }
+            #sidebar { width: 100%; }
+            .float-panel { width: 90% !important; left: 5% !important; right: 5% !important; top: 60px !important; max-height: 40vh; }
+            #panel-log, #panel-chat { bottom: 70px !important; top: auto !important; height: 250px !important; }
+            #panel-journal { width: 95%; height: 60%; top: 10%; left: 2.5%; transform: none; }
+            .sheet-body { grid-template-columns: 1fr; }
+            .gm-controls-area { grid-template-columns: 1fr; }
+            #inspiration-box { width: 100% !important; position: relative; left:0; top:0; }
+        }
+        .gm-only { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- GİRİŞ -->
+    <div id="login-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:flex;justify-content:center;align-items:center;">
+        <div class="glass-panel" style="padding:40px; text-align:center; width:300px; border:2px solid var(--gold-text);">
+            <h1 style="color:var(--gold-text);">İKİLİ EVREN</h1>
+            <select id="role-select" style="margin-bottom:10px;">
+                <option value="gm1">GM (Yönetici)</option>
+                <option value="player1">Oyuncu 1</option>
+                <option value="player2">Oyuncu 2</option>
+                <option value="player3">Oyuncu 3</option>
+            </select>
+            <input type="password" id="password-input" placeholder="gm111 / 111" style="margin-bottom:15px;">
+            <button onclick="attemptLogin()" style="width:100%;">BAĞLAN</button>
+            <p id="login-msg" style="color:var(--accent-red); margin-top:10px;"></p>
+        </div>
+    </div>
+
+    <!-- UI KATMANLARI -->
+    <div id="weather-overlay"></div>
+    <div id="ruler-info" style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:black; border:1px solid var(--gold-text); padding:5px 15px; border-radius:20px; display:none; z-index:2000; pointer-events:none;">0m</div>
+
+    <!-- DOCK -->
+    <div id="ui-dock" class="glass-panel">
+        <button class="dock-btn" onclick="toggleSidebar()">⚙️</button>
+        <button class="dock-btn" onclick="togglePanel('panel-initiative')">⚔️</button>
+        <button class="dock-btn" onclick="togglePanel('panel-activity')">🎤</button>
+        <button class="dock-btn" onclick="togglePanel('panel-inspiration')">✨</button>
+        <button class="dock-btn" id="btn-ruler" onclick="toggleRuler()">📏</button>
+        <button class="dock-btn" onclick="togglePanel('panel-journal')">📖</button> <!-- Günlük -->
+        <button class="dock-btn" onclick="togglePanel('panel-chat')">💬</button>
+        <button class="dock-btn" onclick="togglePanel('panel-log')">📜</button>
+    </div>
+
+    <!-- PANELLER -->
+    <div id="sidebar" class="glass-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:10px;">
+            <h3 id="user-display" style="color:var(--gold-text);">USER</h3> <button onclick="toggleSidebar()" style="background:none; border:none; color:white;">X</button>
+        </div>
+        <div class="control-group gm-only">
+            <span>HARİTA</span> <input type="file" id="map-upload" accept="image/*">
+            <div style="margin-top:5px;display:flex;gap:5px;">
+                <input type="number" id="grid-size" value="50" onchange="updateGrid()" placeholder="px">
+                <input type="number" id="grid-scale" value="1.5" step="0.5" onchange="updateGrid()" placeholder="m">
+            </div>
+            <label style="font-size:0.8rem;display:block;margin-top:5px;"><input type="checkbox" id="grid-show" onchange="updateGrid()" checked style="width:auto;"> Grid</label>
+        </div>
+        <div class="control-group"><span>TOKEN</span> <input type="file" id="token-upload" accept="image/*"></div>
+        <div class="control-group"><span>AYARLAR</span> <label style="font-size:0.8rem;display:block;"><input type="checkbox" id="show-tooltips" onchange="toggleTooltips()" checked style="width:auto;"> Hover Özeti</label></div>
+        <div class="control-group gm-only"><button onclick="resetAll()" style="width:100%;background:var(--accent-red);">SIFIRLA</button></div>
+    </div>
+
+    <div id="panel-initiative" class="glass-panel float-panel"><div class="float-header">TUR SIRASI <span id="round-display">T:1</span></div><div id="init-list" class="list-container"></div><div class="gm-only"><input type="text" id="init-name" placeholder="İsim"><input type="number" id="init-val" placeholder="Init"><button onclick="addToInit()">EKLE</button><button onclick="nextTurn()">İLERİ</button><button onclick="clearInit()">SİL</button></div></div>
+    <div id="panel-activity" class="glass-panel float-panel"><div class="float-header">KONUŞMA</div><div id="act-list" class="list-container"></div><div class="gm-only"><button onclick="resetAct()">SIFIRLA</button></div></div>
+    <div id="panel-inspiration" class="glass-panel float-panel visible"><div class="float-header">İLHAM</div><div id="insp-list" class="list-container" style="max-height:100px;"></div><div class="gm-only"><button onclick="resetInsp()">SIFIRLA</button></div></div>
+    <div id="panel-log" class="glass-panel float-panel visible"><div class="float-header">GÜNLÜK <button onclick="clearLog()">X</button></div><div id="log-content" class="list-container"></div></div>
+    
+    <div id="panel-chat" class="glass-panel float-panel">
+        <div class="float-header">SOHBET</div>
+        <div id="chat-content" class="list-container" style="background:rgba(0,0,0,0.3); padding:5px;"></div>
+        <div style="margin-top:5px; display:flex; gap:2px;"><input type="text" id="chat-input" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') sendChat()"><button onclick="sendChat()">></button></div>
+        <button onclick="sendGif()" style="width:100%; font-size:0.7rem; margin-top:2px; background:#444;">GIF</button>
+    </div>
+
+    <!-- ÖZEL GÜNLÜK (NOT DEFTERİ) -->
+    <div id="panel-journal" class="glass-panel float-panel">
+        <div class="float-header">ÖZEL GÜNLÜK <button onclick="togglePanel('panel-journal')">X</button></div>
+        <textarea id="journal-text" style="flex-grow:1; background:rgba(0,0,0,0.3); color:#ddd; font-family:'Lato'; padding:10px; border:none;" placeholder="Buraya alınan notlar sadece sizin tarayıcınızda saklanır ve kimse göremez."></textarea>
+    </div>
+
+    <!-- OYUN ALANI -->
+    <div id="game-area">
+        <div id="map-container">
+            <img id="game-map" src="" draggable="false">
+            <canvas id="grid-canvas"></canvas>
+            <canvas id="fog-canvas"></canvas>
+            <canvas id="ruler-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- KARAKTER KAĞIDI -->
+    <div id="char-sheet-modal" class="glass-panel">
+        <div style="padding:15px; border-bottom:1px solid #444; display:flex; justify-content:space-between;">
+            <h2 id="sheet-name" style="margin:0; color:var(--gold-text);"></h2>
+            <div><button id="btn-lock" onclick="toggleLock()">KİLİTLE</button> <button onclick="closeSheet()">X</button></div>
+        </div>
+        
+        <!-- GM KONTROLLERİ (Sadece GM Görür) -->
+        <div class="gm-controls-area gm-only">
+            <div>
+                <label style="font-size:0.7rem; color:#aaa; display:block;">GÖRÜŞ (m)</label>
+                <input type="number" id="gm-vision" placeholder="10" onchange="gmUpdateToken()">
+            </div>
+            <div>
+                <label style="font-size:0.7rem; color:#aaa; display:block;">DURUM</label>
+                <button id="btn-gm-pos-lock" onclick="gmTogglePosLock()" style="width:100%; margin-bottom:2px;">KONUM KİLİTLE</button>
+                <button id="btn-gm-sheet-lock" onclick="gmToggleSheetLock()" style="width:100%;">KART KİLİTLE</button>
+            </div>
+            <div>
+                <label style="font-size:0.7rem; color:#aaa; display:block;">YÖNETİM</label>
+                <button onclick="gmDeleteToken()" style="width:100%; background:var(--accent-red); color:white;">SİL</button>
+            </div>
+        </div>
+
+        <div class="sheet-body">
+            <div>
+                <select id="sheet-align" onchange="saveSheetMeta()"><option value="">Yönelim...</option><option>Kuralcı İyi</option><option>Nötr İyi</option><option>Kaotik İyi</option><option>Kuralcı Nötr</option><option>Tam Nötr</option><option>Kaotik Nötr</option><option>Kuralcı Kötü</option><option>Nötr Kötü</option><option>Kaotik Kötü</option></select>
+                <select class="trait-select" onchange="saveSheetMeta()"></select>
+                <select class="trait-select" onchange="saveSheetMeta()"></select>
+                <select class="trait-select" onchange="saveSheetMeta()"></select>
+                <h4 style="margin-top:10px;">NİTELİKLER</h4>
+                <div id="attr-list"></div>
+            </div>
+            <div>
+                <h4>BECERİLER</h4>
+                <div id="skill-list"></div>
+            </div>
+        </div>
+        <div style="padding:15px; text-align:center;">
+            <div id="sheet-status" style="margin-bottom:5px; color:#aaa;">...</div>
+            <button onclick="rollStats()" style="width:100%; padding:15px; font-size:1.2rem; background:var(--gold-text); color:black;">ZAR AT</button>
+        </div>
+    </div>
+
+    <script>
+        // --- SABİTLER ---
+        const CREDENTIALS = { 'gm1': 'gm111', 'player1': '111', 'player2': '222', 'player3': '333' };
+        const ATTRS = { 'Strength': 'KUVVET', 'Dexterity': 'ÇEVİKLİK', 'Constitution': 'DAYANIKLILIK', 'Intelligence': 'ZEKA', 'Wisdom': 'İRFAN', 'Charisma': 'KARİZMA' };
+        const SKILLS = { 'Diplomacy': 'Diplomasi', 'Martial': 'Savaş Sanatı', 'Economy': 'Ekonomi', 'Intrigue': 'Entrika', 'Learning': 'Bilgi', 'Prowess': 'Yiğitlik' };
+        const TRAITS = ["Hırslı", "Kibirli", "Paranoyak", "Sahtekar", "Dürüst", "Adil", "Cesur", "Korkak", "Şefkatli", "Kalpsiz", "Cömert", "Açgözlü", "Ölçülü", "Obur", "İffetli", "Şehvetli", "Çalışkan", "Tembel", "Sabırlı", "Sabırsız", "Alçakgönüllü", "Bağışlayıcı", "İntikamcı", "Utangaç", "Sosyal", "İnatçı", "Alaycı", "Bağnaz"];
+
+        const channel = new BroadcastChannel('vtt_final_ultimate');
+        let currentUser=null, isGM=false;
+        
+        let gameState = {
+            mapSrc: null, grid: {show:true, size:50, scale:1.5},
+            initiative: {list:[], round:1, currentIdx:0},
+            activity: {paused:false, scores:{}, speaking:null},
+            inspiration: {}, chat: [], 
+            tokens: [] // {id, x, y, owner, name, stats, meta, vision:10, locked:false, gmSheetLock:false}
+        };
+
+        // Local State
+        let activeTokenId=null, sheetLocked=false, selAttr=null, selSkill=null;
+        let rulerMode=false, rulerStartPoint=null, tempStart=null, isDraggingRuler=false;
+        let mapTransform = { x: 0, y: 0, scale: 1 };
+        let showTooltips = true;
+
+        // --- GİRİŞ & JOURNAL ---
+        function attemptLogin() {
+            const r=document.getElementById('role-select').value;
+            const p=document.getElementById('password-input').value;
+            if(CREDENTIALS[r]===p) {
+                currentUser=r; isGM=r.startsWith('gm');
+                document.getElementById('login-screen').style.display='none';
+                document.getElementById('user-display').innerText=r.toUpperCase();
+                if(isGM) document.querySelectorAll('.gm-only').forEach(e=>e.style.display='block');
+                
+                // Load Journal
+                const savedNote = localStorage.getItem('vtt_journal_'+currentUser);
+                if(savedNote) document.getElementById('journal-text').value = savedNote;
+                
+                // Trait Options
+                const opts = `<option value="">Özellik Seç...</option>` + TRAITS.map(t=>`<option>${t}</option>`).join('');
+                document.querySelectorAll('.trait-select').forEach(s=>s.innerHTML=opts);
+
+                channel.postMessage({type:'REQ'});
+                initZoomPan();
+            } else document.getElementById('login-msg').innerText="Hatalı Şifre";
+        }
+
+        // Journal Save
+        document.getElementById('journal-text').addEventListener('input', function() {
+            if(currentUser) localStorage.setItem('vtt_journal_'+currentUser, this.value);
+        });
+
+        channel.onmessage = e => {
+            const d=e.data;
+            if(d.type==='UPDATE') { gameState=d.data; renderAll(); }
+            else if(d.type==='REQ' && isGM) { broadcast(); }
+            else if(d.type==='LOG') { addLog(d.html); }
+        };
+        function broadcast() { channel.postMessage({type:'UPDATE', data:gameState}); renderAll(); }
+        function broadcastLog(html) { addLog(html); channel.postMessage({type:'LOG', html:html}); }
+        function renderAll() { renderMap(); renderInit(); renderAct(); renderInsp(); renderChat(); if(!isGM) { document.getElementById('grid-size').value=gameState.grid.size; document.getElementById('grid-scale').value=gameState.grid.scale; } }
+
+        // --- HARİTA (ZOOM & PAN) ---
+        function initZoomPan() {
+            const area = document.getElementById('game-area');
+            const cont = document.getElementById('map-container');
+            let isPanning = false, startX=0, startY=0;
+
+            function applyTransform() { cont.style.transform = `translate(${mapTransform.x}px, ${mapTransform.y}px) scale(${mapTransform.scale})`; }
+
+            area.addEventListener('wheel', e => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.min(Math.max(0.1, mapTransform.scale * delta), 5);
+                const rect = area.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+                mapTransform.x = mx - (mx - mapTransform.x) * (newScale / mapTransform.scale);
+                mapTransform.y = my - (my - mapTransform.y) * (newScale / mapTransform.scale);
+                mapTransform.scale = newScale;
+                applyTransform();
+            }, {passive:false});
+
+            area.addEventListener('contextmenu', e => e.preventDefault());
+            area.addEventListener('mousedown', e => {
+                if(e.button===2) { isPanning=true; startX=e.clientX - mapTransform.x; startY=e.clientY - mapTransform.y; area.style.cursor='grabbing'; }
+            });
+            window.addEventListener('mousemove', e => {
+                if(isPanning) { e.preventDefault(); mapTransform.x = e.clientX - startX; mapTransform.y = e.clientY - startY; applyTransform(); }
+            });
+            window.addEventListener('mouseup', () => { isPanning=false; area.style.cursor='default'; });
+
+            let initialDist = 0, initialScale = 1;
+            area.addEventListener('touchstart', e => {
+                if(e.touches.length===2) {
+                    initialDist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                    initialScale = mapTransform.scale;
+                }
+            }, {passive:false});
+            area.addEventListener('touchmove', e => {
+                if(e.touches.length===2) {
+                    e.preventDefault();
+                    const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+                    const delta = dist / initialDist;
+                    mapTransform.scale = Math.min(Math.max(0.1, initialScale * delta), 5);
+                    applyTransform();
+                }
+            }, {passive:false});
+        }
+
+        // --- MAP RENDER ---
+        function renderMap() {
+            const m = document.getElementById('game-map');
+            if(gameState.mapSrc && m.src!==gameState.mapSrc) { m.src = gameState.mapSrc; m.onload = () => { resizeCvs(); drawGrid(); drawFog(); }; m.style.display='block'; }
+            else if(!gameState.mapSrc) { m.style.display='none'; clearCvs(); }
+            else { drawGrid(); drawFog(); }
+
+            const mc = document.getElementById('map-container');
+            document.querySelectorAll('.token').forEach(e=>e.remove());
+            gameState.tokens.forEach(t=>{
+                const el = document.createElement('div'); el.className='token';
+                el.style.left=t.x+'px'; el.style.top=t.y+'px';
+                el.style.backgroundImage=`url(${t.imgSrc})`;
+                
+                const isOwn = t.owner===currentUser || isGM;
+                
+                // FOG
+                let vis=isGM;
+                if(!vis) {
+                    const mines=gameState.tokens.filter(x=>x.owner===currentUser);
+                    for(let m of mines) {
+                        // Vision radius in pixels: (visionMeters / gridScale) * gridSize
+                        const rad = ((m.vision||10) / gameState.grid.scale) * gameState.grid.size;
+                        if(Math.hypot(t.x-m.x, t.y-m.y) < rad) vis=true;
+                    }
+                }
+                if(!vis) el.classList.add('hidden-in-fog');
+
+                if(isOwn) {
+                    el.classList.add('my-token');
+                    if(t.locked && !isGM) { el.classList.add('locked-token'); } // Visual indicator
+                    else { addDrag(el,t.id); }
+                    
+                    const g=document.createElement('div'); g.className='token-gear'; g.innerHTML='⚙️';
+                    g.onclick=e=>{e.stopPropagation(); openSheet(t.id);}
+                    g.onmousedown=e=>e.stopPropagation(); g.ontouchstart=e=>e.stopPropagation();
+                    el.appendChild(g);
+                } else el.classList.add('other-token');
+                
+                if(showTooltips) {
+                    const tip = document.createElement('div'); tip.className='token-tooltip';
+                    const hp = t.stats['Constitution'] ? t.stats['Constitution'].split(',')[0]*2+10 : 10;
+                    tip.innerHTML = `<b>${(t.name||"Adsız")}</b><br>HP: ~${hp}<br>Yön: ${t.meta?.align||"-"}`;
+                    el.appendChild(tip);
+                }
+                const n = document.createElement('div'); n.className='token-name'; n.innerText=(t.name||t.owner).toUpperCase(); el.appendChild(n);
+                mc.appendChild(el);
+            });
+        }
+
+        // --- GM TOKEN CONTROLS ---
+        function gmDeleteToken() {
+            if(!isGM || !activeTokenId) return;
+            if(confirm("Token silinsin mi?")) {
+                gameState.tokens = gameState.tokens.filter(t => t.id !== activeTokenId);
+                closeSheet(); broadcast();
+            }
+        }
+        function gmTogglePosLock() {
+            if(!isGM || !activeTokenId) return;
+            const t = gameState.tokens.find(x=>x.id===activeTokenId);
+            t.locked = !t.locked;
+            renderGMControls(t); broadcast();
+        }
+        function gmToggleSheetLock() {
+            if(!isGM || !activeTokenId) return;
+            const t = gameState.tokens.find(x=>x.id===activeTokenId);
+            t.gmSheetLock = !t.gmSheetLock;
+            renderGMControls(t); broadcast();
+        }
+        function gmUpdateToken() {
+            if(!isGM || !activeTokenId) return;
+            const t = gameState.tokens.find(x=>x.id===activeTokenId);
+            t.vision = parseFloat(document.getElementById('gm-vision').value) || 10;
+            broadcast();
+        }
+        function renderGMControls(t) {
+            document.getElementById('gm-vision').value = t.vision || 10;
+            const btnPos = document.getElementById('btn-gm-pos-lock');
+            btnPos.innerText = t.locked ? "KONUM: KİLİTLİ" : "KONUM: AÇIK";
+            btnPos.style.background = t.locked ? "var(--accent-red)" : "";
+            
+            const btnSheet = document.getElementById('btn-gm-sheet-lock');
+            btnSheet.innerText = t.gmSheetLock ? "KART: KİLİTLİ (GM)" : "KART: AÇIK";
+            btnSheet.style.background = t.gmSheetLock ? "var(--accent-red)" : "";
+        }
+
+        // --- DRAG (RESPECTS LOCK) ---
+        function addDrag(el, id) {
+            let start=null, initPos=null;
+            const mapImg = document.getElementById('game-map');
+            
+            const startD = (x,y) => {
+                if(rulerMode) return false;
+                start={x,y}; initPos={left:parseInt(el.style.left||0), top:parseInt(el.style.top||0)};
+                return true;
+            }
+            const moveD = (x,y) => {
+                if(!start) return;
+                let nx = initPos.left + (x - start.x) / mapTransform.scale;
+                let ny = initPos.top + (y - start.y) / mapTransform.scale;
+                const w = mapImg.naturalWidth||800; const h = mapImg.naturalHeight||600;
+                nx = Math.max(0, Math.min(nx, w - 70)); ny = Math.max(0, Math.min(ny, h - 70));
+                el.style.left = nx+'px'; el.style.top = ny+'px';
+            }
+            const endD = () => {
+                if(!start) return; start=null;
+                const t=gameState.tokens.find(x=>x.id===id);
+                if(t){ t.x=parseInt(el.style.left); t.y=parseInt(el.style.top); broadcast(); }
+            }
+            el.onmousedown=e=>{ if(e.button===0 && startD(e.clientX,e.clientY)) {
+                const mm=ev=>moveD(ev.clientX,ev.clientY);
+                const mu=()=>{endD(); window.removeEventListener('mousemove',mm); window.removeEventListener('mouseup',mu);}
+                window.addEventListener('mousemove',mm); window.addEventListener('mouseup',mu);
+            }};
+            el.ontouchstart=e=>{ const t=e.touches[0]; startD(t.clientX,t.clientY); };
+            el.ontouchmove=e=>{ if(start) { e.preventDefault(); const t=e.touches[0]; moveD(t.clientX,t.clientY); } };
+            el.ontouchend=endD;
+        }
+
+        // --- CETVEL (HYBRID + FREE) ---
+        function toggleRuler() {
+            rulerMode = !rulerMode; rulerStartPoint = null;
+            const btn = document.getElementById('btn-ruler');
+            const area = document.getElementById('game-area');
+            const ctx = document.getElementById('ruler-canvas').getContext('2d');
+            if(rulerMode) { btn.classList.add('active-mode'); area.classList.add('ruler-active'); }
+            else { btn.classList.remove('active-mode'); area.classList.remove('ruler-active'); ctx.clearRect(0,0,9999,9999); document.getElementById('ruler-info').style.display='none'; }
+        }
+        function getMapPt(e) {
+            const rect = document.getElementById('map-container').getBoundingClientRect();
+            let cx=e.clientX, cy=e.clientY;
+            if(e.touches && e.touches[0]) { cx=e.touches[0].clientX; cy=e.touches[0].clientY; }
+            return { x: (cx - rect.left) / mapTransform.scale, y: (cy - rect.top) / mapTransform.scale };
+        }
+        document.getElementById('game-area').addEventListener('mousedown', e => {
+            if(!rulerMode || e.button!==0) return;
+            tempStart = getMapPt(e); isDraggingRuler = false;
+        });
+        window.addEventListener('mousemove', e => {
+            if(!rulerMode) return;
+            const curr = getMapPt(e);
+            const ctx = document.getElementById('ruler-canvas').getContext('2d');
+            const origin = rulerStartPoint || tempStart;
+            if(!origin) return;
+            if(tempStart) isDraggingRuler = true;
+            ctx.clearRect(0,0,9999,9999);
+            ctx.beginPath(); ctx.strokeStyle = '#f1c40f'; ctx.lineWidth = 3; ctx.setLineDash([10,5]);
+            ctx.moveTo(origin.x, origin.y); ctx.lineTo(curr.x, curr.y); ctx.stroke();
+            const m = (Math.hypot(curr.x - origin.x, curr.y - origin.y) / gameState.grid.size) * gameState.grid.scale;
+            const info = document.getElementById('ruler-info'); info.style.display='block'; info.innerText = m.toFixed(1) + "m";
+        });
+        window.addEventListener('mouseup', e => {
+            if(!rulerMode) return;
+            if(tempStart && isDraggingRuler && !rulerStartPoint) { tempStart = null; document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999); document.getElementById('ruler-info').style.display='none'; } 
+            else if(tempStart && !isDraggingRuler) {
+                if(!rulerStartPoint) rulerStartPoint = tempStart; 
+                else { rulerStartPoint = null; document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999); document.getElementById('ruler-info').style.display='none'; }
+                tempStart = null;
+            }
+        });
+
+        // --- FOG ---
+        function drawFog(){
+            const c=document.getElementById('fog-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);
+            x.fillStyle='black';x.globalAlpha=isGM?0.4:1.0;x.fillRect(0,0,c.width,c.height);
+            x.globalCompositeOperation='destination-out';x.globalAlpha=1.0;
+            gameState.tokens.filter(t=>isGM||t.owner===currentUser).forEach(t=>{
+                const cx=t.x+35, cy=t.y+35;
+                const rad = ((t.vision||10) / gameState.grid.scale) * gameState.grid.size; // Dynamic Vision
+                const g=x.createRadialGradient(cx,cy,rad*0.5,cx,cy,rad);
+                g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');
+                x.beginPath();x.arc(cx,cy,rad,0,Math.PI*2);x.fillStyle=g;x.fill();
+            });
+            x.globalCompositeOperation='source-over';
+        }
+
+        // --- SOHBET ---
+        function sendChat() {
+            const inp = document.getElementById('chat-input'); const t = inp.value.trim();
+            if(!t) return;
+            gameState.chat.push({u:currentUser, t:t, type:'text'}); if(gameState.chat.length>50) gameState.chat.shift();
+            broadcast(); inp.value="";
+        }
+        function sendGif() { const u=prompt("GIF Linki:"); if(u) { gameState.chat.push({u:currentUser, t:u, type:'gif'}); broadcast(); } }
+        function renderChat() {
+            const c=document.getElementById('chat-content');
+            c.innerHTML=gameState.chat.map(m=>`<div class="chat-msg"><b>${m.u.toUpperCase()}:</b> ${m.type==='gif'?`<img src="${m.t}" class="chat-gif">`:m.t}</div>`).join('');
+            c.scrollTop=c.scrollHeight;
+        }
+
+        // --- SHEET & STATS ---
+        function openSheet(id) {
+            activeTokenId=id; const t=gameState.tokens.find(x=>x.id===id);
+            if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']};
+            document.getElementById('char-sheet-modal').style.display='flex';
+            document.getElementById('sheet-name').innerText=(t.name||t.owner).toUpperCase();
+            document.getElementById('sheet-align').value = t.meta.align || "";
+            const ts = document.querySelectorAll('.trait-select'); ts.forEach((s,i) => s.value = t.meta.traits[i] || "");
+            if(isGM) renderGMControls(t);
+            sheetLocked=false; toggleLock(); toggleLock(); renderStats(t);
+        }
+        function closeSheet() { document.getElementById('char-sheet-modal').style.display='none'; broadcast(); }
+        function saveSheetMeta() { const t=gameState.tokens.find(x=>x.id===activeTokenId); t.meta.align = document.getElementById('sheet-align').value; const ts=document.querySelectorAll('.trait-select'); t.meta.traits=[ts[0].value, ts[1].value, ts[2].value]; }
+        function renderStats(t) {
+            const al=document.getElementById('attr-list'), sl=document.getElementById('skill-list'); al.innerHTML=""; sl.innerHTML="";
+            const cr=(k,tr,tp)=>{ const s=getS(t,k); return `<div class="stat-row"><span style="color:var(--gold-text);font-size:0.75rem">${tr}</span><div class="input-group"><input type="number" min="1" max="5" value="${s.b}" onchange="upS('${k}',this.value,'${s.a}')"></div><div class="input-group"><input type="number" min="0" value="${s.a}" onchange="upS('${k}','${s.b}',this.value)"></div><button class="stat-btn-locked" onclick="selS('${k}','${tp}',this)">${tr}: ${s.b} + ${s.a}</button></div>`; };
+            for(let k in ATTRS) al.innerHTML += cr(k,ATTRS[k],'attr');
+            for(let k in SKILLS) sl.innerHTML += cr(k,SKILLS[k],'skill');
+        }
+        window.upS=function(k,b,a){ setS(gameState.tokens.find(x=>x.id===activeTokenId),k,b,a); }
+        window.selS=function(k,tp,btn){
+            if(!sheetLocked)return;
+            if(tp==='attr'){ selAttr=(selAttr===k)?null:k; document.querySelectorAll('#attr-list .stat-btn-locked').forEach(b=>b.classList.remove('selected')); if(selAttr)btn.classList.add('selected'); }
+            else{ selSkill=(selSkill===k)?null:k; document.querySelectorAll('#skill-list .stat-btn-locked').forEach(b=>b.classList.remove('selected')); if(selSkill)btn.classList.add('selected'); }
+            document.getElementById('sheet-status').innerText = `Seçim: ${selAttr?ATTRS[selAttr]:'-'} + ${selSkill?SKILLS[selSkill]:'-'}`;
+        }
+        function toggleLock(){
+            const t = gameState.tokens.find(x=>x.id===activeTokenId);
+            if(t.gmSheetLock && !isGM) { alert("Bu kart GM tarafından kilitlendi."); return; }
+            sheetLocked=!sheetLocked; 
+            const b=document.querySelector('.sheet-body'), btn=document.getElementById('btn-lock'); 
+            if(sheetLocked){b.classList.add('locked-mode');btn.innerText="AÇ"; renderStats(t);}
+            else{b.classList.remove('locked-mode');btn.innerText="KİLİTLE"; selAttr=null; selSkill=null;} 
+        }
+        function getS(t,k){const v=t.stats[k]||"1,0";const p=v.split(',');return{b:parseInt(p[0])||1,a:parseInt(p[1])||0}}
+        function setS(t,k,b,a){t.stats[k]=`${b},${a}`}
+
+        // --- ZAR MEKANİĞİ ---
+        function rollStats() {
+            if(!selAttr && !selSkill) return;
+            const t = gameState.tokens.find(x=>x.id===activeTokenId);
+            let b=0, a=0;
+            if(selAttr) { const s=getS(t,selAttr); b+=s.b; a+=s.a; }
+            if(selSkill) { const s=getS(t,selSkill); b+=s.b; a+=s.a; }
+            let res = rollD(b);
+            let total = res.h + a;
+            broadcastLog(`<div style="border-left:3px solid var(--accent-green); padding-left:5px;"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${res.d}]<br>Sonuç: ${res.h} + ${a} (Oto) = <b>${total}</b><div class="log-actions"><button onclick="actPush(${b}, ${a}, ${total})">ZORLA</button><button onclick="actInsp(${b}, ${a})">İLHAM</button><button onclick="actCombo(${b}, ${a})">ZORLA & İLHAM</button></div></div>`);
+        }
+        window.actPush = function(base, auto, prevTotal) {
+            let prevHits = prevTotal - auto; let fails = base - prevHits;
+            if(fails <= 0) return alert("Zorlanacak zar yok!");
+            let res = rollD(fails); let newTotal = prevTotal + res.h;
+            broadcastLog(`<div style="border-left:2px dashed #aaa; padding-left:5px; margin-top:5px;"><i>Zorlama...</i> [${res.d}] (+${res.h})<br>YENİ SONUÇ: <b>${newTotal}</b><div class="log-actions"><button onclick="actInsp(${base}, ${auto})">İLHAM</button></div></div>`);
+        }
+        window.actInsp = function(base, auto) {
+            useInsp(1); let res = rollD(base); let total = res.h + auto;
+            broadcastLog(`<div style="border-top:1px solid #555; padding-top:5px; margin-top:5px;"><b>✨ İLHAM</b> (Harcanan: 1)<br>Yeni Atış: [${res.d}]<br>Sonuç: <b>${total}</b><div class="log-actions"><button onclick="actPush(${base}, ${auto}, ${total})">ZORLA</button></div></div>`);
+            broadcast();
+        }
+        window.actCombo = function(base, auto) {
+            const target = parseInt(prompt("Hedef?", 4)); if(!target) return;
+            const limit = parseInt(prompt("Limit?", 5)); if(!limit) return;
+            let spent=0, bestTotal=0, logTxt = "";
+            while(spent < limit) {
+                spent++;
+                let r1 = rollD(base); let hits = r1.h;
+                let fails = base - hits; let pushed = 0;
+                if(fails > 0) { let r2 = rollD(fails); pushed = r2.h; }
+                let total = hits + pushed + auto;
+                logTxt += `[#${spent}: ${total}] `;
+                if(total >= target) { bestTotal=total; break; }
+                if(total > bestTotal) bestTotal=total;
+            }
+            useInsp(spent);
+            broadcastLog(`<div style="background:rgba(200,150,0,0.1); padding:5px; margin-top:5px;"><b>🔥 COMBO</b> (Harc: ${spent})<br><small>${logTxt}</small><br>SONUÇ: <b style="color:${bestTotal>=target?'#2ecc71':'#e74c3c'}">${bestTotal}</b></div>`);
+            broadcast();
+        }
+        function rollD(n) { let h=0, d=[]; for(let i=0;i<n;i++){let r=Math.floor(Math.random()*6)+1; d.push(r); if(r===6)h++;} return {h,d}; }
+        function useInsp(n) { if(!gameState.inspiration[currentUser]) gameState.inspiration[currentUser]=0; gameState.inspiration[currentUser]+=n; }
+
+        // --- UTILS ---
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+        function togglePanel(id){document.getElementById(id).classList.toggle('visible')}
+        function toggleTooltips(){showTooltips=document.getElementById('show-tooltips').checked; renderMap();}
+        function addLog(h){const c=document.getElementById('log-content'); const d=document.createElement('div'); d.className='log-entry'; d.innerHTML=h; c.prepend(d);}
+        function clearLog(){document.getElementById('log-content').innerHTML="";}
+        function resizeCvs(){const i=document.getElementById('game-map'),w=i.naturalWidth||800,h=i.naturalHeight||600;['grid-canvas','fog-canvas','ruler-canvas'].forEach(id=>{const c=document.getElementById(id);c.width=w;c.height=h})}
+        function clearCvs(){['grid-canvas','fog-canvas'].forEach(id=>document.getElementById(id).getContext('2d').clearRect(0,0,9999,9999))}
+        function drawGrid(){const c=document.getElementById('grid-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);if(!gameState.grid.show)return;x.beginPath();x.strokeStyle='rgba(255,255,255,0.1)';for(let i=0;i<=c.width;i+=gameState.grid.size){x.moveTo(i,0);x.lineTo(i,c.height)}for(let j=0;j<=c.height;j+=gameState.grid.size){x.moveTo(0,j);x.lineTo(c.width,j)}x.stroke()}
+        function updateGrid(){if(!isGM)return;gameState.grid.size=parseInt(document.getElementById('grid-size').value)||50;gameState.grid.scale=parseFloat(document.getElementById('grid-scale').value)||1.5;gameState.grid.show=document.getElementById('grid-show').checked;broadcast();}
+        function addToInit(){if(!isGM)return;gameState.initiative.list.push({id:Date.now(),name:document.getElementById('init-name').value,val:parseInt(document.getElementById('init-val').value)||0});broadcast();}
+        function renderInit(){const l=document.getElementById('init-list');l.innerHTML="";gameState.initiative.list.sort((a,b)=>b.val-a.val).forEach((i,idx)=>{l.innerHTML+=`<div class="list-item ${idx===gameState.initiative.currentIdx?'active':''}"><span>${i.val} ${i.name}</span>${isGM?`<button style="font-size:0.6rem;background:var(--accent-red)" onclick="rmInit(${i.id})">X</button>`:''}</div>`})}
+        function nextTurn(){if(!isGM)return;gameState.initiative.currentIdx++;if(gameState.initiative.currentIdx>=gameState.initiative.list.length){gameState.initiative.currentIdx=0;gameState.initiative.round++}broadcast();}
+        function rmInit(id){if(!isGM)return;gameState.initiative.list=gameState.initiative.list.filter(x=>x.id!==id);broadcast();}
+        function clearInit(){if(!isGM)return;gameState.initiative={list:[],round:1,currentIdx:0};broadcast();}
+        function renderAct(){const l=document.getElementById('act-list');l.innerHTML="";Object.entries(gameState.activity.scores).sort((a,b)=>b[1]-a[1]).forEach(([u,t])=>{l.innerHTML+=`<div class="list-item"><span>${u.toUpperCase()}</span><span>${Math.floor(t/60)}:${Math.floor(t%60).toString().padStart(2,'0')}</span></div>`})}
+        function resetAct(){if(isGM){gameState.activity.scores={};channel.postMessage({type:'RESET_LOCALS'});broadcast();}}
+        function renderInsp(){const l=document.getElementById('insp-list');l.innerHTML="";Object.entries(gameState.inspiration).forEach(([u,v])=>{if(v>0)l.innerHTML+=`<div class="list-item"><span>${u.toUpperCase()}</span><span style="color:var(--gold-text);font-weight:bold">${v}</span></div>`})}
+        function resetInsp(){if(isGM){gameState.inspiration={};broadcast();}}
+        function resetAll(){if(isGM&&confirm("Emin misin?")){gameState={mapSrc:null,grid:{show:true,size:50,scale:1.5},weather:"",initiative:{list:[],round:1,currentIdx:0},activity:{paused:false,scores:{}},inspiration:{},chat:[],tokens:[]};broadcast();}}
+
+        document.getElementById('map-upload').addEventListener('change',e=>{if(isGM&&e.target.files[0]){const r=new FileReader();r.onload=ev=>{gameState.mapSrc=ev.target.result;broadcast()};r.readAsDataURL(e.target.files[0])}});
+        document.getElementById('token-upload').addEventListener('change',e=>{if(e.target.files[0]){const r=new FileReader();r.onload=ev=>{gameState.tokens.push({id:Date.now(),owner:currentUser,x:100,y:100,imgSrc:ev.target.result,stats:{},meta:{align:"",traits:['','','']}});broadcast()};r.readAsDataURL(e.target.files[0])}});
+
+    </script>
+</body>
+</html>
