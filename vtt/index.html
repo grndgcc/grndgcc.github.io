@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İkili Evren - VTT (Final)</title>
+    <title>İkili Evren - Final Plus v2</title>
     
-    <!-- FONTLAR -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=UnifrakturMaguntia&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
     <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -16,120 +15,106 @@
 
     <style>
         :root {
-            --bg-color: #050505;
-            --glass-bg: rgba(10, 10, 12, 0.95);
-            --glass-border: rgba(184, 134, 11, 0.5);
-            --gold-text: #deb887;
-            --text-main: #d3d3d3;
-            --accent-red: #8b0000;
-            --accent-green: #2f4f4f;
-            --blur-amt: 15px;
+            --bg-color: #0b0c10;
+            --glass-bg: rgba(15, 15, 20, 0.95);
+            --glass-border: rgba(197, 160, 89, 0.4);
+            --gold-text: #c5a059;
+            --text-main: #e0e0e0;
+            --accent-red: #8e2525;
+            --accent-green: #2e5a38;
+            --blur-amt: 12px;
         }
 
-        * { box-sizing: border-box; touch-action: none; user-select: none; -webkit-user-select: none; }
+        * { box-sizing: border-box; touch-action: none; }
 
         body {
-            margin: 0; padding: 0;
-            font-family: 'Cinzel', serif;
+            margin: 0; padding: 0; font-family: 'Lato', sans-serif;
             background-color: var(--bg-color); color: var(--text-main);
             overflow: hidden; display: flex; height: 100vh; width: 100vw;
-            background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png'), radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
-            overscroll-behavior: none;
+            background-image: radial-gradient(circle at center, #1f2833 0%, #000000 100%);
         }
 
-        h1, h2, h3, h4, .gothic-title { font-family: 'UnifrakturMaguntia', cursive; letter-spacing: 2px; }
-        
-        input, select, textarea {
-            background: rgba(0,0,0,0.6); color: #fff; 
-            border: 1px solid #555; padding: 8px; border-radius: 4px; 
-            width: 100%; font-family: 'Lato', sans-serif; text-align: center;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--gold-text); box-shadow: 0 0 5px var(--gold-text); }
+        h1, h2, h3, h4, button, .cinzel-font { font-family: 'Cinzel', serif; }
 
-        /* UI PANELS */
+        /* UI */
         .glass-panel {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.9), inset 0 0 20px rgba(0,0,0,0.5);
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 6px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
             color: var(--text-main); pointer-events: auto;
-            backdrop-filter: blur(5px);
         }
 
         button {
-            background: linear-gradient(to bottom, #2b2b2b, #1a1a1a);
+            background: linear-gradient(180deg, rgba(50,50,50,0.9) 0%, rgba(20,20,20,1) 100%);
             border: 1px solid var(--glass-border); color: var(--gold-text);
-            padding: 6px 12px; border-radius: 4px; cursor: pointer;
-            font-family: 'Cinzel', serif; font-weight: bold; font-size: 0.8rem;
-            text-transform: uppercase; transition: 0.2s;
-            text-shadow: 1px 1px 2px black;
+            padding: 8px 10px; border-radius: 4px; cursor: pointer;
+            font-weight: bold; font-size: 0.75rem; transition: 0.2s;
         }
-        button:hover { background: #3a3a3a; border-color: #fff; text-shadow: 0 0 8px var(--gold-text); }
-        button:active { transform: translateY(1px); }
-        button.active { background: var(--accent-red); color: white; border-color: white; box-shadow: 0 0 10px var(--accent-red); }
+        button:hover { background: rgba(197,160,89,0.15); border-color: #fff; }
+        button:active { transform: scale(0.96); }
+        button.active { background: var(--accent-red); color: white; border-color: white; }
+
+        input, select, textarea {
+            background: rgba(0,0,0,0.5); color: white; border: 1px solid #444;
+            padding: 8px; border-radius: 3px; width: 100%; font-family: 'Lato', sans-serif; text-align: center;
+        }
+        input:focus { outline: none; border-color: var(--gold-text); }
+
+        /* LOADING */
+        #loading-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.9); z-index: 10000; display: none;
+            justify-content: center; align-items: center; flex-direction: column; color: var(--gold-text);
+        }
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.1); border-left-color: var(--gold-text);
+            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* DOCK */
         #ui-dock {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             display: flex; gap: 10px; padding: 10px 20px; z-index: 2000;
-            border-radius: 40px; border: 1px solid var(--glass-border);
-            background: rgba(5, 5, 5, 0.95); box-shadow: 0 0 20px black;
+            border-radius: 30px; border: 1px solid var(--gold-text); background: rgba(0,0,0,0.95);
         }
         .dock-btn {
-            width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.4rem; border: 1px solid #444; background: #111; position: relative;
+            width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; border: 1px solid #555; background: #222;
         }
-        .dock-btn:hover { transform: scale(1.1); z-index: 10; }
         .dock-btn.active-mode { border-color: var(--gold-text); background: var(--accent-red); }
 
-        /* SIDEBAR & PANELS */
+        /* PANELS */
         #sidebar {
-            position: fixed; top: 0; left: 0; height: 100%; width: 350px; z-index: 1500;
+            position: fixed; top: 0; left: 0; height: 100%; width: 340px; z-index: 1500;
             padding: 20px; display: flex; flex-direction: column; gap: 15px;
-            transform: translateX(-370px); transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            background: rgba(10,10,12, 0.98); border-right: 2px solid var(--glass-border);
+            transform: translateX(-360px); transition: transform 0.3s ease;
         }
         #sidebar.open { transform: translateX(0); }
         
         .float-panel {
             position: fixed; z-index: 500; padding: 10px; display: none; flex-direction: column;
-            min-width: 260px; max-width: 340px; max-height: 80vh;
+            min-width: 240px; max-width: 320px; max-height: 80vh;
         }
-        .float-panel.visible { display: flex; animation: fadeIn 0.2s ease-out; }
-        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-
+        .float-panel.visible { display: flex; }
         .float-header { 
-            font-family: 'UnifrakturMaguntia', cursive; font-size: 1.2rem; color: var(--gold-text); 
-            border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 8px; 
-            display: flex; justify-content: space-between; align-items: center; cursor: move; 
+            font-family: 'Cinzel', serif; font-weight: bold; color: var(--gold-text); 
+            border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 5px; 
+            display: flex; justify-content: space-between; cursor: move; 
         }
 
-        #panel-initiative { top: 80px; right: 20px; }
-        #panel-activity { top: 80px; left: 380px; }
+        #panel-initiative { top: 70px; right: 20px; }
+        #panel-activity { top: 70px; left: 360px; }
         #panel-inspiration { top: 20px; right: 280px; width: 180px; text-align: center; }
-        #panel-log { bottom: 100px; right: 20px; width: 340px; height: 350px; }
-        #panel-chat { bottom: 100px; left: 20px; width: 320px; height: 400px; }
-        #panel-journal { top: 120px; left: 50%; transform: translateX(-50%); width: 500px; height: 600px; }
-        #panel-album { top: 100px; left: 100px; width: 600px; height: 500px; }
+        #panel-log { bottom: 100px; right: 20px; width: 320px; height: 300px; }
+        #panel-chat { bottom: 100px; left: 20px; width: 300px; height: 350px; }
+        #panel-journal { top: 100px; left: 50%; transform: translateX(-50%); width: 400px; height: 500px; }
+        #panel-dice { bottom: 100px; left: 50%; transform: translateX(-50%); width: 300px; }
 
-        .list-container { flex-grow: 1; overflow-y: auto; font-size: 0.9rem; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
-        .list-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .list-item.active { background: rgba(184, 134, 11, 0.2); border-left: 3px solid var(--gold-text); }
+        .list-container { flex-grow: 1; overflow-y: auto; font-size: 0.9rem; scrollbar-width: thin; }
+        .list-item { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .list-item.active { background: rgba(197, 160, 89, 0.2); border-left: 2px solid var(--gold-text); }
 
-        .control-group { background: rgba(255,255,255,0.02); padding: 12px; border: 1px solid #333; border-radius: 6px; }
-        .control-label { color: #aaa; font-size: 0.7rem; display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-
-        .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding: 10px; }
-        .album-item {
-            width: 80px; height: 80px; border: 1px solid #555; border-radius: 5px;
-            background-size: cover; background-position: center; cursor: pointer; transition: transform 0.2s; position: relative;
-        }
-        .album-item:hover { transform: scale(1.1); border-color: var(--gold-text); z-index: 10; }
-        .album-item button {
-            position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; padding: 0;
-            font-size: 10px; background: red; color: white; border-radius: 50%; display: none;
-        }
-        .gm-only .album-item:hover button { display: block; }
+        .control-group { background: rgba(255,255,255,0.03); padding: 10px; border: 1px solid #333; border-radius: 4px; }
 
         /* GAME AREA */
         #game-area { position: absolute; top:0; left:0; width:100%; height:100%; overflow: hidden; cursor: default; z-index: 0; }
@@ -145,103 +130,120 @@
         /* TOKENS */
         .token {
             position: absolute; z-index: 10; border-radius: 50%;
-            border: 2px solid #fff; box-shadow: 0 0 15px rgba(0,0,0,0.9);
+            border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.8);
             background-size: cover; background-position: center; transition: border-color 0.2s;
         }
-        .token.my-token { border-color: var(--accent-green); cursor: grab; box-shadow: 0 0 15px var(--accent-green); }
+        .token.my-token { border-color: var(--accent-green); cursor: grab; }
         .token.other-token { border-color: var(--accent-red); }
-        .token.locked-token { cursor: not-allowed; border-style: dashed; opacity: 0.8; }
-        .token:active { cursor: grabbing; transform: scale(1.05); }
+        .token.locked-token { cursor: not-allowed; border-style: dashed; }
+        /* Gizli Token (GM Görür, Oyuncu Göremez) */
+        .token.hidden-gm { opacity: 0.5; border: 2px dashed #888; filter: grayscale(1); }
+        .token.hidden-player { display: none !important; }
+
+        .token:active { cursor: grabbing; }
         
         .token-name {
-            position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.9); padding: 2px 6px; border-radius: 4px;
-            font-size: 11px; white-space: nowrap; pointer-events: none; color: var(--gold-text);
-            font-weight: bold; border: 1px solid #444; z-index: 20;
+            position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 4px;
+            font-size: 12px; white-space: nowrap; pointer-events: none; color: white;
+            font-weight: bold; border: 1px solid #555; z-index: 20;
         }
-        .token-statuses { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; pointer-events: none; z-index: 15; }
-        .status-badge { background: #000; color: #f1c40f; padding: 1px 4px; border-radius: 3px; font-size: 8px; border: 1px solid #555; }
-        
-        .token.is-dead { filter: grayscale(100%) brightness(50%); }
+        .token-statuses {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 2px; pointer-events: none; white-space: nowrap; z-index: 15;
+        }
+        .status-badge {
+            background: rgba(0,0,0,0.8); color: #f1c40f; padding: 2px 4px; 
+            border-radius: 3px; font-size: 9px; border: 1px solid #555;
+        }
         .token.is-dead::after {
-            content: 'X'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 50px; color: red; font-family: sans-serif; font-weight: bold; pointer-events: none; text-shadow: 0 0 5px black;
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><line x1="10" y1="10" x2="90" y2="90" stroke="red" stroke-width="15" /><line x1="90" y1="10" x2="10" y2="90" stroke="red" stroke-width="15" /></svg>');
+            background-size: contain; opacity: 0.8; pointer-events: none;
         }
-
+        
+        /* HOVER TOOLTIP (YENİ: TÜM STATLAR) */
         .token-tooltip {
             position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
-            background: rgba(10,10,10,0.95); border: 1px solid var(--gold-text);
-            padding: 10px; border-radius: 5px; width: 220px; pointer-events: none;
-            display: none; z-index: 100; text-align: left; font-size: 0.8rem;
-            box-shadow: 0 5px 20px black; font-family: 'Lato', sans-serif;
+            background: var(--glass-bg); border: 1px solid var(--gold-text);
+            padding: 10px; border-radius: 5px; width: 250px; pointer-events: none;
+            display: none; z-index: 100; text-align: left; font-size: 0.75rem;
+            box-shadow: 0 5px 15px black;
         }
         .token:hover .token-tooltip { display: block; }
-        .tt-header { font-family: 'Cinzel', serif; font-weight: bold; color: var(--gold-text); border-bottom: 1px solid #555; margin-bottom: 5px; }
-        .tt-row { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 2px; }
+        .tt-header { font-weight: bold; color: var(--gold-text); border-bottom: 1px solid #555; margin-bottom: 5px; text-align:center;}
+        .tt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .tt-item { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        
+        .token-gear {
+            position: absolute; bottom: 0; right: 0; width: 24px; height: 24px;
+            background: var(--gold-text); color: black; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 14px;
+            cursor: pointer; z-index: 25; border: 1px solid black;
+        }
 
-        /* SHEET */
+        /* SHEET & LOG */
         #char-sheet-modal {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 800px; max-width: 95%; height: 800px; max-height: 95%; z-index: 5000;
+            width: 800px; max-width: 95%; height: 750px; max-height: 95%; z-index: 5000;
             padding: 0; flex-direction: column;
         }
+        .gm-controls-area {
+            background: rgba(142, 37, 37, 0.15); border-bottom: 1px solid var(--accent-red);
+            padding: 10px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: center;
+        }
         .sheet-body { padding: 20px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow:1; }
-        .gm-controls-area { background: rgba(50, 10, 10, 0.3); border: 1px solid var(--accent-red); padding: 10px; margin-top: 10px; border-radius: 5px; }
         .stat-row { 
             display: grid; grid-template-columns: 100px 1fr 1fr; gap: 5px; align-items: center;
             margin-bottom: 5px; padding: 4px; background: rgba(255,255,255,0.03); border-radius: 4px;
         }
-        .stat-btn-locked { grid-column: 1 / span 3; text-align: left; width: 100%; background: transparent; color:white; border:none; padding:10px; display:none; font-family: 'Cinzel'; }
+        .stat-btn-locked { grid-column: 1 / span 3; text-align: left; width: 100%; background: transparent; color:white; border:none; padding:10px; display:none; }
         .locked-mode .input-group { display: none; }
         .locked-mode .stat-btn-locked { display: block; }
-        .locked-mode .stat-btn-locked:hover { background: rgba(255,255,255,0.1); }
-        .locked-mode .stat-btn-locked.selected { background: var(--gold-text); color: black; font-weight: bold; }
-        
+        .locked-mode .stat-btn-locked.selected { background: var(--gold-text); color: black; }
         .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 5px; }
-        .status-btn { font-size: 0.6rem; padding: 4px; background: #222; border: 1px solid #444; color: #888; }
-        .status-btn.active-status { background: var(--accent-red); color: white; border-color: white; box-shadow: 0 0 5px red; }
+        .status-btn { font-size: 0.65rem; padding: 4px; background: #333; border: 1px solid #555; color: #aaa; }
+        .status-btn.active-status { background: var(--accent-red); color: white; border-color: white; }
 
-        /* LOG & CHAT */
-        .log-entry { margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; font-size: 0.85rem; font-family: 'Lato'; }
-        .chat-msg { margin-bottom: 5px; word-wrap: break-word; font-size:0.9rem; font-family: 'Lato'; }
-        .chat-msg b { color: var(--gold-text); font-family: 'Cinzel'; }
-        .chat-gif { max-width: 100%; border-radius: 4px; margin-top:5px; border:1px solid #444; }
+        .log-entry { margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; font-size: 0.85rem; }
+        .log-actions { margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap; }
+        .chat-msg { margin-bottom: 5px; word-wrap: break-word; font-size:0.9rem;}
+        .chat-msg b { color: var(--gold-text); }
+        .chat-gif { max-width: 100%; border-radius: 4px; margin-top:5px;}
 
-        /* WEATHER */
-        .w-rain { background-image: linear-gradient(to bottom, rgba(150,150,200,0.3) 1px, transparent 1px); background-size: 5px 20px; animation: rain 0.3s linear infinite; }
-        .w-snow { background-image: radial-gradient(rgba(255,255,255,0.8) 2px, transparent 2px); background-size: 50px 50px; animation: snow 5s linear infinite; }
-        .w-fog { background: linear-gradient(to right, rgba(200,200,200,0.1), rgba(150,150,150,0.2)); animation: fog 10s ease infinite alternate; }
-        @keyframes rain { 0% {background-position: 0 0;} 100% {background-position: 0 100%;} }
-        @keyframes snow { 0% {background-position: 0 0;} 100% {background-position: 20px 100vh;} }
-        @keyframes fog { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+        /* DICE GRID */
+        .dice-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 10px; }
+        .dice-btn { background: #333; border: 1px solid #555; padding: 10px; font-weight: bold; color: white; border-radius: 5px; cursor: pointer; }
+        .dice-btn:hover { background: var(--accent-red); }
 
         /* MOBILE */
         @media (max-width: 768px) {
             #ui-dock { width: 95%; justify-content: space-between; padding: 8px; bottom: 10px; }
             #sidebar { width: 100%; }
-            .float-panel { width: 95% !important; left: 2.5% !important; right: 2.5% !important; top: 60px !important; max-height: 50vh; }
-            #panel-log, #panel-chat { bottom: 80px !important; top: auto !important; height: 300px !important; }
-            #panel-journal, #panel-album { width: 95%; height: 70%; top: 10%; left: 2.5%; transform: none; }
+            .float-panel { width: 90% !important; left: 5% !important; right: 5% !important; top: 60px !important; max-height: 40vh; }
+            #panel-log, #panel-chat { bottom: 70px !important; top: auto !important; height: 250px !important; }
+            #panel-journal, #panel-dice { width: 95%; top: 10%; left: 2.5%; transform: none; }
             .sheet-body { grid-template-columns: 1fr; }
             .gm-controls-area { grid-template-columns: 1fr; }
             #inspiration-box { width: 100% !important; position: relative; left:0; top:0; }
+            .status-grid { grid-template-columns: repeat(3, 1fr); }
         }
         .gm-only { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:none;justify-content:center;align-items:center;color:var(--gold-text);">
-        <div style="font-size:2rem;">⚔️ YÜKLENİYOR...</div>
-    </div>
+    <div id="loading-overlay"><div class="spinner"></div><div>Bağlanıyor / Yükleniyor...</div></div>
 
     <!-- GİRİŞ -->
-    <div id="login-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#050505;z-index:9999;display:flex;justify-content:center;align-items:center;">
+    <div id="login-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:flex;justify-content:center;align-items:center;">
         <div class="glass-panel" style="padding:40px; text-align:center; width:300px; border:2px solid var(--gold-text);">
-            <h1 class="gothic-title" style="color:var(--gold-text); font-size:2rem;">İKİLİ EVREN</h1>
-            <p style="color:#aaa; font-size:0.7rem; margin-bottom:20px;">ONLINE VTT</p>
-            <input type="text" id="room-input" placeholder="Oda Adı" style="margin-bottom:10px;">
+            <h1 style="color:var(--gold-text);">İKİLİ EVREN</h1>
+            <p style="color:#aaa; font-size:0.7rem; margin-bottom:20px;">ONLINE</p>
+            
+            <input type="text" id="room-input" placeholder="Oda Adı (Örn: oyun1)" style="margin-bottom:10px;">
             <small style="color:#777; display:block; margin-bottom:10px;">Şifreler: gm111, 111, 222, 333</small>
+            
             <select id="role-select" style="margin-bottom:10px;">
                 <option value="gm1">GM (Yönetici)</option>
                 <option value="player1">Oyuncu 1</option>
@@ -249,72 +251,57 @@
                 <option value="player3">Oyuncu 3</option>
             </select>
             <input type="password" id="password-input" placeholder="Şifre" style="margin-bottom:15px;">
-            <button onclick="attemptLogin()" style="width:100%; padding:12px;">BAĞLAN</button>
+            <button onclick="attemptLogin()" style="width:100%;">GİRİŞ</button>
             <p id="login-msg" style="color:var(--accent-red); margin-top:10px; font-size:0.8rem;"></p>
         </div>
     </div>
 
     <!-- UI KATMANLARI -->
     <div id="weather-overlay"></div>
-    <div id="ruler-info" style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); border:1px solid var(--gold-text); padding:5px 15px; border-radius:20px; display:none; z-index:2000; pointer-events:none; color:var(--gold-text); font-weight:bold;">0m</div>
+    <div id="ruler-info" style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:black; border:1px solid var(--gold-text); padding:5px 15px; border-radius:20px; display:none; z-index:2000; pointer-events:none;">0m</div>
 
     <!-- DOCK -->
-    <div id="ui-dock">
-        <button class="dock-btn" onclick="toggleSidebar()" title="Ayarlar">⚙️</button>
-        <button class="dock-btn" onclick="togglePanel('panel-initiative')" title="Sıra">⚔️</button>
-        <button class="dock-btn" onclick="togglePanel('panel-activity')" title="Ses">🎤</button>
-        <button class="dock-btn" onclick="togglePanel('panel-inspiration')" title="İlham">✨</button>
-        <button class="dock-btn" id="btn-ruler" onclick="toggleRuler()" title="Cetvel">📏</button>
-        <button class="dock-btn" onclick="togglePanel('panel-journal')" title="Günlük">📖</button>
-        <button class="dock-btn" onclick="togglePanel('panel-album')" title="Albüm">🖼️</button>
-        <button class="dock-btn" onclick="togglePanel('panel-chat')" title="Sohbet">💬</button>
-        <button class="dock-btn" onclick="togglePanel('panel-log')" title="Log">📜</button>
+    <div id="ui-dock" class="glass-panel">
+        <button class="dock-btn" onclick="toggleSidebar()">⚙️</button>
+        <button class="dock-btn" onclick="togglePanel('panel-dice')">🎲</button> <!-- ZAR -->
+        <button class="dock-btn" onclick="togglePanel('panel-initiative')">⚔️</button>
+        <button class="dock-btn" onclick="togglePanel('panel-activity')">🎤</button>
+        <button class="dock-btn" onclick="togglePanel('panel-inspiration')">✨</button>
+        <button class="dock-btn" id="btn-ruler" onclick="toggleRuler()">📏</button>
+        <button class="dock-btn" onclick="togglePanel('panel-journal')">📖</button>
+        <button class="dock-btn" onclick="togglePanel('panel-chat')">💬</button>
+        <button class="dock-btn" onclick="togglePanel('panel-log')">📜</button>
     </div>
 
     <!-- SIDEBAR -->
-    <div id="sidebar">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">
-            <h3 id="user-display" style="color:var(--gold-text); margin:0;">USER</h3> 
-            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:1.2rem;">✕</button>
+    <div id="sidebar" class="glass-panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:10px;">
+            <h3 id="user-display" style="color:var(--gold-text);">USER</h3> <button onclick="toggleSidebar()" style="background:none; border:none; color:white;">X</button>
         </div>
-        
         <div class="control-group gm-only">
-            <span class="control-label">HARİTA (URL)</span> 
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="map-url" placeholder="Resim Linki">
-                <button onclick="setMapURL()" style="width:auto;">YÜKLE</button>
+            <span>HARİTA (URL)</span> 
+            <input type="text" id="map-url" placeholder="Resim Linki">
+            <button onclick="setMapURL()" style="width:100%; margin-top:5px;">YÜKLE</button>
+            <div style="margin-top:10px;display:flex;gap:5px;">
+                <input type="number" id="grid-size" value="50" onchange="updateGrid()" placeholder="px">
+                <input type="number" id="grid-scale" value="1.5" step="0.5" onchange="updateGrid()" placeholder="m">
             </div>
-            
-            <div style="margin-top:10px; display:flex; gap:5px; align-items:center;">
-                <span class="control-label" style="margin:0;">GRID:</span>
-                <input type="number" id="grid-size" value="50" onchange="updateGrid()" placeholder="px" style="width:50px;">
-                <input type="number" id="grid-scale" value="1.5" step="0.5" onchange="updateGrid()" placeholder="m" style="width:50px;">
-                <input type="checkbox" id="grid-show" onchange="updateGrid()" checked style="width:auto;">
-            </div>
+            <label style="font-size:0.8rem;display:block;margin-top:5px;"><input type="checkbox" id="grid-show" onchange="updateGrid()" checked style="width:auto;"> Grid</label>
         </div>
-
         <div class="control-group">
-            <span class="control-label">TOKEN EKLE (ÇOKLU URL)</span> 
-            <textarea id="token-url-area" rows="3" placeholder="Her satıra bir resim linki..."></textarea>
-            <button onclick="addTokenBulk()" style="width:100%; margin-top:5px;">HEPSİNİ EKLE</button>
+            <span>TOKEN (URL)</span> 
+            <input type="text" id="token-url" placeholder="Resim Linki">
+            <button onclick="addTokenURL()" style="width:100%; margin-top:5px;">EKLE</button>
         </div>
-
-        <div class="control-group">
-            <span class="control-label">AYARLAR</span> 
-            <label style="font-size:0.8rem; display:block; cursor:pointer;">
-                <input type="checkbox" id="show-tooltips" onchange="toggleTooltips()" checked style="width:auto;"> Hover Özeti Göster
-            </label>
-        </div>
-
+        <div class="control-group"><span>AYARLAR</span> <label style="font-size:0.8rem;display:block;"><input type="checkbox" id="show-tooltips" onchange="toggleTooltips()" checked style="width:auto;"> Detaylı Hover</label></div>
         <div class="control-group gm-only">
-            <span class="control-label">ATMOSFER</span>
             <select id="weather-select" onchange="changeWeather()" style="margin-bottom:5px;">
                 <option value="">Açık</option>
-                <option value="w-rain">Yağmur</option>
-                <option value="w-snow">Kar</option>
-                <option value="w-fog">Sis</option>
+                <option value="weather-rain">Yağmur</option>
+                <option value="weather-snow">Kar</option>
+                <option value="weather-fog">Sis</option>
             </select>
-            <button onclick="resetAll()" style="width:100%; background:var(--accent-red);">HER ŞEYİ SIFIRLA</button>
+            <button onclick="resetAll()" style="width:100%;background:var(--accent-red);">SIFIRLA</button>
         </div>
     </div>
 
@@ -322,20 +309,28 @@
     <div id="panel-initiative" class="glass-panel float-panel"><div class="float-header">TUR SIRASI <span id="round-display">T:1</span></div><div id="init-list" class="list-container"></div><div class="gm-only"><input type="text" id="init-name" placeholder="İsim"><input type="number" id="init-val" placeholder="Init"><button onclick="addToInit()">EKLE</button><button onclick="nextTurn()">İLERİ</button><button onclick="clearInit()">SİL</button></div></div>
     <div id="panel-activity" class="glass-panel float-panel"><div class="float-header">KONUŞMA</div><div id="act-list" class="list-container"></div><div class="gm-only"><button onclick="resetAct()">SIFIRLA</button></div></div>
     <div id="panel-inspiration" class="glass-panel float-panel visible"><div class="float-header">İLHAM</div><div id="insp-list" class="list-container" style="max-height:100px;"></div><div class="gm-only"><button onclick="resetInsp()">SIFIRLA</button></div></div>
-    <div id="panel-log" class="glass-panel float-panel visible"><div class="float-header">GÜNLÜK <button onclick="clearLog()" style="font-size:0.6rem;">TEMİZLE</button></div><div id="log-content" class="list-container"></div></div>
-    <div id="panel-journal" class="glass-panel float-panel"><div class="float-header">ÖZEL GÜNLÜK <button onclick="togglePanel('panel-journal')">X</button></div><textarea id="journal-text" style="flex-grow:1; background:rgba(0,0,0,0.3); color:#ddd; font-family:'Lato'; padding:10px; border:none; resize:none;" placeholder="Sadece siz görürsünüz..."></textarea></div>
+    <div id="panel-log" class="glass-panel float-panel visible"><div class="float-header">GÜNLÜK <button onclick="clearLog()">X</button></div><div id="log-content" class="list-container"></div></div>
+    <div id="panel-journal" class="glass-panel float-panel"><div class="float-header">ÖZEL GÜNLÜK <button onclick="togglePanel('panel-journal')">X</button></div><textarea id="journal-text" style="flex-grow:1; background:rgba(0,0,0,0.3); color:#ddd; font-family:'Lato'; padding:10px; border:none; resize:none;" placeholder="Notlarınız (Sadece siz görürsünüz)..."></textarea></div>
     
-    <div id="panel-album" class="glass-panel float-panel">
-        <div class="float-header">TOKEN ALBÜMÜ <button onclick="togglePanel('panel-album')">X</button></div>
-        <div id="album-grid" class="album-grid list-container"></div>
-        <div style="font-size:0.7rem; color:#aaa; padding:5px; text-align:center;">Tıkla -> Haritaya Ekle</div>
+    <!-- MANUEL ZAR PANELİ -->
+    <div id="panel-dice" class="glass-panel float-panel">
+        <div class="float-header">ZAR ATICI <button onclick="togglePanel('panel-dice')">X</button></div>
+        <div class="dice-grid">
+            <button class="dice-btn" onclick="rollManual(4)">d4</button>
+            <button class="dice-btn" onclick="rollManual(6)">d6</button>
+            <button class="dice-btn" onclick="rollManual(8)">d8</button>
+            <button class="dice-btn" onclick="rollManual(10)">d10</button>
+            <button class="dice-btn" onclick="rollManual(12)">d12</button>
+            <button class="dice-btn" onclick="rollManual(20)">d20</button>
+            <button class="dice-btn" onclick="rollManual(100)">d100</button>
+        </div>
     </div>
 
     <div id="panel-chat" class="glass-panel float-panel">
         <div class="float-header">SOHBET</div>
         <div id="chat-content" class="list-container" style="background:rgba(0,0,0,0.3); padding:5px;"></div>
         <div style="margin-top:5px; display:flex; gap:2px;"><input type="text" id="chat-input" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') sendChat()"><button onclick="sendChat()">></button></div>
-        <button onclick="sendGif()" style="width:100%; font-size:0.7rem; margin-top:2px; background:#333;">GIF</button>
+        <button onclick="sendGif()" style="width:100%; font-size:0.7rem; margin-top:2px; background:#444;">GIF (Tenor Link)</button>
     </div>
 
     <!-- OYUN ALANI -->
@@ -354,40 +349,49 @@
             <h2 id="sheet-name" style="margin:0; color:var(--gold-text);"></h2>
             <div><button id="btn-lock" onclick="toggleLock()">KİLİTLE</button> <button onclick="closeSheet()">X</button></div>
         </div>
+        
         <div class="sheet-body">
             <!-- Sol -->
             <div>
                 <div class="control-group" style="margin-bottom:10px;">
-                    <label class="control-label">GÖRÜNÜM</label>
+                    <label style="font-size:0.7rem; color:#aaa;">GÖRÜNÜM</label>
                     <input type="text" id="sheet-token-name" placeholder="Token Adı" onchange="saveSheetMeta()">
                     <div style="display:flex; align-items:center; gap:5px; margin-top:5px;">
                         <span style="font-size:0.7rem;">Boyut:</span>
                         <input type="range" id="sheet-token-scale" min="0.5" max="3" step="0.1" onchange="saveSheetMeta()">
                     </div>
                 </div>
+
                 <select id="sheet-align" onchange="saveSheetMeta()" style="margin-bottom:5px;"><option value="">Yönelim...</option><option>Kuralcı İyi</option><option>Nötr İyi</option><option>Kaotik İyi</option><option>Kuralcı Nötr</option><option>Tam Nötr</option><option>Kaotik Nötr</option><option>Kuralcı Kötü</option><option>Nötr Kötü</option><option>Kaotik Kötü</option></select>
-                <select class="trait-select" onchange="saveSheetMeta()"></select> <select class="trait-select" onchange="saveSheetMeta()"></select> <select class="trait-select" onchange="saveSheetMeta()"></select>
+                <select class="trait-select" onchange="saveSheetMeta()"></select>
+                <select class="trait-select" onchange="saveSheetMeta()"></select>
+                <select class="trait-select" onchange="saveSheetMeta()"></select>
+                
                 <h4 style="margin-top:10px; border-bottom:1px solid #444;">NİTELİKLER</h4>
                 <div id="attr-list"></div>
             </div>
+            
             <!-- Sağ -->
             <div>
                 <h4 style="border-bottom:1px solid #444;">BECERİLER</h4>
                 <div id="skill-list"></div>
+
+                <!-- GM BÖLÜMÜ -->
                 <div class="gm-section gm-only">
-                    <div class="gm-controls-area">
-                        <label class="control-label" style="color:var(--accent-red);">GM KONTROLÜ</label>
-                        <div style="display:flex; gap:5px; margin-bottom:5px;">
-                            <input type="number" id="gm-vision" placeholder="Görüş(m)" onchange="gmUpdateToken()" style="width:50%">
-                            <button onclick="gmTogglePosLock()" id="btn-gm-pos" style="flex:1; font-size:0.6rem;">KİLİT</button>
-                        </div>
-                        <button onclick="gmDeleteToken()" style="width:100%; background:var(--accent-red); margin-bottom:5px;">SİL</button>
-                        <label class="control-label">DURUMLAR</label>
-                        <div class="status-grid" id="status-grid"></div>
+                    <label style="font-size:0.7rem; color:var(--accent-red); font-weight:bold;">GM KONTROLÜ</label>
+                    <div style="display:flex; gap:5px; margin-bottom:5px;">
+                        <input type="number" id="gm-vision" placeholder="Görüş (m)" onchange="gmUpdateToken()" style="width:50%">
+                        <button onclick="gmTogglePosLock()" id="btn-gm-pos" style="flex:1; font-size:0.6rem;">KONUM KİLİT</button>
                     </div>
+                    <button id="btn-gm-visible" onclick="gmToggleVisible()" style="width:100%; margin-bottom:2px;">GÖRÜNÜR: EVET</button>
+                    <button onclick="gmDeleteToken()" style="width:100%; background:var(--accent-red); margin-bottom:5px;">SİL</button>
+                    
+                    <label style="font-size:0.7rem; color:#aaa;">DURUMLAR (Status)</label>
+                    <div class="status-grid" id="status-grid"></div>
                 </div>
             </div>
         </div>
+
         <div style="padding:15px; text-align:center; border-top:1px solid #444;">
             <div id="sheet-status" style="margin-bottom:5px; color:#aaa;">...</div>
             <button onclick="rollStats()" style="width:100%; padding:15px; font-size:1.2rem; background:var(--gold-text); color:black;">ZAR AT</button>
@@ -421,7 +425,7 @@
             initiative: {list:[], round:1, currentIdx:0},
             activity: {paused:false, scores:{}, speaking:null},
             inspiration: {}, chat: [], 
-            tokens: [], tokenLibrary: []
+            tokens: []
         };
 
         let activeTokenId=null, sheetLocked=false, selAttr=null, selSkill=null;
@@ -429,7 +433,6 @@
         let mapTransform = { x: 0, y: 0, scale: 1 };
         let showTooltips = true;
         let localSpeechTime = 0;
-        let mousePos = {x:0, y:0};
 
         // --- LOGIN ---
         async function attemptLogin() {
@@ -444,7 +447,7 @@
                 const doc = await ref.get();
                 if(!doc.exists) {
                     if(pass !== CREDENTIALS[role]) throw new Error("Yeni oda için varsayılan şifreleri kullanın.");
-                    await ref.set({ users:CREDENTIALS, mapSrc:null, grid:{show:true,size:50,scale:1.5}, weather:"", initiative:{list:[],round:1,currentIdx:0}, activity:{paused:false,scores:{},speaking:null}, inspiration:{}, chat:[], tokens:[], tokenLibrary:[] });
+                    await ref.set({ users:CREDENTIALS, mapSrc:null, grid:{show:true,size:50,scale:1.5}, weather:"", initiative:{list:[],round:1,currentIdx:0}, activity:{paused:false,scores:{},speaking:null}, inspiration:{}, chat:[], tokens:[] });
                 } else {
                     const data = doc.data();
                     if(data.users && data.users[role] !== pass) throw new Error("Hatalı Şifre");
@@ -462,7 +465,7 @@
                 document.querySelectorAll('.trait-select').forEach(s=>s.innerHTML=opts);
 
                 ref.onSnapshot(snap => { if(snap.exists) { gameState=snap.data(); renderAll(); } });
-                initZoomPan(); initMic(); setupClipboard();
+                initZoomPan(); initMic();
             } catch(e) { alert(e.message); } finally { showLoading(false); }
         }
 
@@ -470,66 +473,13 @@
         function showLoading(s) { document.getElementById('loading-overlay').style.display=s?'flex':'none'; }
         document.getElementById('journal-text').addEventListener('input', function(){ if(currentUser&&currentRoom) localStorage.setItem('vtt_journal_'+currentUser+'_'+currentRoom, this.value); });
 
-        // --- MAP URL & TOKEN BULK ---
+        // --- MAP URL ---
         function setMapURL() { const u=document.getElementById('map-url').value; if(u){ gameState.mapSrc=u; updateState(); } }
-        function addTokenBulk() {
-            const txt = document.getElementById('token-url-area').value;
-            const urls = txt.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);
-            if(urls.length===0) return;
-            if(!gameState.tokenLibrary) gameState.tokenLibrary = [];
-            urls.forEach(u => {
-                if(!gameState.tokenLibrary.includes(u)) gameState.tokenLibrary.push(u);
-                gameState.tokens.push({ id: Date.now()+Math.random(), owner: currentUser, x:100, y:100, imgSrc: u, scale:1, stats:{}, meta:{align:"",traits:['','','']}, vision:10, locked:false, statuses:[] });
-            });
-            document.getElementById('token-url-area').value = "";
-            updateState();
-        }
-
-        // --- ALBUM ---
-        function renderAlbum() {
-            const grid = document.getElementById('album-grid'); grid.innerHTML = "";
-            if(!gameState.tokenLibrary) return;
-            gameState.tokenLibrary.forEach(url => {
-                const item = document.createElement('div'); item.className = 'album-item';
-                item.style.backgroundImage = `url(${url})`;
-                item.onclick = () => addToMapFromAlbum(url);
-                if(isGM) {
-                    const del = document.createElement('button'); del.innerText = "X";
-                    del.onclick = (e) => { e.stopPropagation(); gameState.tokenLibrary = gameState.tokenLibrary.filter(u=>u!==url); updateState(); };
-                    item.appendChild(del);
-                }
-                grid.appendChild(item);
-            });
-        }
-        function addToMapFromAlbum(url) {
-            gameState.tokens.push({ id: Date.now(), owner: currentUser, x:100, y:100, imgSrc: url, scale:1, stats:{}, meta:{align:"",traits:['','','']}, vision:10, locked:false, statuses:[] });
-            updateState();
-        }
-
-        // --- CLIPBOARD (GM) ---
-        let clipboardToken = null;
-        document.addEventListener('mousemove', e => {
-            const rect = document.getElementById('map-container').getBoundingClientRect();
-            mousePos = { x: (e.clientX - rect.left) / mapTransform.scale, y: (e.clientY - rect.top) / mapTransform.scale };
-        });
-        function setupClipboard() {
-            document.addEventListener('keydown', e => {
-                if(!isGM) return;
-                if((e.ctrlKey||e.metaKey) && e.key==='c' && activeTokenId) {
-                    const t = gameState.tokens.find(x => x.id === activeTokenId);
-                    if(t) { clipboardToken = JSON.parse(JSON.stringify(t)); }
-                }
-                if((e.ctrlKey||e.metaKey) && e.key==='v' && clipboardToken) {
-                    const newToken = JSON.parse(JSON.stringify(clipboardToken));
-                    newToken.id = Date.now(); newToken.x = mousePos.x || 100; newToken.y = mousePos.y || 100;
-                    gameState.tokens.push(newToken); updateState();
-                }
-            });
-        }
+        function addTokenURL() { const u=document.getElementById('token-url').value; if(u){ gameState.tokens.push({ id: Date.now(), owner: currentUser, x:100, y:100, imgSrc: u, scale:1, stats:{}, meta:{align:"",traits:['','','']}, vision:10, locked:false, hidden:false, statuses:[] }); updateState(); } }
 
         // --- RENDER ---
         function renderAll() { 
-            renderMap(); renderInit(); renderAct(); renderInsp(); renderChat(); renderAlbum(); applyWeather();
+            renderMap(); renderInit(); renderAct(); renderInsp(); renderChat(); applyWeather();
             if(!isGM){ document.getElementById('grid-size').value=gameState.grid.size; document.getElementById('grid-scale').value=gameState.grid.scale; }
         }
 
@@ -544,12 +494,17 @@
             document.querySelectorAll('.token').forEach(e=>e.remove());
             
             gameState.tokens.forEach(t=>{
+                // Gizlilik Kontrolü
+                if(t.hidden && !isGM) return;
+
                 const size=70*(t.scale||1);
                 const el=document.createElement('div'); el.className='token';
                 el.style.width=size+'px'; el.style.height=size+'px';
                 el.style.left=t.x+'px'; el.style.top=t.y+'px';
                 el.style.backgroundImage=`url(${t.imgSrc})`;
                 
+                if(t.hidden && isGM) el.classList.add('hidden-gm');
+
                 const isOwn = t.owner===currentUser || isGM;
                 let vis=isGM;
                 if(!vis) {
@@ -573,14 +528,22 @@
                     const sb=document.createElement('div'); sb.className='token-statuses';
                     t.statuses.forEach(s=>{if(s!=="Öldü")sb.innerHTML+=`<span class="status-badge">${s}</span>`}); el.appendChild(sb);
                 }
+                
+                // GÜNCELLENMİŞ TOOLTIP
                 if(showTooltips) {
                     const tip=document.createElement('div'); tip.className='token-tooltip';
-                    const hp=t.stats['Constitution']?t.stats['Constitution'].split(',')[0]*2+10:10;
-                    const traits=t.meta?.traits?t.meta.traits.filter(x=>x).join(', '):'-';
-                    tip.innerHTML=`<div class="tt-header">${(t.name||"Adsız")}</div><div class="tt-row"><span>HP:</span> <b>~${hp}</b></div><div class="tt-row"><span>Yön:</span> <span>${t.meta?.align||"-"}</span></div><div class="tt-row"><span>Kişilik:</span> <span style="font-size:0.65rem">${traits}</span></div>`;
+                    let attrList = ""; for(let k in ATTRS) attrList += `<div class="tt-item"><span>${ATTRS[k]}:</span> <b>${getS(t,k).b}+${getS(t,k).a}</b></div>`;
+                    let skillList = ""; for(let k in SKILLS) skillList += `<div class="tt-item"><span>${SKILLS[k]}:</span> <b>${getS(t,k).b}+${getS(t,k).a}</b></div>`;
+                    
+                    tip.innerHTML = `
+                        <div class="tt-header">${(t.name||"Adsız")}</div>
+                        <div class="tt-grid">
+                            <div>${attrList}</div>
+                            <div>${skillList}</div>
+                        </div>
+                    `;
                     el.appendChild(tip);
                 }
-                el.addEventListener('click', () => { activeTokenId = t.id; });
                 mc.appendChild(el);
             });
         }
@@ -600,6 +563,14 @@
             el.ontouchstart=e=>{startD(e.touches[0].clientX,e.touches[0].clientY)};
             el.ontouchmove=e=>{if(start){e.preventDefault();moveD(e.touches[0].clientX,e.touches[0].clientY)}};
             el.ontouchend=endD;
+        }
+
+        // --- MANUEL ZAR ---
+        function rollManual(sides) {
+            const result = Math.floor(Math.random() * sides) + 1;
+            let color = "white"; if(result===sides) color="#0f0"; if(result===1) color="#f00";
+            const html = `<div style="border-bottom:1px solid #333;"><b>${currentUser.toUpperCase()}</b>: d${sides} attı -> <b style="color:${color}">${result}</b></div>`;
+            addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState();
         }
 
         // --- CETVEL (FIXED) ---
@@ -655,12 +626,14 @@
         function resetAll(){if(isGM&&confirm("Emin misin?")){gameState={mapSrc:null,grid:{show:true,size:50,scale:1.5},weather:"",initiative:{list:[],round:1,currentIdx:0},activity:{paused:false,scores:{}},inspiration:{},chat:[],tokens:[],tokenLibrary:[]};updateState();}}
         async function initMic(){try{const s=await navigator.mediaDevices.getUserMedia({audio:true});const ac=new AudioContext(),an=ac.createAnalyser();ac.createMediaStreamSource(s).connect(an);an.fftSize=512;const d=new Uint8Array(an.frequencyBinCount);const l=()=>{if(!gameState.activity.paused){an.getByteFrequencyData(d);let sm=0;for(let x of d)sm+=x;if(sm/d.length>15)localSpeechTime+=0.1}setTimeout(()=>requestAnimationFrame(l),100)};l();setInterval(()=>{if(localSpeechTime>0){gameState.activity.scores[currentUser]=localSpeechTime;db.collection('rooms').doc(currentRoom).update({[`activity.scores.${currentUser}`]:localSpeechTime})}},3000)}catch(e){console.log(e)}}
 
-        function openSheet(id) { activeTokenId=id; const t=gameState.tokens.find(x=>x.id===id); if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']}; if(!t.statuses)t.statuses=[]; document.getElementById('char-sheet-modal').style.display='flex'; document.getElementById('sheet-name').innerText=(t.name||t.owner).toUpperCase(); document.getElementById('sheet-token-name').value=t.name||""; document.getElementById('sheet-token-scale').value=t.scale||1; document.getElementById('sheet-align').value=t.meta.align||""; const ts=document.querySelectorAll('.trait-select'); ts.forEach((s,i)=>s.value=t.meta.traits[i]||""); if(isGM){document.getElementById('gm-vision').value=t.vision||10;document.getElementById('btn-gm-pos').style.background=t.locked?"var(--accent-red)":"#333";renderStatusGrid(t);} sheetLocked=false; toggleLock(); toggleLock(); renderStats(t); }
+        // --- SHEET ---
+        function openSheet(id) { activeTokenId=id; const t=gameState.tokens.find(x=>x.id===id); if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']}; if(!t.statuses)t.statuses=[]; document.getElementById('char-sheet-modal').style.display='flex'; document.getElementById('sheet-name').innerText=(t.name||t.owner).toUpperCase(); document.getElementById('sheet-token-name').value=t.name||""; document.getElementById('sheet-token-scale').value=t.scale||1; document.getElementById('sheet-align').value=t.meta.align||""; const ts=document.querySelectorAll('.trait-select'); ts.forEach((s,i)=>s.value=t.meta.traits[i]||""); if(isGM){document.getElementById('gm-vision').value=t.vision||10;document.getElementById('btn-gm-pos').style.background=t.locked?"var(--accent-red)":"#333"; document.getElementById('btn-gm-visible').innerText=t.hidden?"GÖRÜNÜR: HAYIR":"GÖRÜNÜR: EVET"; document.getElementById('btn-gm-visible').style.background=t.hidden?"var(--accent-red)":""; renderStatusGrid(t);} sheetLocked=false; toggleLock(); toggleLock(); renderStats(t); }
         function closeSheet(){document.getElementById('char-sheet-modal').style.display='none';updateState()}
         function saveSheetMeta(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.name=document.getElementById('sheet-token-name').value;t.scale=parseFloat(document.getElementById('sheet-token-scale').value);t.meta.align=document.getElementById('sheet-align').value;const ts=document.querySelectorAll('.trait-select');t.meta.traits=[ts[0].value,ts[1].value,ts[2].value];updateState()}
         function renderStatusGrid(t){const g=document.getElementById('status-grid');g.innerHTML="";CONDITIONS.forEach(c=>{const a=t.statuses.includes(c);const b=document.createElement('button');b.className=`status-btn ${a?'active-status':''}`;b.innerText=c;b.onclick=()=>{if(a)t.statuses=t.statuses.filter(x=>x!==c);else t.statuses.push(c);renderStatusGrid(t);updateState()};g.appendChild(b)})}
         function gmDeleteToken(){if(confirm("Sil?")){gameState.tokens=gameState.tokens.filter(x=>x.id!==activeTokenId);closeSheet();updateState()}}
         function gmTogglePosLock(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.locked=!t.locked;openSheet(activeTokenId);updateState()}
+        function gmToggleVisible(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.hidden=!t.hidden;openSheet(activeTokenId);updateState()}
         function gmUpdateToken(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.vision=parseFloat(document.getElementById('gm-vision').value)||10;updateState()}
         function renderStats(t){const al=document.getElementById('attr-list'), sl=document.getElementById('skill-list'); al.innerHTML=""; sl.innerHTML=""; const cr=(k,tr,tp)=>{const s=getS(t,k);return `<div class="stat-row"><span style="color:var(--gold-text);font-size:0.75rem">${tr}</span><div class="input-group"><input type="number" min="1" max="5" value="${s.b}" onchange="upS('${k}',this.value,'${s.a}')"></div><div class="input-group"><input type="number" min="0" value="${s.a}" onchange="upS('${k}','${s.b}',this.value)"></div><button class="stat-btn-locked" onclick="selS('${k}','${tp}',this)">${tr}: ${s.b} + ${s.a}</button></div>`}; for(let k in ATTRS)al.innerHTML+=cr(k,ATTRS[k],'attr'); for(let k in SKILLS)sl.innerHTML+=cr(k,SKILLS[k],'skill');}
         window.upS=function(k,b,a){setS(gameState.tokens.find(x=>x.id===activeTokenId),k,b,a)}
@@ -668,9 +641,7 @@
         function toggleLock(){sheetLocked=!sheetLocked;const b=document.querySelector('.sheet-body'),btn=document.getElementById('btn-lock');if(sheetLocked){b.classList.add('locked-mode');btn.innerText="AÇ";renderStats(gameState.tokens.find(x=>x.id===activeTokenId))}else{b.classList.remove('locked-mode');btn.innerText="KİLİTLE";selAttr=null;selSkill=null}}
         function getS(t,k){const v=t.stats[k]||"1,0";const p=v.split(',');return{b:parseInt(p[0])||1,a:parseInt(p[1])||0}}
         function setS(t,k,b,a){t.stats[k]=`${b},${a}`}
-        function rollStats(){if(!selAttr&&!selSkill)return;const t=gameState.tokens.find(x=>x.id===activeTokenId);let b=0,a=0;if(selAttr){const s=getS(t,selAttr);b+=s.b;a+=s.a}if(selSkill){const s=getS(t,selSkill);b+=s.b;a+=s.a}let res=rollD(b);let total=res.h+a;
-        const html=`<div style="border-left:3px solid var(--accent-green);padding-left:5px"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${res.d}]<br>Sonuç: ${res.h}+${a}=<b>${total}</b><div class="log-actions"><button onclick="actPush(${b},${a},${total})">ZORLA</button><button onclick="actInsp(${b},${a})">İLHAM</button><button onclick="actCombo(${b},${a})">ZORLA & İLHAM</button></div></div>`;
-        addLog(html); gameState.chat.push({u:"SİSTEM",t:html,type:'html'}); updateState();}
+        function rollStats(){if(!selAttr&&!selSkill)return;const t=gameState.tokens.find(x=>x.id===activeTokenId);let b=0,a=0;if(selAttr){const s=getS(t,selAttr);b+=s.b;a+=s.a}if(selSkill){const s=getS(t,selSkill);b+=s.b;a+=s.a}let res=rollD(b);let total=res.h+a;const html=`<div style="border-left:3px solid var(--accent-green);padding-left:5px"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${res.d}]<br>Sonuç: ${res.h}+${a}=<b>${total}</b><div class="log-actions"><button onclick="actPush(${b},${a},${total})">ZORLA</button><button onclick="actInsp(${b},${a})">İLHAM</button><button onclick="actCombo(${b},${a})">ZORLA & İLHAM</button></div></div>`;addLog(html); gameState.chat.push({u:"SİSTEM",t:html,type:'html'}); updateState();}
         window.actPush = function(base, auto, prevTotal) { let prevHits = prevTotal - auto; let fails = base - prevHits; if(fails <= 0) return alert("Zorlanacak zar yok!"); let res = rollD(fails); let newTotal = prevTotal + res.h; const html=`<div style="border-left:2px dashed #aaa; padding-left:5px; margin-top:5px;"><i>Zorlama...</i> [${res.d}] (+${res.h})<br>YENİ SONUÇ: <b>${newTotal}</b><div class="log-actions"><button onclick="actInsp(${base}, ${auto})">İLHAM</button></div></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
         window.actInsp = function(base, auto) { useInsp(1); let res = rollD(base); let total = res.h + auto; const html=`<div style="border-top:1px solid #555; padding-top:5px; margin-top:5px;"><b>✨ İLHAM</b> (Harcanan: 1)<br>Yeni Atış: [${res.d}]<br>Sonuç: <b>${total}</b><div class="log-actions"><button onclick="actPush(${base}, ${auto}, ${total})">ZORLA</button></div></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
         window.actCombo = function(base, auto) { const target = parseInt(prompt("Hedef?", 4)); if(!target) return; const limit = parseInt(prompt("Limit?", 5)); if(!limit) return; let spent=0, bestTotal=0, logTxt = ""; while(spent < limit) { spent++; let r1 = rollD(base); let hits = r1.h; let fails = base - hits; let pushed = 0; if(fails > 0) { let r2 = rollD(fails); pushed = r2.h; } let total = hits + pushed + auto; logTxt += `[#${spent}: ${total}] `; if(total >= target) { bestTotal=total; break; } if(total > bestTotal) bestTotal=total; } useInsp(spent); const html=`<div style="background:rgba(200,150,0,0.1); padding:5px; margin-top:5px;"><b>🔥 COMBO</b> (Harc: ${spent})<br><small>${logTxt}</small><br>SONUÇ: <b style="color:${bestTotal>=target?'#2ecc71':'#e74c3c'}">${bestTotal}</b></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
