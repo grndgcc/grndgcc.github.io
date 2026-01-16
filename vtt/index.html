@@ -3,18 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İkili Evren - Efsaneler V3</title>
+    <title>İkili Evren - Master Edition V4</title>
     
-    <!-- FONTLAR -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=UnifrakturMaguntia&family=Lato:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- FIREBASE SDK -->
+    <!-- FIREBASE & JITSI -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    
-    <!-- JITSI MEET API (Sesli Sohbet İçin) -->
     <script src='https://meet.jit.si/external_api.js'></script>
 
     <style>
@@ -32,60 +29,55 @@
         * { box-sizing: border-box; touch-action: none; user-select: none; -webkit-user-select: none; }
 
         body {
-            margin: 0; padding: 0;
-            font-family: 'Cinzel', serif;
+            margin: 0; padding: 0; font-family: 'Cinzel', serif;
             background-color: var(--bg-color); color: var(--text-main);
             overflow: hidden; display: flex; height: 100vh; width: 100vw;
             background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png'), radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
             overscroll-behavior: none;
         }
 
-        h1, h2, h3, h4, .gothic-title { font-family: 'UnifrakturMaguntia', cursive; letter-spacing: 1px; font-weight: normal; }
+        h1, h2, h3, h4 { font-family: 'UnifrakturMaguntia', cursive; letter-spacing: 1px; font-weight: normal; }
         
         input, select, textarea {
             background: rgba(0,0,0,0.5); color: #fff; 
             border: 1px solid #555; padding: 8px; border-radius: 4px; 
             width: 100%; font-family: 'Lato', sans-serif; text-align: center;
         }
-        input:focus, textarea:focus { outline: none; border-color: var(--gold-text); box-shadow: 0 0 8px rgba(238, 187, 102, 0.3); }
+        input:focus { outline: none; border-color: var(--gold-text); box-shadow: 0 0 8px rgba(238, 187, 102, 0.3); }
 
         /* UI PANELS */
         .glass-panel {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.9), inset 0 0 30px rgba(0,0,0,0.8);
-            color: var(--text-main); pointer-events: auto;
-            backdrop-filter: blur(var(--blur-amt));
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+            color: var(--text-main); pointer-events: auto; backdrop-filter: blur(var(--blur-amt));
         }
 
         button {
             background: linear-gradient(to bottom, #2b2b2b, #151515);
             border: 1px solid var(--glass-border); color: var(--gold-text);
             padding: 6px 12px; border-radius: 4px; cursor: pointer;
-            font-family: 'Cinzel', serif; font-weight: bold; font-size: 0.8rem;
-            text-transform: uppercase; transition: 0.2s;
-            text-shadow: 1px 1px 2px black;
+            font-family: 'Cinzel', serif; font-weight: bold; font-size: 0.75rem;
+            text-transform: uppercase; transition: 0.2s; text-shadow: 1px 1px 2px black;
         }
-        button:hover { background: #3a3a3a; border-color: #fff; text-shadow: 0 0 8px var(--gold-text); box-shadow: 0 0 10px rgba(238, 187, 102, 0.2); }
+        button:hover { background: #3a3a3a; border-color: #fff; text-shadow: 0 0 8px var(--gold-text); }
         button:active { transform: translateY(1px); }
-        button.active { background: var(--accent-red); color: white; border-color: white; box-shadow: 0 0 15px var(--accent-red); }
+        button.active { background: var(--accent-red); color: white; border-color: white; }
 
         /* DOCK */
         #ui-dock {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 10px; padding: 10px 20px; z-index: 2000;
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 8px; padding: 10px 20px; z-index: 2000;
             border-radius: 40px; border: 1px solid var(--glass-border);
             background: rgba(5, 5, 5, 0.95); box-shadow: 0 0 20px black;
         }
         .dock-btn {
-            width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.4rem; border: 1px solid #444; background: #111; position: relative;
+            width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; border: 1px solid #444; background: #111; position: relative;
         }
         .dock-btn:hover { transform: scale(1.1); z-index: 10; border-color: var(--gold-text); }
         .dock-btn.active-mode { border-color: var(--gold-text); background: var(--accent-red); }
 
-        /* SIDEBAR & PANELS */
+        /* PANELS */
         #sidebar {
             position: fixed; top: 0; left: 0; height: 100%; width: 360px; z-index: 1500;
             padding: 20px; display: flex; flex-direction: column; gap: 15px;
@@ -96,7 +88,7 @@
         
         .float-panel {
             position: fixed; z-index: 500; padding: 10px; display: none; flex-direction: column;
-            min-width: 260px; max-width: 340px; max-height: 80vh;
+            min-width: 260px; max-width: 400px; max-height: 80vh;
         }
         .float-panel.visible { display: flex; animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
@@ -105,45 +97,51 @@
             font-family: 'UnifrakturMaguntia', cursive; font-size: 1.3rem; color: var(--gold-text); 
             border-bottom: 1px solid #555; padding-bottom: 8px; margin-bottom: 8px; 
             display: flex; justify-content: space-between; align-items: center; cursor: move;
-            text-shadow: 0 0 5px black;
         }
 
         #panel-initiative { top: 80px; right: 20px; }
-        #panel-inspiration { top: 20px; right: 280px; width: 180px; text-align: center; }
-        #panel-log { bottom: 100px; right: 20px; width: 340px; height: 350px; }
+        #panel-music { top: 80px; left: 380px; width: 300px; }
+        #panel-wiki { top: 50px; left: 50%; transform: translateX(-50%); width: 600px; height: 700px; }
+        #panel-dice { bottom: 100px; right: 20px; width: 300px; }
         #panel-chat { bottom: 100px; left: 20px; width: 320px; height: 400px; }
-        #panel-journal { top: 120px; left: 50%; transform: translateX(-50%); width: 500px; height: 600px; }
-        #panel-album { top: 100px; left: 100px; width: 600px; height: 500px; }
 
         .list-container { flex-grow: 1; overflow-y: auto; font-size: 0.9rem; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
-        .list-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .list-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer;}
+        .list-item:hover { background: rgba(255,255,255,0.05); }
         .list-item.active { background: rgba(184, 134, 11, 0.2); border-left: 3px solid var(--gold-text); }
 
-        .control-group { background: rgba(255,255,255,0.03); padding: 12px; border: 1px solid #333; border-radius: 6px; }
-        .control-label { color: #aaa; font-size: 0.7rem; display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
-
-        .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding: 10px; }
-        .album-item {
-            width: 80px; height: 80px; border: 1px solid #555; border-radius: 5px;
-            background-size: cover; background-position: center; cursor: pointer; transition: transform 0.2s; position: relative;
-        }
-        .album-item:hover { transform: scale(1.1); border-color: var(--gold-text); z-index: 10; }
-        .album-item button {
-            position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; padding: 0;
-            font-size: 10px; background: red; color: white; border-radius: 50%; display: none;
-        }
-        .gm-only .album-item:hover button { display: block; }
-
-        /* GAME AREA & MAP */
+        /* GAME AREA */
         #game-area { position: absolute; top:0; left:0; width:100%; height:100%; overflow: hidden; cursor: default; z-index: 0; background: #000; }
         #map-container { position: absolute; top:0; left:0; transform-origin: 0 0; }
-        #game-map { position: absolute; z-index: 1; pointer-events: none; image-rendering: high-quality; /* High Res Support */ }
+        #game-map { position: absolute; z-index: 1; pointer-events: none; }
         canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
         #grid-canvas { z-index: 2; }
         #fog-canvas { z-index: 3; }
         #ruler-canvas { z-index: 20; }
-        #weather-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; }
-        .ruler-active { cursor: crosshair !important; }
+        
+        /* 3D DICE OVERLAY */
+        #dice-overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index: 3000;
+            display: none; justify-content: center; align-items: center; perspective: 1000px;
+        }
+        .cube {
+            width: 100px; height: 100px; position: relative; transform-style: preserve-3d;
+            animation: rotateDice 2s ease-out forwards;
+        }
+        .face {
+            position: absolute; width: 100px; height: 100px; background: rgba(139, 0, 0, 0.9);
+            border: 2px solid gold; line-height: 100px; text-align: center; font-size: 40px; color: white; font-weight: bold;
+        }
+        .front  { transform: rotateY(0deg) translateZ(50px); }
+        .back   { transform: rotateY(180deg) translateZ(50px); }
+        .right  { transform: rotateY(90deg) translateZ(50px); }
+        .left   { transform: rotateY(-90deg) translateZ(50px); }
+        .top    { transform: rotateX(90deg) translateZ(50px); }
+        .bottom { transform: rotateX(-90deg) translateZ(50px); }
+        @keyframes rotateDice {
+            0% { transform: rotateX(0) rotateY(0); }
+            100% { transform: rotateX(720deg) rotateY(720deg); }
+        }
 
         /* TOKENS */
         .token {
@@ -151,111 +149,82 @@
             border: 2px solid #fff; box-shadow: 0 0 15px rgba(0,0,0,0.8);
             background-size: cover; background-position: center; transition: border-color 0.2s;
         }
-        .token.my-token { border-color: var(--accent-green); cursor: grab; box-shadow: 0 0 20px var(--accent-green); }
+        .token.my-token { border-color: var(--accent-green); cursor: grab; }
         .token.other-token { border-color: var(--accent-red); }
-        .token.locked-token { cursor: not-allowed; border-style: dashed; opacity: 0.8; }
-        .token:active { cursor: grabbing; transform: scale(1.05); }
+        .token.invisible { opacity: 0.5; filter: grayscale(1); border-style: dashed; } /* GM view */
         
         .token-name {
             position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
             background: rgba(0,0,0,0.9); padding: 2px 6px; border-radius: 4px;
             font-size: 11px; white-space: nowrap; pointer-events: none; color: var(--gold-text);
-            font-weight: bold; border: 1px solid #444; z-index: 20; font-family: 'Lato';
+            border: 1px solid #444; z-index: 20;
         }
         .token-statuses { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); display: flex; gap: 2px; pointer-events: none; z-index: 15; }
         .status-badge { background: #000; color: #f1c40f; padding: 1px 4px; border-radius: 3px; font-size: 8px; border: 1px solid #555; }
-        
-        .token.is-dead { filter: grayscale(100%) brightness(40%); }
-        .token.is-dead::after {
-            content: '☠'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 40px; color: #8b0000; pointer-events: none; text-shadow: 0 0 10px black;
-        }
+        .token.is-dead::after { content: '☠'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: #8b0000; text-shadow: 0 0 10px black; }
 
-        .token-tooltip {
-            position: absolute; bottom: 115%; left: 50%; transform: translateX(-50%);
-            background: rgba(5,5,5,0.95); border: 1px solid var(--gold-text);
-            padding: 10px; border-radius: 5px; width: 200px; pointer-events: none;
-            display: none; z-index: 100; text-align: left; font-size: 0.8rem;
-            box-shadow: 0 10px 30px black; font-family: 'Lato', sans-serif;
+        /* CONTEXT MENU */
+        #context-menu {
+            display: none; position: absolute; z-index: 4000; width: 150px;
+            background: #111; border: 1px solid var(--gold-text); border-radius: 5px;
         }
-        .token:hover .token-tooltip { display: block; }
-        .tt-header { font-family: 'Cinzel', serif; font-weight: bold; color: var(--gold-text); border-bottom: 1px solid #555; margin-bottom: 5px; font-size: 1rem; }
-        .tt-row { display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 3px; color:#ccc; }
+        #context-menu button { width: 100%; text-align: left; background: transparent; border: none; padding: 8px; }
+        #context-menu button:hover { background: var(--accent-red); color: white; }
 
-        .token-gear {
-            position: absolute; bottom: 0; right: 0; width: 24px; height: 24px;
-            background: var(--gold-text); color: black; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-size: 14px;
-            cursor: pointer; z-index: 25; border: 1px solid black; box-shadow: 0 0 5px black;
-        }
+        /* WIKI */
+        .wiki-content img { max-width: 100%; border-radius: 5px; margin: 10px 0; border: 1px solid #444; }
+        .wiki-page-item { padding: 8px; border-bottom: 1px solid #333; cursor: pointer; color: #aaa; }
+        .wiki-page-item:hover { color: white; background: #222; }
+        .wiki-page-item.active { color: var(--gold-text); font-weight: bold; background: #222; }
 
-        /* SHEET */
-        #char-sheet-modal {
-            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 800px; max-width: 95%; height: 800px; max-height: 95%; z-index: 5000;
-            padding: 0; flex-direction: column;
-        }
-        .sheet-body { padding: 20px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow:1; }
-        .gm-controls-area { background: rgba(50, 10, 10, 0.3); border: 1px solid var(--accent-red); padding: 10px; margin-top: 10px; border-radius: 5px; }
-        .stat-row { 
-            display: grid; grid-template-columns: 100px 1fr 1fr; gap: 5px; align-items: center;
-            margin-bottom: 5px; padding: 6px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid #333;
-        }
-        .stat-btn-locked { grid-column: 1 / span 3; text-align: left; width: 100%; background: transparent; color:white; border:none; padding:10px; display:none; font-family: 'Cinzel'; font-weight: bold; }
-        .locked-mode .input-group { display: none; }
-        .locked-mode .stat-btn-locked { display: block; }
-        .locked-mode .stat-btn-locked:hover { background: rgba(255,255,255,0.1); }
-        .locked-mode .stat-btn-locked.selected { background: var(--gold-text); color: black; box-shadow: 0 0 10px var(--gold-text); }
-        
-        .status-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 5px; }
-        .status-btn { font-size: 0.6rem; padding: 4px; background: #222; border: 1px solid #444; color: #888; }
-        .status-btn.active-status { background: var(--accent-red); color: white; border-color: white; box-shadow: 0 0 8px red; }
-
-        /* LOG & CHAT */
-        .log-entry { margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; font-size: 0.85rem; font-family: 'Lato'; }
-        .chat-msg { margin-bottom: 5px; word-wrap: break-word; font-size:0.9rem; font-family: 'Lato'; }
-        .chat-msg b { color: var(--gold-text); font-family: 'Cinzel'; }
-        .chat-gif { max-width: 100%; border-radius: 4px; margin-top:5px; border:1px solid #444; }
-
-        /* VOICE CHAT FRAME (HIDDEN) */
-        #voice-chat-frame {
-            position: absolute; top: -1000px; left: -1000px; width: 1px; height: 1px; visibility: hidden;
-        }
+        /* MEDIA PLAYERS HIDDEN */
+        #media-container { display: none; }
 
         /* MOBILE */
         @media (max-width: 768px) {
-            #ui-dock { width: 95%; justify-content: space-between; padding: 8px; bottom: 10px; }
+            #ui-dock { width: 95%; justify-content: space-between; padding: 5px; }
+            .dock-btn { width: 38px; height: 38px; font-size: 1rem; }
             #sidebar { width: 100%; }
-            .float-panel { width: 95% !important; left: 2.5% !important; right: 2.5% !important; top: 60px !important; max-height: 50vh; }
-            #panel-log, #panel-chat { bottom: 80px !important; top: auto !important; height: 300px !important; }
-            #panel-journal, #panel-album { width: 95%; height: 70%; top: 10%; left: 2.5%; transform: none; }
-            .sheet-body { grid-template-columns: 1fr; }
-            .gm-controls-area { grid-template-columns: 1fr; }
-            #inspiration-box { width: 100% !important; position: relative; left:0; top:0; }
+            .float-panel { width: 95% !important; left: 2.5% !important; top: 60px !important; max-height: 60vh; }
+            #char-sheet-modal { width: 100%; height: 100%; }
         }
         .gm-only { display: none; }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:none;justify-content:center;align-items:center;color:var(--gold-text);">
-        <div style="font-size:2rem;">⚔️ YÜKLENİYOR...</div>
+    <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:none;justify-content:center;align-items:center;color:var(--gold-text);"><div style="font-size:2rem;">⚔️ YÜKLENİYOR...</div></div>
+    
+    <!-- AUDIO / VIDEO HIDDEN -->
+    <div id="media-container">
+        <audio id="bg-music-player" loop></audio>
+        <div id="youtube-player"></div>
+        <div id="voice-chat-frame"></div>
     </div>
 
-    <!-- SESLI SOHBET KONTEYNERİ -->
-    <div id="voice-chat-frame"></div>
+    <!-- 3D DICE -->
+    <div id="dice-overlay">
+        <div class="cube" id="dice-cube">
+            <div class="face front">1</div><div class="face back">6</div>
+            <div class="face right">3</div><div class="face left">4</div>
+            <div class="face top">5</div><div class="face bottom">2</div>
+        </div>
+        <div id="dice-result" style="position:absolute; top:60%; color:gold; font-size:3rem; font-weight:bold; text-shadow:0 0 20px black;"></div>
+    </div>
 
     <!-- GİRİŞ -->
     <div id="login-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#050505;z-index:9999;display:flex;justify-content:center;align-items:center;">
         <div class="glass-panel" style="padding:40px; text-align:center; width:300px; border:2px solid var(--gold-text);">
-            <h1 class="gothic-title" style="color:var(--gold-text); font-size:2rem;">İKİLİ EVREN</h1>
-            <p style="color:#aaa; font-size:0.7rem; margin-bottom:20px;">EFSANELER V3</p>
+            <h1 style="color:var(--gold-text); font-size:2rem;">İKİLİ EVREN</h1>
+            <p style="color:#aaa; font-size:0.7rem; margin-bottom:20px;">MASTER EDITION V4</p>
             <input type="text" id="room-input" placeholder="Oda Adı" style="margin-bottom:10px;">
             <select id="role-select" style="margin-bottom:10px;">
                 <option value="gm1">GM (Yönetici)</option>
                 <option value="player1">Oyuncu 1</option>
                 <option value="player2">Oyuncu 2</option>
                 <option value="player3">Oyuncu 3</option>
+                <option value="player4">Oyuncu 4</option>
+                <option value="player5">Oyuncu 5</option>
             </select>
             <input type="password" id="password-input" placeholder="Şifre" style="margin-bottom:15px;">
             <button onclick="attemptLogin()" style="width:100%; padding:12px;">BAĞLAN</button>
@@ -263,83 +232,83 @@
         </div>
     </div>
 
-    <!-- UI KATMANLARI -->
-    <div id="weather-overlay"></div>
     <div id="ruler-info" style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); border:1px solid var(--gold-text); padding:5px 15px; border-radius:20px; display:none; z-index:2000; pointer-events:none; color:var(--gold-text); font-weight:bold;">0m</div>
 
     <!-- DOCK -->
     <div id="ui-dock">
-        <button class="dock-btn" onclick="toggleSidebar()" title="Ayarlar">⚙️</button>
-        <button class="dock-btn" onclick="togglePanel('panel-initiative')" title="Sıra">⚔️</button>
-        <button class="dock-btn" onclick="toggleVoiceChat()" id="btn-voice" title="Sesli Sohbet">📞</button>
-        <button class="dock-btn" onclick="togglePanel('panel-inspiration')" title="İlham">✨</button>
-        <button class="dock-btn" id="btn-ruler" onclick="toggleRuler()" title="Cetvel">📏</button>
-        <button class="dock-btn" onclick="togglePanel('panel-journal')" title="Günlük">📖</button>
-        <button class="dock-btn" onclick="togglePanel('panel-album')" title="Albüm">🖼️</button>
-        <button class="dock-btn" onclick="togglePanel('panel-chat')" title="Sohbet">💬</button>
-        <button class="dock-btn" onclick="togglePanel('panel-log')" title="Log">📜</button>
+        <button class="dock-btn" onclick="toggleSidebar()">⚙️</button>
+        <button class="dock-btn" onclick="togglePanel('panel-initiative')">⚔️</button>
+        <button class="dock-btn" onclick="toggleVoice()" id="btn-voice">📞</button>
+        <button class="dock-btn" onclick="togglePanel('panel-music')">🎵</button>
+        <button class="dock-btn" onclick="togglePanel('panel-wiki')">📖</button>
+        <button class="dock-btn" onclick="togglePanel('panel-dice')">🎲</button>
+        <button class="dock-btn" id="btn-ruler" onclick="toggleRuler()">📏</button>
+        <button class="dock-btn" onclick="togglePanel('panel-chat')">💬</button>
+    </div>
+
+    <!-- SAĞ TIK MENÜSÜ -->
+    <div id="context-menu">
+        <button onclick="toggleVisibility()" class="gm-only">👁️ Görünür/Görünmez</button>
+        <button onclick="closeContextMenu()">İptal</button>
     </div>
 
     <!-- SIDEBAR -->
-    <div id="sidebar">
+    <div id="sidebar" class="glass-panel">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--glass-border); padding-bottom:10px;">
             <h3 id="user-display" style="color:var(--gold-text); margin:0;">USER</h3> 
             <button onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:1.2rem;">✕</button>
         </div>
-        
         <div class="control-group gm-only">
-            <span class="control-label">HARİTA (URL)</span> 
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="map-url" placeholder="Resim Linki">
-                <button onclick="setMapURL()" style="width:auto;">YÜKLE</button>
-            </div>
-            
-            <div style="margin-top:10px; display:flex; gap:5px; align-items:center;">
-                <span class="control-label" style="margin:0;">GRID:</span>
-                <input type="number" id="grid-size" value="50" onchange="updateGrid()" placeholder="px" style="width:50px;">
-                <input type="number" id="grid-scale" value="1.5" step="0.5" onchange="updateGrid()" placeholder="m" style="width:50px;">
-                <input type="checkbox" id="grid-show" onchange="updateGrid()" checked style="width:auto;">
-            </div>
+            <span>HARİTA (URL)</span> <div style="display:flex;gap:5px;"><input type="text" id="map-url"><button onclick="setMapURL()">YÜKLE</button></div>
+            <div style="margin-top:10px;display:flex;gap:5px;align-items:center;"><span>GRID:</span><input type="number" id="grid-size" value="50" onchange="updateGrid()" style="width:50px;"><input type="number" id="grid-scale" value="1.5" step="0.5" onchange="updateGrid()" style="width:50px;"><input type="checkbox" id="grid-show" onchange="updateGrid()" checked></div>
         </div>
+        <div class="control-group"><span>TOKEN EKLE (URL)</span> <textarea id="token-url-area" rows="3"></textarea><button onclick="addTokenBulk()" style="width:100%;margin-top:5px;">EKLE</button></div>
+        <div class="control-group gm-only"><button onclick="resetAll()" style="width:100%;background:var(--accent-red);">SIFIRLA</button></div>
+    </div>
 
+    <!-- PANELS -->
+    <div id="panel-initiative" class="glass-panel float-panel"><div class="float-header">TUR SIRASI <span id="round-display">T:1</span></div><div id="init-list" class="list-container"></div><div class="gm-only"><input type="text" id="init-name"><input type="number" id="init-val"><button onclick="addToInit()">EKLE</button><button onclick="nextTurn()">İLERİ</button><button onclick="clearInit()">SİL</button></div></div>
+    
+    <div id="panel-music" class="glass-panel float-panel">
+        <div class="float-header">MÜZİK KUTUSU <button onclick="togglePanel('panel-music')">X</button></div>
         <div class="control-group">
-            <span class="control-label">TOKEN EKLE (ÇOKLU URL)</span> 
-            <textarea id="token-url-area" rows="3" placeholder="Her satıra bir link..."></textarea>
-            <button onclick="addTokenBulk()" style="width:100%; margin-top:5px;">HEPSİNİ EKLE</button>
+            <input type="text" id="music-url" placeholder="YouTube / MP3 URL">
+            <button onclick="addMusic()" style="width:100%; margin-top:5px;">LİSTEYE EKLE</button>
         </div>
-
-        <div class="control-group">
-            <span class="control-label">AYARLAR</span> 
-            <label style="font-size:0.8rem; display:block; cursor:pointer;">
-                <input type="checkbox" id="show-tooltips" onchange="toggleTooltips()" checked style="width:auto;"> Hover Özeti Göster
-            </label>
-        </div>
-
-        <div class="control-group gm-only">
-            <span class="control-label">ATMOSFER</span>
-            <select id="weather-select" onchange="changeWeather()" style="margin-bottom:5px;">
-                <option value="">Açık</option>
-                <option value="weather-rain">Yağmur</option>
-                <option value="weather-snow">Kar</option>
-                <option value="weather-fog">Sis</option>
-                <option value="weather-wind">Rüzgar</option>
-            </select>
-            <button onclick="toggleGlobalVoice()" id="btn-gm-voice-toggle" style="width:100%; margin-bottom:5px;">SESLİ SOHBETİ AÇ</button>
-            <button onclick="resetAll()" style="width:100%; background:var(--accent-red);">HER ŞEYİ SIFIRLA</button>
+        <div id="music-list" class="list-container" style="height:150px;"></div>
+        <div style="margin-top:5px; display:flex; gap:5px;">
+            <button onclick="stopMusic()" style="flex:1; background:var(--accent-red);">DURDUR</button>
+            <button onclick="toggleLoop()" id="btn-loop" style="flex:1;">DÖNGÜ: KAPALI</button>
         </div>
     </div>
 
-    <!-- PANELLER -->
-    <div id="panel-initiative" class="glass-panel float-panel"><div class="float-header">TUR SIRASI <span id="round-display">T:1</span></div><div id="init-list" class="list-container"></div><div class="gm-only"><input type="text" id="init-name" placeholder="İsim"><input type="number" id="init-val" placeholder="Init"><button onclick="addToInit()">EKLE</button><button onclick="nextTurn()">İLERİ</button><button onclick="clearInit()">SİL</button></div></div>
-    <div id="panel-inspiration" class="glass-panel float-panel visible"><div class="float-header">İLHAM</div><div id="insp-list" class="list-container" style="max-height:100px;"></div><div class="gm-only"><button onclick="resetInsp()">SIFIRLA</button></div></div>
-    <div id="panel-log" class="glass-panel float-panel visible"><div class="float-header">GÜNLÜK <button onclick="clearLog()" style="font-size:0.6rem;">TEMİZLE</button></div><div id="log-content" class="list-container"></div></div>
-    <div id="panel-journal" class="glass-panel float-panel"><div class="float-header">ÖZEL GÜNLÜK <button onclick="togglePanel('panel-journal')">X</button></div><textarea id="journal-text" style="flex-grow:1; background:rgba(0,0,0,0.3); color:#ddd; font-family:'Lato'; padding:10px; border:none; resize:none;" placeholder="Sadece siz görürsünüz..."></textarea></div>
-    <div id="panel-album" class="glass-panel float-panel"><div class="float-header">TOKEN ALBÜMÜ <button onclick="togglePanel('panel-album')">X</button></div><div id="album-grid" class="album-grid list-container"></div></div>
+    <div id="panel-wiki" class="glass-panel float-panel">
+        <div class="float-header">WIKI <button onclick="togglePanel('panel-wiki')">X</button></div>
+        <div style="display:flex; height:100%;">
+            <div id="wiki-nav" style="width:150px; border-right:1px solid #444; overflow-y:auto;"></div>
+            <div id="wiki-body" style="flex:1; padding:10px; overflow-y:auto; font-family:'Lato';"></div>
+        </div>
+        <div class="gm-only" style="border-top:1px solid #444; padding-top:5px;">
+            <input type="text" id="wiki-title" placeholder="Başlık">
+            <textarea id="wiki-text" rows="3" placeholder="İçerik (Resim için URL)"></textarea>
+            <input type="text" id="wiki-bgm" placeholder="Arkaplan Müzik URL">
+            <button onclick="saveWikiPage()" style="width:100%;">KAYDET / GÜNCELLE</button>
+        </div>
+    </div>
+
+    <div id="panel-dice" class="glass-panel float-panel">
+        <div class="float-header">ZAR ATICI <button onclick="togglePanel('panel-dice')">X</button></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+            <button onclick="roll3D(4)">d4</button><button onclick="roll3D(6)">d6</button>
+            <button onclick="roll3D(8)">d8</button><button onclick="roll3D(10)">d10</button>
+            <button onclick="roll3D(12)">d12</button><button onclick="roll3D(20)">d20</button>
+        </div>
+    </div>
+
     <div id="panel-chat" class="glass-panel float-panel">
         <div class="float-header">SOHBET</div>
         <div id="chat-content" class="list-container" style="background:rgba(0,0,0,0.3); padding:5px;"></div>
-        <div style="margin-top:5px; display:flex; gap:2px;"><input type="text" id="chat-input" placeholder="Mesaj..." onkeypress="if(event.key==='Enter') sendChat()"><button onclick="sendChat()">></button></div>
-        <button onclick="sendGif()" style="width:100%; font-size:0.7rem; margin-top:2px; background:#333;">GIF</button>
+        <div style="margin-top:5px; display:flex; gap:2px;"><input type="text" id="chat-input" onkeypress="if(event.key==='Enter') sendChat()"><button onclick="sendChat()">></button></div>
     </div>
 
     <!-- OYUN ALANI -->
@@ -353,56 +322,39 @@
     </div>
 
     <!-- KARAKTER KAĞIDI MODALI -->
-    <div id="char-sheet-modal" class="glass-panel">
+    <div id="char-sheet-modal" class="glass-panel" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:800px; height:800px; z-index:5000; flex-direction:column;">
         <div style="padding:15px; border-bottom:1px solid #444; display:flex; justify-content:space-between;">
             <h2 id="sheet-name" style="margin:0; color:var(--gold-text);"></h2>
-            <div><button id="btn-lock" onclick="toggleLock()">KİLİTLE</button> <button onclick="closeSheet()">X</button></div>
+            <div><button onclick="closeSheet()">X</button></div>
         </div>
-        
-        <div class="sheet-body">
+        <div class="sheet-body" style="padding:20px; overflow-y:auto; flex:1;">
             <!-- Sol -->
             <div>
-                <div class="control-group" style="margin-bottom:10px;">
-                    <label class="control-label">GÖRÜNÜM</label>
-                    <input type="text" id="sheet-token-name" placeholder="Token Adı" onchange="saveSheetMeta()">
-                    <div style="display:flex; align-items:center; gap:5px; margin-top:5px;">
-                        <span style="font-size:0.7rem;">Boyut:</span>
-                        <input type="range" id="sheet-token-scale" min="0.5" max="5" step="0.1" onchange="saveSheetMeta()">
-                    </div>
-                    <div style="display:flex; gap:5px; margin-top:5px;">
-                        <button onclick="duplicateToken()" style="flex:1; font-size:0.6rem;">ÇOĞALT</button>
-                        <button onclick="attachTokenPrompt()" style="flex:1; font-size:0.6rem;" id="btn-attach">BAĞLA</button>
-                    </div>
+                <input type="text" id="sheet-token-name" placeholder="Ad" onchange="saveSheetMeta()" style="margin-bottom:5px;">
+                <div style="display:flex;gap:5px;margin-bottom:5px;">
+                    <button onclick="attachTokenMode()" id="btn-attach" style="flex:1;">🔗 BAĞLA</button>
+                    <button onclick="detachTokens()" style="flex:1;">BAĞLARI ÇÖZ</button>
                 </div>
-
-                <h4 style="margin-top:10px; border-bottom:1px solid #444;">NİTELİKLER</h4>
+                <div style="display:flex; align-items:center; gap:5px; margin-bottom:10px;">
+                    <span>Boyut:</span><input type="range" id="sheet-token-scale" min="0.5" max="5" step="0.1" onchange="saveSheetMeta()">
+                </div>
+                <h4 style="border-bottom:1px solid #444;">NİTELİKLER</h4>
                 <div id="attr-list"></div>
                 
-                <h4 style="margin-top:10px; border-bottom:1px solid #444;">BECERİLER</h4>
-                <div id="skill-list"></div>
+                <select class="trait-select" onchange="saveSheetMeta()" style="margin-top:10px;"></select>
+                <select class="trait-select" onchange="saveSheetMeta()"></select>
+                <select class="trait-select" onchange="saveSheetMeta()"></select>
             </div>
-            
             <!-- Sağ -->
             <div>
-                <select id="sheet-align" onchange="saveSheetMeta()" style="margin-bottom:5px;"><option value="">Yönelim...</option><option>Kuralcı İyi</option><option>Nötr İyi</option><option>Kaotik İyi</option><option>Kuralcı Nötr</option><option>Tam Nötr</option><option>Kaotik Nötr</option><option>Kuralcı Kötü</option><option>Nötr Kötü</option><option>Kaotik Kötü</option></select>
-                <select class="trait-select" onchange="saveSheetMeta()"></select>
-                <select class="trait-select" onchange="saveSheetMeta()"></select>
-                <select class="trait-select" onchange="saveSheetMeta()"></select>
-
-                <!-- GM BÖLÜMÜ -->
-                <div class="gm-section gm-only">
-                    <label class="control-label" style="color:var(--accent-red);">GM KONTROLÜ</label>
-                    <div style="display:flex; gap:5px; margin-bottom:5px;">
-                        <input type="number" id="gm-vision" placeholder="Görüş(m)" onchange="gmUpdateToken()" style="width:50%">
-                        <button onclick="gmTogglePosLock()" id="btn-gm-pos" style="flex:1; font-size:0.6rem;">KİLİT</button>
-                    </div>
-                    <button onclick="gmDeleteToken()" style="width:100%; background:var(--accent-red); margin-bottom:5px;">SİL</button>
-                    <label class="control-label">DURUMLAR</label>
-                    <div class="status-grid" id="status-grid"></div>
+                <h4 style="border-bottom:1px solid #444;">BECERİLER</h4>
+                <div id="skill-list"></div>
+                <div class="gm-only" style="margin-top:10px; border:1px solid red; padding:5px;">
+                    <label style="color:red;">GM KONTROL</label>
+                    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px;" id="status-grid"></div>
                 </div>
             </div>
         </div>
-
         <div style="padding:15px; text-align:center; border-top:1px solid #444;">
             <div id="sheet-status" style="margin-bottom:5px; color:#aaa;">...</div>
             <button onclick="rollStats()" style="width:100%; padding:15px; font-size:1.2rem; background:var(--gold-text); color:black;">ZAR AT</button>
@@ -410,194 +362,138 @@
     </div>
 
     <script>
-        // --- FIREBASE CONF ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAjw9J7HcIKG01Sdjv5euTCzXZlFsG-nLI",
-            authDomain: "ikilievrenvtt.firebaseapp.com",
-            projectId: "ikilievrenvtt",
-            storageBucket: "ikilievrenvtt.firebasestorage.app",
-            messagingSenderId: "936507038276",
-            appId: "1:936507038276:web:8d96057ad709bad5883a11",
-            measurementId: "G-9XNKZWRBBS"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // --- CONFIG ---
+        const firebaseConfig = { apiKey: "AIzaSyAjw9J7HcIKG01Sdjv5euTCzXZlFsG-nLI", authDomain: "ikilievrenvtt.firebaseapp.com", projectId: "ikilievrenvtt", storageBucket: "ikilievrenvtt.firebasestorage.app", messagingSenderId: "936507038276", appId: "1:936507038276:web:8d96057ad709bad5883a11", measurementId: "G-9XNKZWRBBS" };
+        firebase.initializeApp(firebaseConfig); const db = firebase.firestore();
 
-        // --- CONSTANTS ---
-        const CREDENTIALS = { 'gm1': 'gm111', 'player1': '111', 'player2': '222', 'player3': '333' };
+        const CREDENTIALS = { 'gm1': 'gm111', 'player1': '111', 'player2': '222', 'player3': '333', 'player4': '444', 'player5': '555' };
         const ATTRS = { 'Strength': 'KUVVET', 'Dexterity': 'ÇEVİKLİK', 'Constitution': 'DAYANIKLILIK', 'Intelligence': 'ZEKA', 'Wisdom': 'İRFAN', 'Charisma': 'KARİZMA' };
-        const SKILLS = { 'Diplomacy': 'Diplomasi', 'Martial': 'Savaş Sanatı', 'Economy': 'Ekonomi', 'Intrigue': 'Entrika', 'Learning': 'Bilgi', 'Prowess': 'Yiğitlik' };
+        const SKILLS = { 'Diplomacy': 'Diplomasi', 'Martial': 'Savaş', 'Economy': 'Ekonomi', 'Intrigue': 'Entrika', 'Learning': 'Bilgi', 'Prowess': 'Yiğitlik' };
         const TRAITS = ["Hırslı", "Kibirli", "Paranoyak", "Sahtekar", "Dürüst", "Adil", "Cesur", "Korkak", "Şefkatli", "Kalpsiz", "Cömert", "Açgözlü", "Ölçülü", "Obur", "İffetli", "Şehvetli", "Çalışkan", "Tembel", "Sabırlı", "Sabırsız", "Alçakgönüllü", "Bağışlayıcı", "İntikamcı", "Utangaç", "Sosyal", "İnatçı", "Alaycı", "Bağnaz"];
         const CONDITIONS = ["Öldü", "Yaralandı", "Bayıldı", "Taşlaştı", "Korktu", "Dehşete Düştü", "Sersemleşti", "Utandı", "Aptallaştı", "Sinirlendi", "Öfke Krizinde", "Mutlu", "Mutsuz", "Üzgün", "Melankolik"];
 
         let currentRoom=null, currentUser=null, isGM=false;
         let gameState = {
-            mapSrc: null, grid: {show:true, size:50, scale:1.5}, weather: "",
+            mapSrc: null, grid: {show:true, size:50, scale:1.5},
             initiative: {list:[], round:1, currentIdx:0},
-            activity: {paused:false, scores:{}, speaking:null},
-            inspiration: {}, chat: [], 
-            tokens: [], tokenLibrary: [],
-            voiceEnabled: false // GM kontrolü
+            music: { list:[], current:null, loop:false },
+            wiki: [], // {id, title, content, bgm}
+            chat: [], tokens: [], voiceActive: false
         };
 
-        // Local State
-        let activeTokenId=null, sheetLocked=false, selAttr=null, selSkill=null;
+        let activeTokenId=null, attachMode=false, selAttr=null, selSkill=null;
         let rulerMode=false, rulerStartPoint=null, tempStart=null, isDraggingRuler=false;
-        let mapTransform = { x: 0, y: 0, scale: 1 };
-        let showTooltips = true;
-        let jitsiApi = null;
+        let mapTransform={x:0, y:0, scale:1}; showTooltips=true;
+        let jitsiApi=null; let player=null; // Youtube Player Placeholder
 
-        // --- GİRİŞ ---
+        // --- INIT ---
         async function attemptLogin() {
             const room = document.getElementById('room-input').value.trim();
             const role = document.getElementById('role-select').value;
             const pass = document.getElementById('password-input').value;
             if(!room) return alert("Oda adı girin.");
-            
-            showLoading(true);
+            document.getElementById('loading-overlay').style.display='flex';
             try {
                 const ref = db.collection('rooms').doc(room);
                 const doc = await ref.get();
                 if(!doc.exists) {
-                    if(pass !== CREDENTIALS[role]) throw new Error("Yeni oda için varsayılan şifreleri kullanın.");
-                    await ref.set({ users:CREDENTIALS, mapSrc:null, grid:{show:true,size:50,scale:1.5}, weather:"", initiative:{list:[],round:1,currentIdx:0}, activity:{paused:false,scores:{},speaking:null}, inspiration:{}, chat:[], tokens:[], tokenLibrary:[], voiceEnabled:false });
-                } else {
-                    const data = doc.data();
-                    if(data.users && data.users[role] !== pass) throw new Error("Hatalı Şifre");
-                }
+                    if(pass !== CREDENTIALS[role]) throw new Error("Yeni oda için şifre: "+CREDENTIALS[role]);
+                    await ref.set({ users:CREDENTIALS, mapSrc:null, grid:{show:true,size:50,scale:1.5}, initiative:{list:[],round:1,currentIdx:0}, music:{list:[],current:null,loop:false}, wiki:[], chat:[], tokens:[], voiceActive:false });
+                } else if(doc.data().users[role] !== pass) throw new Error("Hatalı Şifre");
                 
                 currentRoom=room; currentUser=role; isGM=role.startsWith('gm');
                 document.getElementById('login-screen').style.display='none';
-                document.getElementById('user-display').innerText=role.toUpperCase();
                 if(isGM) document.querySelectorAll('.gm-only').forEach(e=>e.style.display='block');
-                
-                const saved = localStorage.getItem('vtt_journal_'+currentUser+'_'+currentRoom);
-                if(saved) document.getElementById('journal-text').value = saved;
                 
                 const opts = `<option value="">Özellik...</option>` + TRAITS.map(t=>`<option>${t}</option>`).join('');
                 document.querySelectorAll('.trait-select').forEach(s=>s.innerHTML=opts);
 
                 ref.onSnapshot(snap => { 
-                    if(snap.exists) { 
-                        gameState=snap.data(); 
-                        renderAll(); 
-                        if(document.getElementById('char-sheet-modal').style.display === 'flex' && activeTokenId) {
-                            // Canlı update için sheet açıksa yenile
-                            const t = gameState.tokens.find(x=>x.id===activeTokenId);
-                            if(t && sheetLocked) renderStats(t);
-                        }
-                        // Voice Logic Check
-                        if(gameState.voiceEnabled && !jitsiApi) initVoice();
-                        if(!gameState.voiceEnabled && jitsiApi) killVoice();
-                        
-                        if(isGM) document.getElementById('btn-gm-voice-toggle').innerText = gameState.voiceEnabled ? "SESLİ SOHBETİ KAPAT" : "SESLİ SOHBETİ AÇ";
-                    } 
+                    if(snap.exists) { gameState=snap.data(); renderAll(); checkVoice(); }
                 });
-                
-                initZoomPan(); setupClipboard();
-            } catch(e) { alert(e.message); } finally { showLoading(false); }
+                initZoomPan();
+            } catch(e) { alert(e.message); } finally { document.getElementById('loading-overlay').style.display='none'; }
         }
-
-        function updateState() { if(currentRoom) { if(gameState.chat.length>50)gameState.chat=gameState.chat.slice(-50); db.collection('rooms').doc(currentRoom).update(gameState).catch(console.error); } }
-        function showLoading(s) { document.getElementById('loading-overlay').style.display=s?'flex':'none'; }
-        document.getElementById('journal-text').addEventListener('input', function(){ if(currentUser&&currentRoom) localStorage.setItem('vtt_journal_'+currentUser+'_'+currentRoom, this.value); });
-
-        // --- MAP & TOKEN OPERATIONS ---
-        function setMapURL() { const u=document.getElementById('map-url').value; if(u){ gameState.mapSrc=u; updateState(); } }
-        function addTokenBulk() {
-            const txt = document.getElementById('token-url-area').value;
-            const urls = txt.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);
-            if(urls.length===0) return;
-            if(!gameState.tokenLibrary) gameState.tokenLibrary = [];
-            urls.forEach(u => {
-                if(!gameState.tokenLibrary.includes(u)) gameState.tokenLibrary.push(u);
-                gameState.tokens.push({ id: Date.now()+Math.random(), owner: currentUser, x:100, y:100, imgSrc: u, scale:1, stats:{}, meta:{align:"",traits:['','','']}, vision:10, locked:false, statuses:[], attachTo:null });
-            });
-            document.getElementById('token-url-area').value = "";
-            updateState();
-        }
+        function updateState() { if(currentRoom) db.collection('rooms').doc(currentRoom).update(gameState).catch(console.error); }
 
         // --- RENDER ---
-        function renderAll() { 
-            renderMap(); renderInit(); renderAct(); renderInsp(); renderChat(); renderAlbum(); applyWeather();
-            if(!isGM){ document.getElementById('grid-size').value=gameState.grid.size; document.getElementById('grid-scale').value=gameState.grid.scale; }
-        }
+        function renderAll() { renderMap(); renderInit(); renderMusic(); renderWiki(); renderChat(); if(!isGM){ document.getElementById('grid-size').value=gameState.grid.size; document.getElementById('grid-scale').value=gameState.grid.scale; } }
 
-        // --- MAP RENDER ---
+        // --- MAP & TOKENS ---
         function renderMap() {
-            const m = document.getElementById('game-map');
+            const m=document.getElementById('game-map');
             if(gameState.mapSrc && m.src!==gameState.mapSrc) { m.src=gameState.mapSrc; m.onload=()=>{resizeCvs();drawGrid();drawFog();}; m.style.display='block'; }
-            else if(!gameState.mapSrc) { m.style.display='none'; clearCvs(); }
-            else { drawGrid(); drawFog(); }
+            else if(!gameState.mapSrc) m.style.display='none'; else { drawGrid(); drawFog(); }
 
-            const mc = document.getElementById('map-container');
+            const mc=document.getElementById('map-container');
             document.querySelectorAll('.token').forEach(e=>e.remove());
-            
             gameState.tokens.forEach(t=>{
+                // Visibility Check
+                if(!t.visible && !isGM) return;
+
                 const size=70*(t.scale||1);
                 const el=document.createElement('div'); el.className='token';
                 el.style.width=size+'px'; el.style.height=size+'px';
                 el.style.left=t.x+'px'; el.style.top=t.y+'px';
                 el.style.backgroundImage=`url(${t.imgSrc})`;
-                
-                const isOwn = t.owner===currentUser || isGM;
-                let vis=isGM;
-                if(!vis) {
-                    const mines=gameState.tokens.filter(x=>x.owner===currentUser);
-                    for(let m of mines) { const rad=((m.vision||10)/gameState.grid.scale)*gameState.grid.size; if(Math.hypot(t.x-m.x,t.y-m.y)<rad) vis=true; }
-                }
-                if(!vis) el.classList.add('hidden-in-fog');
+                if(!t.visible && isGM) el.classList.add('invisible');
 
-                if(isOwn) {
-                    el.classList.add('my-token');
-                    if(t.locked && !isGM) el.classList.add('locked-token'); else addDrag(el,t.id);
+                const isOwn = t.owner===currentUser || isGM;
+                if(isOwn) { el.classList.add('my-token'); addDrag(el,t.id);
                     const g=document.createElement('div'); g.className='token-gear'; g.innerHTML='⚙️';
                     g.onclick=e=>{e.stopPropagation(); openSheet(t.id);}
-                    g.onmousedown=e=>e.stopPropagation(); g.ontouchstart=e=>e.stopPropagation();
-                    el.appendChild(g);
+                    g.onmousedown=e=>e.stopPropagation(); el.appendChild(g);
                 } else el.classList.add('other-token');
 
+                if(t.statuses?.includes("Öldü")) el.classList.add('is-dead');
                 const n=document.createElement('div'); n.className='token-name'; n.innerText=(t.name||t.owner).toUpperCase(); el.appendChild(n);
-                if(t.statuses?.length>0) {
-                    if(t.statuses.includes("Öldü")) el.classList.add('is-dead');
-                    const sb=document.createElement('div'); sb.className='token-statuses';
-                    t.statuses.forEach(s=>{if(s!=="Öldü")sb.innerHTML+=`<span class="status-badge">${s}</span>`}); el.appendChild(sb);
-                }
+                
+                // Context Menu
+                el.addEventListener('contextmenu', e => {
+                    e.preventDefault(); 
+                    if(isGM) {
+                        activeTokenId=t.id;
+                        const cm = document.getElementById('context-menu');
+                        cm.style.display='block'; cm.style.left=e.pageX+'px'; cm.style.top=e.pageY+'px';
+                    }
+                });
+                
+                // Mounting
+                el.addEventListener('click', e => {
+                    if(attachMode && activeTokenId && activeTokenId !== t.id) {
+                        const child = gameState.tokens.find(x=>x.id===activeTokenId);
+                        if(child) { child.attachedTo = t.id; alert("Bağlandı."); updateState(); }
+                        attachMode=false; document.getElementById('btn-attach').innerText="🔗 BAĞLA";
+                    }
+                });
+
                 if(showTooltips) {
                     const tip=document.createElement('div'); tip.className='token-tooltip';
-                    const hp=t.stats['Constitution']?t.stats['Constitution'].split(',')[0]*2+10:10;
                     const traits=t.meta?.traits?t.meta.traits.filter(x=>x).join(', '):'-';
                     tip.innerHTML=`<div class="tt-header">${(t.name||"Adsız")}</div><div class="tt-row"><span>Yön:</span> <span>${t.meta?.align||"-"}</span></div><div class="tt-row"><span>Kişilik:</span> <span style="font-size:0.65rem">${traits}</span></div>`;
                     el.appendChild(tip);
                 }
-                el.addEventListener('click', () => { activeTokenId = t.id; });
                 mc.appendChild(el);
             });
         }
 
         function addDrag(el, id) {
-            let start=null, initPos=null; const img=document.getElementById('game-map');
+            let start=null, initPos=null; 
             const startD=(x,y)=>{if(rulerMode)return false;start={x,y};initPos={left:parseInt(el.style.left||0),top:parseInt(el.style.top||0)};return true;}
             const moveD=(x,y)=>{
                 if(!start)return;
-                let dx = (x-start.x)/mapTransform.scale;
-                let dy = (y-start.y)/mapTransform.scale;
-                let nx = initPos.left + dx;
-                let ny = initPos.top + dy;
-                // Move current token
-                el.style.left=nx+'px'; el.style.top=ny+'px';
+                let dx = (x-start.x)/mapTransform.scale; let dy = (y-start.y)/mapTransform.scale;
+                el.style.left=(initPos.left+dx)+'px'; el.style.top=(initPos.top+dy)+'px';
             }
             const endD=(x,y)=>{
                 if(!start)return; 
-                let dx = (x-start.x)/mapTransform.scale;
-                let dy = (y-start.y)/mapTransform.scale;
+                let dx = (x-start.x)/mapTransform.scale; let dy = (y-start.y)/mapTransform.scale;
                 start=null;
                 const t=gameState.tokens.find(x=>x.id===id);
                 if(t){ 
                     t.x += dx; t.y += dy;
-                    // Move Attached Tokens (Recursive/Simple)
-                    const riders = gameState.tokens.filter(tk => tk.attachTo === t.id);
-                    riders.forEach(r => { r.x += dx; r.y += dy; });
+                    // Move Attached Tokens
+                    gameState.tokens.filter(k=>k.attachedTo===t.id).forEach(k=>{k.x+=dx; k.y+=dy;});
                     updateState(); 
                 }
             }
@@ -607,161 +503,192 @@
             el.ontouchend=e=>{endD(e.changedTouches[0].clientX,e.changedTouches[0].clientY)};
         }
 
-        // --- SHEET & STATS ---
+        // --- CONTEXT MENU ---
+        function toggleVisibility() {
+            const t = gameState.tokens.find(x=>x.id===activeTokenId);
+            if(t) { t.visible = !t.visible; updateState(); }
+            closeContextMenu();
+        }
+        function closeContextMenu() { document.getElementById('context-menu').style.display='none'; }
+        document.addEventListener('click', e => { if(!e.target.closest('#context-menu')) closeContextMenu(); });
+
+        // --- VOICE CHAT (JITSI) ---
+        function toggleVoice() { 
+            if(!isGM) return alert("Sadece GM başlatabilir.");
+            gameState.voiceActive = !gameState.voiceActive;
+            updateState();
+        }
+        function checkVoice() {
+            if(gameState.voiceActive && !jitsiApi) {
+                const domain = "meet.jit.si";
+                const options = {
+                    roomName: "ikilievren_vtt_" + currentRoom,
+                    width: 1, height: 1, parentNode: document.querySelector('#voice-chat-frame'),
+                    configOverwrite: { startWithAudioMuted: false, startWithVideoMuted: true },
+                    interfaceConfigOverwrite: { TOOLBAR_BUTTONS: ['microphone'] }
+                };
+                jitsiApi = new JitsiMeetExternalAPI(domain, options);
+                document.getElementById('btn-voice').classList.add('active-mode');
+            } else if(!gameState.voiceActive && jitsiApi) {
+                jitsiApi.dispose(); jitsiApi=null;
+                document.getElementById('btn-voice').classList.remove('active-mode');
+            }
+        }
+
+        // --- MUSIC PLAYER ---
+        function addMusic() {
+            const url = document.getElementById('music-url').value;
+            if(url) { gameState.music.list.push(url); updateState(); document.getElementById('music-url').value=""; }
+        }
+        function renderMusic() {
+            const l = document.getElementById('music-list'); l.innerHTML="";
+            gameState.music.list.forEach((url, i) => {
+                const div = document.createElement('div'); div.className = "list-item " + (gameState.music.current===url?'active':'');
+                div.innerText = "Parça " + (i+1);
+                div.onclick = () => { gameState.music.current = url; updateState(); playMusic(url); };
+                l.appendChild(div);
+            });
+            document.getElementById('btn-loop').innerText = gameState.music.loop ? "DÖNGÜ: AÇIK" : "DÖNGÜ: KAPALI";
+        }
+        function toggleLoop() { gameState.music.loop = !gameState.music.loop; updateState(); }
+        function stopMusic() { gameState.music.current = null; updateState(); playMusic(null); }
+        
+        function playMusic(url) {
+            const ytDiv = document.getElementById('youtube-player');
+            const audio = document.getElementById('bg-music-player');
+            ytDiv.innerHTML = ""; audio.pause();
+            
+            if(!url) return;
+
+            if(url.includes("youtube.com") || url.includes("youtu.be")) {
+                let vID = url.split('v=')[1];
+                if(!vID) vID = url.split('/').pop();
+                const amp = vID.indexOf('&'); if(amp!=-1) vID = vID.substring(0,amp);
+                const loopStr = gameState.music.loop ? `&loop=1&playlist=${vID}` : "";
+                ytDiv.innerHTML = `<iframe width="1" height="1" src="https://www.youtube.com/embed/${vID}?autoplay=1${loopStr}" frameborder="0" allow="autoplay"></iframe>`;
+            } else {
+                audio.src = url; audio.loop = gameState.music.loop; audio.play().catch(e=>console.log("Audio Play Error", e));
+            }
+        }
+
+        // --- WIKI ---
+        function saveWikiPage() {
+            const t = document.getElementById('wiki-title').value;
+            const c = document.getElementById('wiki-text').value;
+            const b = document.getElementById('wiki-bgm').value;
+            if(!t) return;
+            const exist = gameState.wiki.find(x=>x.title===t);
+            if(exist) { exist.content=c; exist.bgm=b; }
+            else { gameState.wiki.push({id:Date.now(), title:t, content:c, bgm:b}); }
+            updateState();
+        }
+        function renderWiki() {
+            const nav = document.getElementById('wiki-nav'); nav.innerHTML="";
+            gameState.wiki.forEach(p => {
+                const div = document.createElement('div'); div.className="wiki-page-item"; div.innerText=p.title;
+                div.onclick = () => showWikiPage(p);
+                nav.appendChild(div);
+            });
+        }
+        function showWikiPage(p) {
+            const b = document.getElementById('wiki-body');
+            let html = `<h3>${p.title}</h3>`;
+            // Image parsing
+            const parts = p.content.split('\n');
+            parts.forEach(line => {
+                if(line.match(/\.(jpeg|jpg|gif|png)$/) != null) html += `<img src="${line}">`;
+                else html += `<p>${line}</p>`;
+            });
+            b.innerHTML = html;
+            if(p.bgm) playMusic(p.bgm); // Optional: Wiki music overrides main music
+        }
+
+        // --- 3D DICE ---
+        function roll3D(sides) {
+            const res = Math.floor(Math.random()*sides)+1;
+            const ov = document.getElementById('dice-overlay');
+            const r = document.getElementById('dice-result');
+            ov.style.display = 'flex';
+            r.innerText = "";
+            
+            // Re-trigger animation
+            const cube = document.getElementById('dice-cube');
+            cube.style.animation = 'none';
+            cube.offsetHeight; /* trigger reflow */
+            cube.style.animation = 'rotateDice 1s ease-out forwards';
+
+            setTimeout(() => {
+                r.innerText = res;
+                addLog(`Zar: d${sides} -> <b>${res}</b>`);
+                setTimeout(() => { ov.style.display='none'; }, 1000);
+            }, 1000);
+        }
+
+        // --- SHEET LOGIC ---
         function openSheet(id) {
             activeTokenId=id; const t=gameState.tokens.find(x=>x.id===id);
-            if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']}; if(!t.statuses)t.statuses=[];
+            if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']};
+            if(typeof t.visible === 'undefined') t.visible = true;
             document.getElementById('char-sheet-modal').style.display='flex';
             document.getElementById('sheet-name').innerText=(t.name||t.owner).toUpperCase();
             document.getElementById('sheet-token-name').value=t.name||"";
             document.getElementById('sheet-token-scale').value=t.scale||1;
-            document.getElementById('sheet-align').value=t.meta.align||"";
             const ts=document.querySelectorAll('.trait-select'); ts.forEach((s,i)=>s.value=t.meta.traits[i]||"");
-            document.getElementById('btn-attach').innerText = t.attachTo ? "AYIR (Bağlı)" : "BAĞLA";
-            
-            if(isGM){document.getElementById('gm-vision').value=t.vision||10;document.getElementById('btn-gm-pos').style.background=t.locked?"var(--accent-red)":"#333";renderStatusGrid(t);}
-            sheetLocked=false; toggleLock(); toggleLock(); renderStats(t);
+            if(isGM) renderStatusGrid(t);
+            renderStats(t);
         }
         function closeSheet(){document.getElementById('char-sheet-modal').style.display='none';updateState()}
-        function saveSheetMeta(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.name=document.getElementById('sheet-token-name').value;t.scale=parseFloat(document.getElementById('sheet-token-scale').value);t.meta.align=document.getElementById('sheet-align').value;const ts=document.querySelectorAll('.trait-select');t.meta.traits=[ts[0].value,ts[1].value,ts[2].value];updateState()}
-        function duplicateToken(){
-            const t=gameState.tokens.find(x=>x.id===activeTokenId);
-            if(t){ const n=JSON.parse(JSON.stringify(t)); n.id=Date.now(); n.x+=20; n.y+=20; n.attachTo=null; gameState.tokens.push(n); updateState(); closeSheet(); }
+        function attachTokenMode() { attachMode=true; document.getElementById('btn-attach').innerText="SEÇ (Haritadan)"; closeSheet(); }
+        function detachTokens() { 
+            gameState.tokens.filter(x=>x.attachedTo===activeTokenId).forEach(x=>x.attachedTo=null); 
+            const t=gameState.tokens.find(x=>x.id===activeTokenId); if(t) t.attachedTo=null;
+            alert("Bağlar çözüldü."); updateState(); 
         }
-        function attachTokenPrompt(){
-            const t=gameState.tokens.find(x=>x.id===activeTokenId);
-            if(t.attachTo) { t.attachTo=null; alert("Ayrıldı."); }
-            else {
-                // Find closest token
-                let closeT=null, minDist=Infinity;
-                gameState.tokens.forEach(tk => {
-                    if(tk.id!==t.id) {
-                        const d=Math.hypot(t.x-tk.x, t.y-tk.y);
-                        if(d<100 && d<minDist) { minDist=d; closeT=tk; }
-                    }
-                });
-                if(closeT){ t.attachTo=closeT.id; alert("Bağlandı: "+(closeT.name||"Adsız")); }
-                else alert("Yakında token yok.");
-            }
-            updateState();
-        }
-
-        // --- ZAR ---
-        function rollStats() {
-            if(!selAttr && !selSkill) return;
-            const t = gameState.tokens.find(x=>x.id===activeTokenId);
-            let b=0, a=0;
-            if(selAttr) { const s=getS(t,selAttr); b+=s.b; a+=s.a; }
-            if(selSkill) { const s=getS(t,selSkill); b+=s.b; a+=s.a; }
-            let res = rollD(b); let total = res.h + a;
-            
-            const logHtml = `<div style="border-left:3px solid var(--accent-green); padding-left:5px;"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${res.d}]<br>Sonuç: ${res.h} + ${a} (Oto) = <b style="color:var(--gold-text)">${total} BAŞARI</b><div class="log-actions"><button onclick="actPush(${b}, ${a}, ${total})">ZORLA</button><button onclick="actInsp(${b}, ${a})">İLHAM</button><button onclick="actCombo(${b}, ${a})">ZORLA & İLHAM</button></div></div>`;
-            addLog(logHtml);
-            gameState.chat.push({u:"SİSTEM", t:logHtml, type:'html'}); updateState();
-        }
-        function rollD(n) { let h=0, d=[]; for(let i=0;i<n;i++){let r=Math.floor(Math.random()*6)+1; d.push(r); if(r===6)h++;} return {h,d}; }
-
-        // --- SESLI SOHBET (JITSI) ---
-        function toggleGlobalVoice() {
-            if(!isGM) return;
-            gameState.voiceEnabled = !gameState.voiceEnabled;
-            updateState();
-        }
-        function initVoice() {
-            if(jitsiApi) return;
-            const domain = "meet.jit.si";
-            const options = {
-                roomName: "ikilievren_vtt_" + currentRoom,
-                width: 1, height: 1,
-                parentNode: document.querySelector('#voice-chat-frame'),
-                configOverwrite: { startWithAudioMuted: true, startWithVideoMuted: true },
-                interfaceConfigOverwrite: { TOOLBAR_BUTTONS: ['microphone'] }
-            };
-            jitsiApi = new JitsiMeetExternalAPI(domain, options);
-            document.getElementById('btn-voice').classList.add('active-mode');
-        }
-        function killVoice() {
-            if(jitsiApi) { jitsiApi.dispose(); jitsiApi=null; }
-            document.getElementById('btn-voice').classList.remove('active-mode');
-        }
-        function toggleVoiceChat() {
-            // Local mute toggle for user convenience
-            if(jitsiApi) jitsiApi.executeCommand('toggleAudio');
-        }
+        function saveSheetMeta(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.name=document.getElementById('sheet-token-name').value;t.scale=parseFloat(document.getElementById('sheet-token-scale').value);const ts=document.querySelectorAll('.trait-select');t.meta.traits=[ts[0].value,ts[1].value,ts[2].value];updateState()}
+        function renderStatusGrid(t){const g=document.getElementById('status-grid');g.innerHTML="";CONDITIONS.forEach(c=>{const a=t.statuses?.includes(c);const b=document.createElement('button');b.className=`status-btn ${a?'active-status':''}`;b.innerText=c;b.onclick=()=>{if(!t.statuses)t.statuses=[]; if(a)t.statuses=t.statuses.filter(x=>x!==c);else t.statuses.push(c);renderStatusGrid(t);updateState()};g.appendChild(b)})}
+        function renderStats(t){const al=document.getElementById('attr-list'), sl=document.getElementById('skill-list'); al.innerHTML=""; sl.innerHTML=""; const cr=(k,tr,tp)=>{const s=t.stats[k]||"1,0";const [b,a]=s.split(','); return `<div class="stat-row"><span style="color:var(--gold-text);font-size:0.75rem">${tr}</span><div class="input-group"><input type="number" min="1" max="5" value="${b}" onchange="upS('${k}',this.value,'${a}')"></div><div class="input-group"><input type="number" min="0" value="${a}" onchange="upS('${k}','${b}',this.value)"></div><button class="stat-btn-locked" onclick="selS('${k}','${tp}',this)">${tr}: ${b} + ${a}</button></div>`}; for(let k in ATTRS)al.innerHTML+=cr(k,ATTRS[k],'attr'); for(let k in SKILLS)sl.innerHTML+=cr(k,SKILLS[k],'skill');}
+        window.upS=function(k,b,a){const t=gameState.tokens.find(x=>x.id===activeTokenId); t.stats[k]=`${b},${a}`; updateState();}
+        window.selS=function(k,tp,btn){if(tp==='attr'){selAttr=(selAttr===k)?null:k;document.querySelectorAll('#attr-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selAttr)btn.classList.add('selected')}else{selSkill=(selSkill===k)?null:k;document.querySelectorAll('#skill-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selSkill)btn.classList.add('selected')}document.getElementById('sheet-status').innerText=`Seçim: ${selAttr?ATTRS[selAttr]:'-'} + ${selSkill?SKILLS[selSkill]:'-'}`}
+        function rollStats(){if(!selAttr&&!selSkill)return;const t=gameState.tokens.find(x=>x.id===activeTokenId);let b=0,a=0;if(selAttr){const s=t.stats[selAttr]||"1,0";b+=parseInt(s.split(',')[0]);a+=parseInt(s.split(',')[1])}if(selSkill){const s=t.stats[selSkill]||"1,0";b+=parseInt(s.split(',')[0]);a+=parseInt(s.split(',')[1])}let r=[],h=0;for(let i=0;i<b;i++){let v=Math.floor(Math.random()*6)+1;r.push(v);if(v===6)h++}const tot=h+a;const htm=`<div style="border-left:3px solid var(--accent-green);padding-left:5px"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${r}]<br>Sonuç: ${h}+${a} (Oto)=<b style="color:var(--gold-text)">${tot} BAŞARI</b></div>`;addLog(htm);gameState.chat.push({u:"SİSTEM",t:htm,type:'html'});updateState();}
 
         // --- UTILS ---
         function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
         function togglePanel(id){document.getElementById(id).classList.toggle('visible')}
         function toggleTooltips(){showTooltips=document.getElementById('show-tooltips').checked; renderMap();}
-        function addLog(h){const c=document.getElementById('log-content'); const d=document.createElement('div'); d.className='log-entry'; d.innerHTML=h; c.prepend(d);}
+        function addLog(h){const c=document.getElementById('log-content');const d=document.createElement('div');d.className='log-entry';d.innerHTML=h;c.prepend(d)}
         function clearLog(){document.getElementById('log-content').innerHTML=""}
         function resizeCvs(){const i=document.getElementById('game-map'),w=i.naturalWidth||800,h=i.naturalHeight||600;['grid-canvas','fog-canvas','ruler-canvas'].forEach(id=>{const c=document.getElementById(id);c.width=w;c.height=h})}
         function clearCvs(){['grid-canvas','fog-canvas'].forEach(id=>document.getElementById(id).getContext('2d').clearRect(0,0,9999,9999))}
         function drawGrid(){const c=document.getElementById('grid-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);if(!gameState.grid.show)return;x.beginPath();x.strokeStyle='rgba(255,255,255,0.1)';for(let i=0;i<=c.width;i+=gameState.grid.size){x.moveTo(i,0);x.lineTo(i,c.height)}for(let j=0;j<=c.height;j+=gameState.grid.size){x.moveTo(0,j);x.lineTo(c.width,j)}x.stroke()}
-        function drawFog(){const c=document.getElementById('fog-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.fillStyle='black';x.globalAlpha=isGM?0.4:1.0;x.fillRect(0,0,c.width,c.height);x.globalCompositeOperation='destination-out';x.globalAlpha=1.0;gameState.tokens.filter(t=>isGM||t.owner===currentUser).forEach(t=>{const cx=t.x+35*(t.scale||1),cy=t.y+35*(t.scale||1),rad=((t.vision||10)/gameState.grid.scale)*gameState.grid.size;const g=x.createRadialGradient(cx,cy,rad*0.5,cx,cy,rad);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');x.beginPath();x.arc(cx,cy,rad,0,Math.PI*2);x.fillStyle=g;x.fill()});x.globalCompositeOperation='source-over'}
+        function drawFog(){const c=document.getElementById('fog-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.fillStyle='black';x.globalAlpha=isGM?0.4:1.0;x.fillRect(0,0,c.width,c.height);x.globalCompositeOperation='destination-out';x.globalAlpha=1.0;gameState.tokens.filter(t=>isGM||t.owner===currentUser).forEach(t=>{const cx=t.x+35*(t.scale||1),cy=t.y+35*(t.scale||1),rad=300;const g=x.createRadialGradient(cx,cy,rad*0.5,cx,cy,rad);g.addColorStop(0,'rgba(0,0,0,1)');g.addColorStop(1,'rgba(0,0,0,0)');x.beginPath();x.arc(cx,cy,rad,0,Math.PI*2);x.fillStyle=g;x.fill()});x.globalCompositeOperation='source-over'}
         function updateGrid(){if(!isGM)return;gameState.grid.size=parseInt(document.getElementById('grid-size').value)||50;gameState.grid.scale=parseFloat(document.getElementById('grid-scale').value)||1.5;gameState.grid.show=document.getElementById('grid-show').checked;updateState();}
-        function changeWeather(){gameState.weather=document.getElementById('weather-select').value;updateState();}
-        function applyWeather(){document.getElementById('weather-overlay').className=gameState.weather;if(isGM)document.getElementById('weather-select').value=gameState.weather;}
-        function sendChat(){const i=document.getElementById('chat-input'),t=i.value.trim();if(!t)return;gameState.chat.push({u:currentUser,t:t,type:'text'});updateState();i.value=""}
-        function sendGif(){const u=prompt("GIF Link:");if(u){gameState.chat.push({u:currentUser,t:u,type:'gif'});updateState()}}
-        function renderChat(){const c=document.getElementById('chat-content');c.innerHTML=gameState.chat.map(m=>`<div class="chat-msg"><b>${m.u.toUpperCase()}:</b> ${m.type==='gif'?`<img src="${m.t}" class="chat-gif">`:m.t}</div>`).join('');c.scrollTop=c.scrollHeight}
-        function addToInit(){if(!isGM)return;gameState.initiative.list.push({id:Date.now(),name:document.getElementById('init-name').value,val:parseInt(document.getElementById('init-val').value)||0});updateState();}
-        function renderInit(){const l=document.getElementById('init-list');l.innerHTML="";gameState.initiative.list.sort((a,b)=>b.val-a.val).forEach((i,idx)=>{l.innerHTML+=`<div class="list-item ${idx===gameState.initiative.currentIdx?'active':''}"><span>${i.val} ${i.name}</span>${isGM?`<button style="font-size:0.6rem;background:var(--accent-red)" onclick="rmInit(${i.id})">X</button>`:''}</div>`})}
-        function nextTurn(){if(!isGM)return;gameState.initiative.currentIdx++;if(gameState.initiative.currentIdx>=gameState.initiative.list.length){gameState.initiative.currentIdx=0;gameState.initiative.round++}updateState();}
-        function rmInit(id){if(!isGM)return;gameState.initiative.list=gameState.initiative.list.filter(x=>x.id!==id);updateState();}
-        function clearInit(){if(!isGM)return;gameState.initiative={list:[],round:1,currentIdx:0};updateState();}
-        function renderAct(){const l=document.getElementById('act-list');l.innerHTML="";Object.entries(gameState.activity.scores).sort((a,b)=>b[1]-a[1]).forEach(([u,t])=>{l.innerHTML+=`<div class="list-item"><span>${u.toUpperCase()}</span><span>${Math.floor(t/60)}:${Math.floor(t%60).toString().padStart(2,'0')}</span></div>`})}
-        function resetAct(){if(isGM){gameState.activity.scores={};updateState();}}
-        function renderInsp(){const l=document.getElementById('insp-list');l.innerHTML="";Object.entries(gameState.inspiration).forEach(([u,v])=>{if(v>0)l.innerHTML+=`<div class="list-item"><span>${u.toUpperCase()}</span><span style="color:var(--gold-text);font-weight:bold">${v}</span></div>`})}
-        function resetInsp(){if(isGM){gameState.inspiration={};updateState();}}
-        function resetAll(){if(isGM&&confirm("Emin misin?")){gameState={mapSrc:null,grid:{show:true,size:50,scale:1.5},weather:"",initiative:{list:[],round:1,currentIdx:0},activity:{paused:false,scores:{}},inspiration:{},chat:[],tokens:[],tokenLibrary:[],voiceEnabled:false};updateState();}}
-        function renderAlbum(){const g=document.getElementById('album-grid');g.innerHTML="";if(!gameState.tokenLibrary)return;gameState.tokenLibrary.forEach(u=>{const i=document.createElement('div');i.className='album-item';i.style.backgroundImage=`url(${u})`;i.onclick=()=>{gameState.tokens.push({id:Date.now(),owner:currentUser,x:100,y:100,imgSrc:u,scale:1,stats:{},meta:{align:"",traits:['','','']},vision:10,locked:false,statuses:[],attachTo:null});updateState()};if(isGM){const d=document.createElement('button');d.innerText="X";d.onclick=e=>{e.stopPropagation();gameState.tokenLibrary=gameState.tokenLibrary.filter(x=>x!==u);updateState()};i.appendChild(d)}g.appendChild(i)})}
-
-        // --- COPY/PASTE ---
-        let clipboard=null, mousePos={x:0,y:0};
-        document.addEventListener('mousemove',e=>{const r=document.getElementById('map-container').getBoundingClientRect();mousePos={x:(e.clientX-r.left)/mapTransform.scale,y:(e.clientY-r.top)/mapTransform.scale}});
-        document.addEventListener('keydown',e=>{if(!isGM)return;if((e.ctrlKey||e.metaKey)&&e.key==='c'&&activeTokenId){const t=gameState.tokens.find(x=>x.id===activeTokenId);if(t)clipboard=JSON.parse(JSON.stringify(t))}if((e.ctrlKey||e.metaKey)&&e.key==='v'&&clipboard){const n=JSON.parse(JSON.stringify(clipboard));n.id=Date.now();n.x=mousePos.x||100;n.y=mousePos.y||100;gameState.tokens.push(n);updateState()}});
-
-        // --- RULER FIX ---
-        function toggleRuler(){rulerMode=!rulerMode;rulerStartPoint=null;const b=document.getElementById('btn-ruler'),a=document.getElementById('game-area'),c=document.getElementById('ruler-canvas').getContext('2d');if(rulerMode){b.classList.add('active-mode');a.classList.add('ruler-active')}else{b.classList.remove('active-mode');a.classList.remove('ruler-active');c.clearRect(0,0,c.canvas.width,c.canvas.height);document.getElementById('ruler-info').style.display='none'}}
-        function getMapPt(e){const r=document.getElementById('map-container').getBoundingClientRect();let cx=e.clientX,cy=e.clientY;if(e.touches&&e.touches[0]){cx=e.touches[0].clientX;cy=e.touches[0].clientY;}return{x:(cx-r.left)/mapTransform.scale,y:(cy-r.top)/mapTransform.scale}}
-        const gArea=document.getElementById('game-area');
-        gArea.addEventListener('mousedown',e=>{if(!rulerMode||e.button!==0)return;tempStart=getMapPt(e);isDraggingRuler=false});
-        window.addEventListener('mousemove',e=>{if(!rulerMode)return;const c=getMapPt(e),ctx=document.getElementById('ruler-canvas').getContext('2d'),o=rulerStartPoint||tempStart;if(!o)return;if(tempStart)isDraggingRuler=true;ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);ctx.beginPath();ctx.strokeStyle='#f1c40f';ctx.lineWidth=3/mapTransform.scale;ctx.setLineDash([10,5]);ctx.moveTo(o.x,o.y);ctx.lineTo(c.x,c.y);ctx.stroke();const m=(Math.hypot(c.x-o.x,c.y-o.y)/gameState.grid.size)*gameState.grid.scale;const i=document.getElementById('ruler-info');i.style.display='block';i.innerText=m.toFixed(1)+"m"});
-        window.addEventListener('mouseup',e=>{if(!rulerMode)return;const ctx=document.getElementById('ruler-canvas').getContext('2d'); if(tempStart&&isDraggingRuler&&!rulerStartPoint){tempStart=null;ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);document.getElementById('ruler-info').style.display='none'}else if(tempStart&&!isDraggingRuler){if(!rulerStartPoint)rulerStartPoint=tempStart;else{rulerStartPoint=null;ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);document.getElementById('ruler-info').style.display='none'}tempStart=null}});
-        gArea.addEventListener('touchstart',e=>{if(rulerMode){tempStart=getMapPt(e);isDraggingRuler=false}});
-        gArea.addEventListener('touchend',e=>{if(rulerMode){if(tempStart&&!isDraggingRuler){if(!rulerStartPoint)rulerStartPoint=tempStart;else{rulerStartPoint=null;document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999);}}tempStart=null}});
-
-        // --- SHEET STATS & GM ---
-        function renderStatusGrid(t){const g=document.getElementById('status-grid');g.innerHTML="";CONDITIONS.forEach(c=>{const a=t.statuses.includes(c);const b=document.createElement('button');b.className=`status-btn ${a?'active-status':''}`;b.innerText=c;b.onclick=()=>{if(a)t.statuses=t.statuses.filter(x=>x!==c);else t.statuses.push(c);renderStatusGrid(t);updateState()};g.appendChild(b)})}
-        function gmDeleteToken(){if(confirm("Sil?")){gameState.tokens=gameState.tokens.filter(x=>x.id!==activeTokenId);closeSheet();updateState()}}
-        function gmTogglePosLock(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.locked=!t.locked;openSheet(activeTokenId);updateState()}
-        function gmUpdateToken(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.vision=parseFloat(document.getElementById('gm-vision').value)||10;updateState()}
-        function getS(t,k){const v=t.stats[k]||"1,0";const p=v.split(',');return{b:parseInt(p[0])||1,a:parseInt(p[1])||0}}
-        function setS(t,k,b,a){t.stats[k]=`${b},${a}`; updateState(); }
-        function renderStats(t){const al=document.getElementById('attr-list'), sl=document.getElementById('skill-list'); al.innerHTML=""; sl.innerHTML=""; const cr=(k,tr,tp)=>{const s=getS(t,k);return `<div class="stat-row"><span style="color:var(--gold-text);font-size:0.75rem">${tr}</span><div class="input-group"><input type="number" min="1" max="5" value="${s.b}" onchange="upS('${k}',this.value,'${s.a}')"></div><div class="input-group"><input type="number" min="0" value="${s.a}" onchange="upS('${k}','${s.b}',this.value)"></div><button class="stat-btn-locked" onclick="selS('${k}','${tp}',this)">${tr}: ${s.b} + ${s.a}</button></div>`}; for(let k in ATTRS)al.innerHTML+=cr(k,ATTRS[k],'attr'); for(let k in SKILLS)sl.innerHTML+=cr(k,SKILLS[k],'skill');}
-        window.upS=function(k,b,a){setS(gameState.tokens.find(x=>x.id===activeTokenId),k,b,a)}
-        window.selS=function(k,tp,btn){if(!sheetLocked)return;if(tp==='attr'){selAttr=(selAttr===k)?null:k;document.querySelectorAll('#attr-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selAttr)btn.classList.add('selected')}else{selSkill=(selSkill===k)?null:k;document.querySelectorAll('#skill-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selSkill)btn.classList.add('selected')}document.getElementById('sheet-status').innerText=`Seçim: ${selAttr?ATTRS[selAttr]:'-'} + ${selSkill?SKILLS[selSkill]:'-'}`}
-        function toggleLock(){sheetLocked=!sheetLocked;const b=document.querySelector('.sheet-body'),btn=document.getElementById('btn-lock');if(sheetLocked){b.classList.add('locked-mode');btn.innerText="AÇ";renderStats(gameState.tokens.find(x=>x.id===activeTokenId))}else{b.classList.remove('locked-mode');btn.innerText="KİLİTLE";selAttr=null;selSkill=null}}
+        function setMapURL(){const u=document.getElementById('map-url').value;if(u){gameState.mapSrc=u;updateState()}}
+        function addTokenBulk(){const t=document.getElementById('token-url-area').value.split('\n');t.forEach(u=>{if(u)gameState.tokens.push({id:Date.now()+Math.random(),owner:currentUser,x:100,y:100,imgSrc:u,scale:1,stats:{},meta:{align:"",traits:['','','']},vision:10,locked:false,statuses:[],visible:true})});updateState()}
+        function resetAll(){if(isGM&&confirm("Sil?")){gameState={mapSrc:null,grid:{show:true,size:50,scale:1.5},initiative:{list:[],round:1,currentIdx:0},music:{list:[],current:null,loop:false},wiki:[],chat:[],tokens:[],voiceActive:false};updateState()}}
         
-        // --- ZAR ---
-        window.actPush = function(base, auto, prevTotal) { let prevHits = prevTotal - auto; let fails = base - prevHits; if(fails <= 0) return alert("Zorlanacak zar yok!"); let res = rollD(fails); let newTotal = prevTotal + res.h; const html=`<div style="border-left:2px dashed #aaa; padding-left:5px; margin-top:5px;"><i>Zorlama...</i> [${res.d}] (+${res.h})<br>YENİ SONUÇ: <b style="color:var(--gold-text)">${newTotal} BAŞARI</b><div class="log-actions"><button onclick="actInsp(${base}, ${auto})">İLHAM</button></div></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
-        window.actInsp = function(base, auto) { useInsp(1); let res = rollD(base); let total = res.h + auto; const html=`<div style="border-top:1px solid #555; padding-top:5px; margin-top:5px;"><b>✨ İLHAM</b> (Harcanan: 1)<br>Yeni Atış: [${res.d}]<br>Sonuç: <b style="color:var(--gold-text)">${total} BAŞARI</b><div class="log-actions"><button onclick="actPush(${base}, ${auto}, ${total})">ZORLA</button></div></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
-        window.actCombo = function(base, auto) { const target = parseInt(prompt("Hedef?", 4)); if(!target) return; const limit = parseInt(prompt("Limit?", 5)); if(!limit) return; let spent=0, bestTotal=0, logTxt = ""; while(spent < limit) { spent++; let r1 = rollD(base); let hits = r1.h; let fails = base - hits; let pushed = 0; if(fails > 0) { let r2 = rollD(fails); pushed = r2.h; } let total = hits + pushed + auto; logTxt += `[#${spent}: ${total}] `; if(total >= target) { bestTotal=total; break; } if(total > bestTotal) bestTotal=total; } useInsp(spent); const html=`<div style="background:rgba(200,150,0,0.1); padding:5px; margin-top:5px;"><b>🔥 COMBO</b> (Harc: ${spent})<br><small>${logTxt}</small><br>SONUÇ: <b style="color:${bestTotal>=target?'#2ecc71':'#e74c3c'}">${bestTotal} BAŞARI</b></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
-
-        // --- ZOOM & PAN ---
+        // --- ZOOM & RULER & PAN (Base logic) ---
         function initZoomPan(){
             const area=document.getElementById('game-area'), cont=document.getElementById('map-container');
-            let isPanning=false, startX=0, startY=0;
-            function apply() { cont.style.transform = `translate(${mapTransform.x}px, ${mapTransform.y}px) scale(${mapTransform.scale})`; }
-            area.addEventListener('wheel', e => { e.preventDefault(); const delta = e.deltaY>0?0.9:1.1; const newScale = Math.min(Math.max(0.1, mapTransform.scale*delta), 10); const rect=area.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top; mapTransform.x = mx - (mx - mapTransform.x)*(newScale/mapTransform.scale); mapTransform.y = my - (my - mapTransform.y)*(newScale/mapTransform.scale); mapTransform.scale = newScale; apply(); }, {passive:false});
+            let mapScale=1, isPanning=false, startX=0, startY=0, mapX=0, mapY=0;
+            const apply=()=>{cont.style.transform=`translate(${mapX}px, ${mapY}px) scale(${mapScale})`;}
+            area.addEventListener('wheel',e=>{e.preventDefault();const d=e.deltaY>0?0.9:1.1;mapScale=Math.max(0.1,mapScale*d);apply()});
+            area.addEventListener('mousedown',e=>{if(e.button===2){isPanning=true;startX=e.clientX-mapX;startY=e.clientY-mapY}});
+            window.addEventListener('mousemove',e=>{if(isPanning){e.preventDefault();mapX=e.clientX-startX;mapY=e.clientY-startY;apply()}});
+            window.addEventListener('mouseup',()=>{isPanning=false});
             area.addEventListener('contextmenu',e=>e.preventDefault());
-            area.addEventListener('mousedown',e=>{if(e.button===2){isPanning=true;startX=e.clientX-mapTransform.x;startY=e.clientY-mapTransform.y;area.style.cursor='grabbing';}});
-            window.addEventListener('mousemove',e=>{if(isPanning){e.preventDefault();mapTransform.x=e.clientX-startX;mapTransform.y=e.clientY-startY;apply();}});
-            window.addEventListener('mouseup',()=>{isPanning=false;area.style.cursor='default';});
-            let initDist=0, initScale=1;
-            area.addEventListener('touchstart',e=>{if(e.touches.length===2){initDist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);initScale=mapTransform.scale;}},{passive:false});
-            area.addEventListener('touchmove',e=>{if(e.touches.length===2){e.preventDefault();const dist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);const delta=dist/initDist;mapTransform.scale=Math.min(Math.max(0.1,initScale*delta),10);apply();}},{passive:false});
+            
+            // Ruler
+            let rulerMode=false, rStart=null;
+            document.getElementById('btn-ruler').onclick=()=>{rulerMode=!rulerMode;document.getElementById('game-area').style.cursor=rulerMode?'crosshair':'default';document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999)};
+            area.addEventListener('mousedown',e=>{if(rulerMode&&e.button===0){const r=cont.getBoundingClientRect();rStart={x:(e.clientX-r.left)/mapScale,y:(e.clientY-r.top)/mapScale}}});
+            window.addEventListener('mousemove',e=>{if(rulerMode&&rStart){
+                const r=cont.getBoundingClientRect(), cx=(e.clientX-r.left)/mapScale, cy=(e.clientY-r.top)/mapScale;
+                const ctx=document.getElementById('ruler-canvas').getContext('2d'); ctx.clearRect(0,0,9999,9999);
+                ctx.beginPath();ctx.strokeStyle='yellow';ctx.lineWidth=3;ctx.moveTo(rStart.x,rStart.y);ctx.lineTo(cx,cy);ctx.stroke();
+                const m=(Math.hypot(cx-rStart.x,cy-rStart.y)/gameState.grid.size)*gameState.grid.scale;
+                document.getElementById('ruler-info').style.display='block'; document.getElementById('ruler-info').innerText=m.toFixed(1)+"m";
+            }});
+            window.addEventListener('mouseup',()=>{if(rulerMode)rStart=null});
         }
 
     </script>
