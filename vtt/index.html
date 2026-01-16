@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İkili Evren - Gotik Sürüm</title>
+    <title>İkili Evren - VTT (Final)</title>
     
-    <!-- FONTLAR: UnifrakturMaguntia (Gotik Başlıklar) ve Cinzel (Okunabilir Gotik) -->
+    <!-- FONTLAR -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=UnifrakturMaguntia&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
     <style>
         :root {
             --bg-color: #050505;
             --glass-bg: rgba(10, 10, 12, 0.95);
-            --glass-border: rgba(184, 134, 11, 0.5); /* Koyu Altın */
+            --glass-border: rgba(184, 134, 11, 0.5);
             --gold-text: #deb887;
             --text-main: #d3d3d3;
             --accent-red: #8b0000;
@@ -26,11 +30,11 @@
 
         body {
             margin: 0; padding: 0;
-            font-family: 'Cinzel', serif; /* Genel Font */
+            font-family: 'Cinzel', serif;
             background-color: var(--bg-color); color: var(--text-main);
             overflow: hidden; display: flex; height: 100vh; width: 100vw;
             background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png'), radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
-            overscroll-behavior: none; /* Mobilde beyaz ekran kaymasını engeller */
+            overscroll-behavior: none;
         }
 
         h1, h2, h3, h4, .gothic-title { font-family: 'UnifrakturMaguntia', cursive; letter-spacing: 2px; }
@@ -76,6 +80,7 @@
             font-size: 1.4rem; border: 1px solid #444; background: #111; position: relative;
         }
         .dock-btn:hover { transform: scale(1.1); z-index: 10; }
+        .dock-btn.active-mode { border-color: var(--gold-text); background: var(--accent-red); }
 
         /* SIDEBAR & PANELS */
         #sidebar {
@@ -99,7 +104,6 @@
             display: flex; justify-content: space-between; align-items: center; cursor: move; 
         }
 
-        /* Panel Locations */
         #panel-initiative { top: 80px; right: 20px; }
         #panel-activity { top: 80px; left: 380px; }
         #panel-inspiration { top: 20px; right: 280px; width: 180px; text-align: center; }
@@ -115,14 +119,10 @@
         .control-group { background: rgba(255,255,255,0.02); padding: 12px; border: 1px solid #333; border-radius: 6px; }
         .control-label { color: #aaa; font-size: 0.7rem; display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* TOKEN ALBUM GRID */
-        .album-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding: 10px;
-        }
+        .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; padding: 10px; }
         .album-item {
             width: 80px; height: 80px; border: 1px solid #555; border-radius: 5px;
-            background-size: cover; background-position: center; cursor: pointer; transition: transform 0.2s;
-            position: relative;
+            background-size: cover; background-position: center; cursor: pointer; transition: transform 0.2s; position: relative;
         }
         .album-item:hover { transform: scale(1.1); border-color: var(--gold-text); z-index: 10; }
         .album-item button {
@@ -207,6 +207,14 @@
         .chat-msg b { color: var(--gold-text); font-family: 'Cinzel'; }
         .chat-gif { max-width: 100%; border-radius: 4px; margin-top:5px; border:1px solid #444; }
 
+        /* WEATHER */
+        .w-rain { background-image: linear-gradient(to bottom, rgba(150,150,200,0.3) 1px, transparent 1px); background-size: 5px 20px; animation: rain 0.3s linear infinite; }
+        .w-snow { background-image: radial-gradient(rgba(255,255,255,0.8) 2px, transparent 2px); background-size: 50px 50px; animation: snow 5s linear infinite; }
+        .w-fog { background: linear-gradient(to right, rgba(200,200,200,0.1), rgba(150,150,150,0.2)); animation: fog 10s ease infinite alternate; }
+        @keyframes rain { 0% {background-position: 0 0;} 100% {background-position: 0 100%;} }
+        @keyframes snow { 0% {background-position: 0 0;} 100% {background-position: 20px 100vh;} }
+        @keyframes fog { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+
         /* MOBILE */
         @media (max-width: 768px) {
             #ui-dock { width: 95%; justify-content: space-between; padding: 8px; bottom: 10px; }
@@ -224,15 +232,16 @@
 <body>
 
     <div id="loading-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9999;display:none;justify-content:center;align-items:center;color:var(--gold-text);">
-        <div style="font-size:2rem; animation:pulse 1s infinite;">⚔️</div>
+        <div style="font-size:2rem;">⚔️ YÜKLENİYOR...</div>
     </div>
 
     <!-- GİRİŞ -->
     <div id="login-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#050505;z-index:9999;display:flex;justify-content:center;align-items:center;">
         <div class="glass-panel" style="padding:40px; text-align:center; width:300px; border:2px solid var(--gold-text);">
             <h1 class="gothic-title" style="color:var(--gold-text); font-size:2rem;">İKİLİ EVREN</h1>
-            <p style="color:#aaa; font-size:0.7rem; margin-bottom:20px;">GOTİK SÜRÜM</p>
+            <p style="color:#aaa; font-size:0.7rem; margin-bottom:20px;">ONLINE VTT</p>
             <input type="text" id="room-input" placeholder="Oda Adı" style="margin-bottom:10px;">
+            <small style="color:#777; display:block; margin-bottom:10px;">Şifreler: gm111, 111, 222, 333</small>
             <select id="role-select" style="margin-bottom:10px;">
                 <option value="gm1">GM (Yönetici)</option>
                 <option value="player1">Oyuncu 1</option>
@@ -287,7 +296,7 @@
         <div class="control-group">
             <span class="control-label">TOKEN EKLE (ÇOKLU URL)</span> 
             <textarea id="token-url-area" rows="3" placeholder="Her satıra bir resim linki..."></textarea>
-            <button onclick="addTokenBulk()" style="width:100%; margin-top:5px;">Hepsini Ekle</button>
+            <button onclick="addTokenBulk()" style="width:100%; margin-top:5px;">HEPSİNİ EKLE</button>
         </div>
 
         <div class="control-group">
@@ -301,10 +310,9 @@
             <span class="control-label">ATMOSFER</span>
             <select id="weather-select" onchange="changeWeather()" style="margin-bottom:5px;">
                 <option value="">Açık</option>
-                <option value="weather-rain">Yağmur</option>
-                <option value="weather-snow">Kar</option>
-                <option value="weather-fog">Sis</option>
-                <option value="weather-wind">Rüzgar</option>
+                <option value="w-rain">Yağmur</option>
+                <option value="w-snow">Kar</option>
+                <option value="w-fog">Sis</option>
             </select>
             <button onclick="resetAll()" style="width:100%; background:var(--accent-red);">HER ŞEYİ SIFIRLA</button>
         </div>
@@ -317,11 +325,10 @@
     <div id="panel-log" class="glass-panel float-panel visible"><div class="float-header">GÜNLÜK <button onclick="clearLog()" style="font-size:0.6rem;">TEMİZLE</button></div><div id="log-content" class="list-container"></div></div>
     <div id="panel-journal" class="glass-panel float-panel"><div class="float-header">ÖZEL GÜNLÜK <button onclick="togglePanel('panel-journal')">X</button></div><textarea id="journal-text" style="flex-grow:1; background:rgba(0,0,0,0.3); color:#ddd; font-family:'Lato'; padding:10px; border:none; resize:none;" placeholder="Sadece siz görürsünüz..."></textarea></div>
     
-    <!-- ALBÜM PANELİ -->
     <div id="panel-album" class="glass-panel float-panel">
         <div class="float-header">TOKEN ALBÜMÜ <button onclick="togglePanel('panel-album')">X</button></div>
         <div id="album-grid" class="album-grid list-container"></div>
-        <div style="font-size:0.7rem; color:#aaa; padding:5px; text-align:center;">Resme tıkla haritaya ekle.</div>
+        <div style="font-size:0.7rem; color:#aaa; padding:5px; text-align:center;">Tıkla -> Haritaya Ekle</div>
     </div>
 
     <div id="panel-chat" class="glass-panel float-panel">
@@ -341,7 +348,7 @@
         </div>
     </div>
 
-    <!-- KARAKTER KAĞIDI -->
+    <!-- KARAKTER KAĞIDI MODALI -->
     <div id="char-sheet-modal" class="glass-panel">
         <div style="padding:15px; border-bottom:1px solid #444; display:flex; justify-content:space-between;">
             <h2 id="sheet-name" style="margin:0; color:var(--gold-text);"></h2>
@@ -388,7 +395,7 @@
     </div>
 
     <script>
-        // --- FIREBASE SETUP ---
+        // --- 1. CONFIG & INIT (ABSOLUTE TOP) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAjw9J7HcIKG01Sdjv5euTCzXZlFsG-nLI",
             authDomain: "ikilievrenvtt.firebaseapp.com",
@@ -414,28 +421,17 @@
             initiative: {list:[], round:1, currentIdx:0},
             activity: {paused:false, scores:{}, speaking:null},
             inspiration: {}, chat: [], 
-            tokens: [], // {id, x, y, owner, name, scale, stats, meta, vision, locked, statuses, imgSrc}
-            tokenLibrary: [] // [url1, url2...]
+            tokens: [], tokenLibrary: []
         };
 
-        // Local State
         let activeTokenId=null, sheetLocked=false, selAttr=null, selSkill=null;
         let rulerMode=false, rulerStartPoint=null, tempStart=null, isDraggingRuler=false;
         let mapTransform = { x: 0, y: 0, scale: 1 };
         let showTooltips = true;
         let localSpeechTime = 0;
-        let mousePos = {x:0, y:0}; // For Paste
+        let mousePos = {x:0, y:0};
 
-        // --- MOUSE TRACKING FOR PASTE ---
-        document.addEventListener('mousemove', e => {
-            const rect = document.getElementById('map-container').getBoundingClientRect();
-            mousePos = {
-                x: (e.clientX - rect.left) / mapTransform.scale,
-                y: (e.clientY - rect.top) / mapTransform.scale
-            };
-        });
-
-        // --- GİRİŞ ---
+        // --- LOGIN ---
         async function attemptLogin() {
             const room = document.getElementById('room-input').value.trim();
             const role = document.getElementById('role-select').value;
@@ -466,8 +462,7 @@
                 document.querySelectorAll('.trait-select').forEach(s=>s.innerHTML=opts);
 
                 ref.onSnapshot(snap => { if(snap.exists) { gameState=snap.data(); renderAll(); } });
-                initZoomPan(); initMic();
-                setupClipboard(); // Init Copy/Paste
+                initZoomPan(); initMic(); setupClipboard();
             } catch(e) { alert(e.message); } finally { showLoading(false); }
         }
 
@@ -477,39 +472,29 @@
 
         // --- MAP URL & TOKEN BULK ---
         function setMapURL() { const u=document.getElementById('map-url').value; if(u){ gameState.mapSrc=u; updateState(); } }
-        
         function addTokenBulk() {
             const txt = document.getElementById('token-url-area').value;
             const urls = txt.split(/[\n,]+/).map(s=>s.trim()).filter(s=>s);
             if(urls.length===0) return;
-            
             if(!gameState.tokenLibrary) gameState.tokenLibrary = [];
-            
             urls.forEach(u => {
                 if(!gameState.tokenLibrary.includes(u)) gameState.tokenLibrary.push(u);
-                gameState.tokens.push({
-                    id: Date.now() + Math.random(), owner: currentUser, x:100, y:100, 
-                    imgSrc: u, scale:1, stats:{}, meta:{align:"",traits:['','','']}, 
-                    vision:10, locked:false, statuses:[]
-                });
+                gameState.tokens.push({ id: Date.now()+Math.random(), owner: currentUser, x:100, y:100, imgSrc: u, scale:1, stats:{}, meta:{align:"",traits:['','','']}, vision:10, locked:false, statuses:[] });
             });
             document.getElementById('token-url-area').value = "";
             updateState();
         }
 
-        // --- ALBUM SYSTEM ---
+        // --- ALBUM ---
         function renderAlbum() {
-            const grid = document.getElementById('album-grid');
-            grid.innerHTML = "";
+            const grid = document.getElementById('album-grid'); grid.innerHTML = "";
             if(!gameState.tokenLibrary) return;
             gameState.tokenLibrary.forEach(url => {
-                const item = document.createElement('div');
-                item.className = 'album-item';
+                const item = document.createElement('div'); item.className = 'album-item';
                 item.style.backgroundImage = `url(${url})`;
                 item.onclick = () => addToMapFromAlbum(url);
                 if(isGM) {
-                    const del = document.createElement('button');
-                    del.innerText = "X";
+                    const del = document.createElement('button'); del.innerText = "X";
                     del.onclick = (e) => { e.stopPropagation(); gameState.tokenLibrary = gameState.tokenLibrary.filter(u=>u!==url); updateState(); };
                     item.appendChild(del);
                 }
@@ -517,47 +502,38 @@
             });
         }
         function addToMapFromAlbum(url) {
-            gameState.tokens.push({
-                id: Date.now(), owner: currentUser, x:100, y:100, 
-                imgSrc: url, scale:1, stats:{}, meta:{align:"",traits:['','','']}, 
-                vision:10, locked:false, statuses:[]
-            });
+            gameState.tokens.push({ id: Date.now(), owner: currentUser, x:100, y:100, imgSrc: url, scale:1, stats:{}, meta:{align:"",traits:['','','']}, vision:10, locked:false, statuses:[] });
             updateState();
         }
 
-        // --- COPY / PASTE (GM ONLY) ---
+        // --- CLIPBOARD (GM) ---
         let clipboardToken = null;
+        document.addEventListener('mousemove', e => {
+            const rect = document.getElementById('map-container').getBoundingClientRect();
+            mousePos = { x: (e.clientX - rect.left) / mapTransform.scale, y: (e.clientY - rect.top) / mapTransform.scale };
+        });
         function setupClipboard() {
             document.addEventListener('keydown', e => {
                 if(!isGM) return;
-                // Copy: Ctrl+C (Active Token must be set by clicking)
-                if((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                    if(activeTokenId) {
-                        const t = gameState.tokens.find(x => x.id === activeTokenId);
-                        if(t) { clipboardToken = JSON.parse(JSON.stringify(t)); console.log("Kopyalandı"); }
-                    }
+                if((e.ctrlKey||e.metaKey) && e.key==='c' && activeTokenId) {
+                    const t = gameState.tokens.find(x => x.id === activeTokenId);
+                    if(t) { clipboardToken = JSON.parse(JSON.stringify(t)); }
                 }
-                // Paste: Ctrl+V
-                if((e.ctrlKey || e.metaKey) && e.key === 'v') {
-                    if(clipboardToken) {
-                        const newToken = JSON.parse(JSON.stringify(clipboardToken));
-                        newToken.id = Date.now();
-                        newToken.x = mousePos.x || 100;
-                        newToken.y = mousePos.y || 100;
-                        gameState.tokens.push(newToken);
-                        updateState();
-                    }
+                if((e.ctrlKey||e.metaKey) && e.key==='v' && clipboardToken) {
+                    const newToken = JSON.parse(JSON.stringify(clipboardToken));
+                    newToken.id = Date.now(); newToken.x = mousePos.x || 100; newToken.y = mousePos.y || 100;
+                    gameState.tokens.push(newToken); updateState();
                 }
             });
         }
 
-        // --- RENDER ALL ---
+        // --- RENDER ---
         function renderAll() { 
             renderMap(); renderInit(); renderAct(); renderInsp(); renderChat(); renderAlbum(); applyWeather();
             if(!isGM){ document.getElementById('grid-size').value=gameState.grid.size; document.getElementById('grid-scale').value=gameState.grid.scale; }
         }
 
-        // --- MAP ---
+        // --- MAP RENDER ---
         function renderMap() {
             const m = document.getElementById('game-map');
             if(gameState.mapSrc && m.src!==gameState.mapSrc) { m.src=gameState.mapSrc; m.onload=()=>{resizeCvs();drawGrid();drawFog();}; m.style.display='block'; }
@@ -566,6 +542,7 @@
 
             const mc = document.getElementById('map-container');
             document.querySelectorAll('.token').forEach(e=>e.remove());
+            
             gameState.tokens.forEach(t=>{
                 const size=70*(t.scale||1);
                 const el=document.createElement('div'); el.className='token';
@@ -603,9 +580,7 @@
                     tip.innerHTML=`<div class="tt-header">${(t.name||"Adsız")}</div><div class="tt-row"><span>HP:</span> <b>~${hp}</b></div><div class="tt-row"><span>Yön:</span> <span>${t.meta?.align||"-"}</span></div><div class="tt-row"><span>Kişilik:</span> <span style="font-size:0.65rem">${traits}</span></div>`;
                     el.appendChild(tip);
                 }
-                // Click handler to set Active Token for Copy/Paste
                 el.addEventListener('click', () => { activeTokenId = t.id; });
-                
                 mc.appendChild(el);
             });
         }
@@ -652,7 +627,7 @@
             area.addEventListener('touchmove',e=>{if(e.touches.length===2){e.preventDefault();const dist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);const delta=dist/initDist;mapTransform.scale=Math.min(Math.max(0.1,initScale*delta),5);apply();}},{passive:false});
         }
 
-        // --- OTHERS ---
+        // --- UTILS ---
         function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
         function togglePanel(id){document.getElementById(id).classList.toggle('visible')}
         function toggleTooltips(){showTooltips=document.getElementById('show-tooltips').checked; renderMap();}
@@ -680,8 +655,6 @@
         function resetAll(){if(isGM&&confirm("Emin misin?")){gameState={mapSrc:null,grid:{show:true,size:50,scale:1.5},weather:"",initiative:{list:[],round:1,currentIdx:0},activity:{paused:false,scores:{}},inspiration:{},chat:[],tokens:[],tokenLibrary:[]};updateState();}}
         async function initMic(){try{const s=await navigator.mediaDevices.getUserMedia({audio:true});const ac=new AudioContext(),an=ac.createAnalyser();ac.createMediaStreamSource(s).connect(an);an.fftSize=512;const d=new Uint8Array(an.frequencyBinCount);const l=()=>{if(!gameState.activity.paused){an.getByteFrequencyData(d);let sm=0;for(let x of d)sm+=x;if(sm/d.length>15)localSpeechTime+=0.1}setTimeout(()=>requestAnimationFrame(l),100)};l();setInterval(()=>{if(localSpeechTime>0){gameState.activity.scores[currentUser]=localSpeechTime;db.collection('rooms').doc(currentRoom).update({[`activity.scores.${currentUser}`]:localSpeechTime})}},3000)}catch(e){console.log(e)}}
 
-        // Sheet, Zar, Copy/Paste, Album logic... (Same as previous but with fixes)
-        // ... (Kalan fonksiyonlar aynı)
         function openSheet(id) { activeTokenId=id; const t=gameState.tokens.find(x=>x.id===id); if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']}; if(!t.statuses)t.statuses=[]; document.getElementById('char-sheet-modal').style.display='flex'; document.getElementById('sheet-name').innerText=(t.name||t.owner).toUpperCase(); document.getElementById('sheet-token-name').value=t.name||""; document.getElementById('sheet-token-scale').value=t.scale||1; document.getElementById('sheet-align').value=t.meta.align||""; const ts=document.querySelectorAll('.trait-select'); ts.forEach((s,i)=>s.value=t.meta.traits[i]||""); if(isGM){document.getElementById('gm-vision').value=t.vision||10;document.getElementById('btn-gm-pos').style.background=t.locked?"var(--accent-red)":"#333";renderStatusGrid(t);} sheetLocked=false; toggleLock(); toggleLock(); renderStats(t); }
         function closeSheet(){document.getElementById('char-sheet-modal').style.display='none';updateState()}
         function saveSheetMeta(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.name=document.getElementById('sheet-token-name').value;t.scale=parseFloat(document.getElementById('sheet-token-scale').value);t.meta.align=document.getElementById('sheet-align').value;const ts=document.querySelectorAll('.trait-select');t.meta.traits=[ts[0].value,ts[1].value,ts[2].value];updateState()}
