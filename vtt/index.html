@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>İkili Evren - V4 (Ses & Müzik)</title>
+    <title>İkili Evren - Efsaneler (Müzik & Ses)</title>
     
     <!-- FONTLAR -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,8 +14,24 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     
-    <!-- JITSI MEET API (Sesli Sohbet) -->
+    <!-- JITSI (Sesli Sohbet) & YOUTUBE API -->
     <script src='https://meet.jit.si/external_api.js'></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // --- 1. FIREBASE CONFIG (EN TEPEDE) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjw9J7HcIKG01Sdjv5euTCzXZlFsG-nLI",
+            authDomain: "ikilievrenvtt.firebaseapp.com",
+            projectId: "ikilievrenvtt",
+            storageBucket: "ikilievrenvtt.firebasestorage.app",
+            messagingSenderId: "936507038276",
+            appId: "1:936507038276:web:8d96057ad709bad5883a11",
+            measurementId: "G-9XNKZWRBBS"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
 
     <style>
         :root {
@@ -74,13 +90,13 @@
         /* DOCK */
         #ui-dock {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 8px; padding: 10px 20px; z-index: 2000;
+            display: flex; gap: 10px; padding: 10px 20px; z-index: 2000;
             border-radius: 40px; border: 1px solid var(--glass-border);
             background: rgba(5, 5, 5, 0.95); box-shadow: 0 0 20px black;
         }
         .dock-btn {
-            width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            font-size: 1.2rem; border: 1px solid #444; background: #111; position: relative;
+            width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 1.4rem; border: 1px solid #444; background: #111; position: relative;
         }
         .dock-btn:hover { transform: scale(1.1); z-index: 10; border-color: var(--gold-text); }
         .dock-btn.active-mode { border-color: var(--gold-text); background: var(--accent-red); }
@@ -108,15 +124,14 @@
             text-shadow: 0 0 5px black;
         }
 
-        /* Panel Locations */
+        /* Panel Konumları */
         #panel-initiative { top: 80px; right: 20px; }
         #panel-inspiration { top: 20px; right: 280px; width: 180px; text-align: center; }
+        #panel-music { top: 80px; left: 380px; width: 300px; }
         #panel-log { bottom: 100px; right: 20px; width: 340px; height: 350px; }
         #panel-chat { bottom: 100px; left: 20px; width: 320px; height: 400px; }
         #panel-journal { top: 120px; left: 50%; transform: translateX(-50%); width: 500px; height: 600px; }
         #panel-album { top: 100px; left: 100px; width: 600px; height: 500px; }
-        #panel-music { top: 80px; left: 380px; width: 300px; }
-        #panel-voice { top: 150px; right: 350px; width: 300px; height: 400px; resize: both; overflow: hidden; }
 
         .list-container { flex-grow: 1; overflow-y: auto; font-size: 0.9rem; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
         .list-item { display: flex; justify-content: space-between; padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -136,10 +151,6 @@
             font-size: 10px; background: red; color: white; border-radius: 50%; display: none;
         }
         .gm-only .album-item:hover button { display: block; }
-
-        /* MUSIC & VOICE */
-        #yt-player-container { display: none; } /* Gizli oynatıcı */
-        #jitsi-container { width: 100%; height: 100%; background: #000; }
 
         /* GAME AREA & MAP */
         #game-area { position: absolute; top:0; left:0; width:100%; height:100%; overflow: hidden; cursor: default; z-index: 0; background: #000; }
@@ -180,7 +191,7 @@
 
         .token-tooltip {
             position: absolute; bottom: 115%; left: 50%; transform: translateX(-50%);
-            background: rgba(5,5,5,0.95); border: 1px solid var(--gold-text);
+            background: rgba(10,10,10,0.95); border: 1px solid var(--gold-text);
             padding: 10px; border-radius: 5px; width: 200px; pointer-events: none;
             display: none; z-index: 100; text-align: left; font-size: 0.8rem;
             box-shadow: 0 10px 30px black; font-family: 'Lato', sans-serif;
@@ -206,7 +217,7 @@
         .gm-controls-area { background: rgba(50, 10, 10, 0.3); border: 1px solid var(--accent-red); padding: 10px; margin-top: 10px; border-radius: 5px; }
         .stat-row { 
             display: grid; grid-template-columns: 100px 1fr 1fr; gap: 5px; align-items: center;
-            margin-bottom: 5px; padding: 6px; background: rgba(255,255,255,0.03); border-radius: 4px; border: 1px solid #333;
+            margin-bottom: 5px; padding: 6px; background: rgba(255,255,255,0.02); border-radius: 4px; border: 1px solid #333;
         }
         .stat-btn-locked { grid-column: 1 / span 3; text-align: left; width: 100%; background: transparent; color:white; border:none; padding:10px; display:none; font-family: 'Cinzel'; font-weight: bold; }
         .locked-mode .input-group { display: none; }
@@ -224,14 +235,17 @@
         .chat-msg b { color: var(--gold-text); font-family: 'Cinzel'; }
         .chat-gif { max-width: 100%; border-radius: 4px; margin-top:5px; border:1px solid #444; }
 
+        /* JITSI FRAME & YOUTUBE HIDDEN */
+        #voice-chat-frame { position: absolute; top: -2000px; left: -2000px; width: 1px; height: 1px; visibility: hidden; }
+        #youtube-player-hidden { position: absolute; top: -2000px; left: -2000px; width: 1px; height: 1px; visibility: hidden; }
+
         /* MOBILE */
         @media (max-width: 768px) {
             #ui-dock { width: 95%; justify-content: space-between; padding: 8px; bottom: 10px; }
             #sidebar { width: 100%; }
             .float-panel { width: 95% !important; left: 2.5% !important; right: 2.5% !important; top: 60px !important; max-height: 50vh; }
             #panel-log, #panel-chat { bottom: 80px !important; top: auto !important; height: 300px !important; }
-            #panel-journal, #panel-album { width: 95%; height: 70%; top: 10%; left: 2.5%; transform: none; }
-            #panel-voice { width: 95%; height: 50%; top: 10%; left: 2.5%; }
+            #panel-journal, #panel-album, #panel-music { width: 95% !important; height: auto; top: 10%; left: 2.5% !important; transform: none; }
             .sheet-body { grid-template-columns: 1fr; }
             .gm-controls-area { grid-template-columns: 1fr; }
             #inspiration-box { width: 100% !important; position: relative; left:0; top:0; }
@@ -245,15 +259,15 @@
         <div style="font-size:2rem;">⚔️ YÜKLENİYOR...</div>
     </div>
 
-    <!-- GİZLİ MÜZİK PLAYER -->
-    <div id="yt-player-container"><div id="yt-player"></div></div>
-    <audio id="audio-player" style="display:none;"></audio>
+    <!-- SESLI SOHBET & MUZIK KONTEYNERİ -->
+    <div id="voice-chat-frame"></div>
+    <div id="youtube-player-hidden"></div>
 
     <!-- GİRİŞ -->
     <div id="login-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#050505;z-index:9999;display:flex;justify-content:center;align-items:center;">
         <div class="glass-panel" style="padding:40px; text-align:center; width:300px; border:2px solid var(--gold-text);">
             <h1 class="gothic-title" style="color:var(--gold-text); font-size:2rem;">İKİLİ EVREN</h1>
-            <p style="color:#aaa; font-size:0.7rem; margin-bottom:20px;">EFSANELER V4</p>
+            <p style="color:#aaa; font-size:0.7rem; margin-bottom:20px;">EFSANELER V3 (Music & Voice)</p>
             <input type="text" id="room-input" placeholder="Oda Adı" style="margin-bottom:10px;">
             <select id="role-select" style="margin-bottom:10px;">
                 <option value="gm1">GM (Yönetici)</option>
@@ -263,12 +277,13 @@
                 <option value="player4">Oyuncu 4</option>
                 <option value="player5">Oyuncu 5</option>
             </select>
-            <input type="password" id="password-input" placeholder="Şifre" style="margin-bottom:15px;">
+            <input type="password" id="password-input" placeholder="Şifre (gm111, 111, ...)" style="margin-bottom:15px;">
             <button onclick="attemptLogin()" style="width:100%; padding:12px;">BAĞLAN</button>
             <p id="login-msg" style="color:var(--accent-red); margin-top:10px; font-size:0.8rem;"></p>
         </div>
     </div>
 
+    <!-- UI KATMANLARI -->
     <div id="weather-overlay"></div>
     <div id="ruler-info" style="position:fixed; top:80px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); border:1px solid var(--gold-text); padding:5px 15px; border-radius:20px; display:none; z-index:2000; pointer-events:none; color:var(--gold-text); font-weight:bold;">0m</div>
 
@@ -276,8 +291,8 @@
     <div id="ui-dock">
         <button class="dock-btn" onclick="toggleSidebar()" title="Ayarlar">⚙️</button>
         <button class="dock-btn" onclick="togglePanel('panel-initiative')" title="Sıra">⚔️</button>
-        <button class="dock-btn" onclick="togglePanel('panel-voice')" title="Sesli Sohbet">📞</button>
-        <button class="dock-btn" onclick="togglePanel('panel-music')" title="Müzik">🎵</button>
+        <button class="dock-btn" onclick="toggleVoiceChat()" id="btn-voice" title="Sesli Sohbet (Aç/Kapa)">📞</button>
+        <button class="dock-btn" onclick="togglePanel('panel-music')" title="Müzik Kutusu">🎵</button>
         <button class="dock-btn" onclick="togglePanel('panel-inspiration')" title="İlham">✨</button>
         <button class="dock-btn" id="btn-ruler" onclick="toggleRuler()" title="Cetvel">📏</button>
         <button class="dock-btn" onclick="togglePanel('panel-journal')" title="Günlük">📖</button>
@@ -335,41 +350,29 @@
     </div>
 
     <!-- PANELLER -->
-    <div id="panel-initiative" class="glass-panel float-panel"><div class="float-header">TUR SIRASI <span id="round-display">T:1</span></div><div id="init-list" class="list-container"></div><div class="gm-only"><input type="text" id="init-name" placeholder="İsim"><input type="number" id="init-val" placeholder="Init"><button onclick="addToInit()">EKLE</button><button onclick="nextTurn()">İLERİ</button><button onclick="clearInit()">SİL</button></div></div>
-    
-    <!-- SESLI SOHBET PANELİ -->
-    <div id="panel-voice" class="glass-panel float-panel">
-        <div class="float-header">SESLİ SOHBET <button onclick="togglePanel('panel-voice')">X</button></div>
-        <div id="jitsi-container" style="flex-grow:1;"></div>
-        <button onclick="connectVoice()" id="btn-voice-connect" style="margin-top:5px;">BAĞLAN</button>
-    </div>
-
-    <!-- MÜZİK PANELİ -->
     <div id="panel-music" class="glass-panel float-panel">
-        <div class="float-header">MÜZİK KUTUSU <button onclick="togglePanel('panel-music')">X</button></div>
+        <div class="float-header">MÜZİK KUTUSU <button onclick="togglePanel('panel-music')" style="background:none;border:none;color:#aaa">X</button></div>
         <div class="gm-only">
             <input type="text" id="music-url" placeholder="YouTube / MP3 Linki">
             <div style="display:flex; gap:5px; margin-top:5px;">
-                <button onclick="playMusic()" style="flex:1;">ÇAL</button>
-                <button onclick="stopMusic()" style="flex:1; background:var(--accent-red);">DURDUR</button>
+                <button onclick="playMusic()" style="flex:1;">OYNAT</button>
+                <button onclick="pauseMusic()" style="flex:1; background:#444;">DURDUR</button>
             </div>
-            <label style="font-size:0.7rem; display:block; margin-top:5px;">
-                <input type="checkbox" id="music-loop" onchange="toggleLoop()" style="width:auto;"> Döngü (Loop)
+            <label style="font-size:0.7rem; margin-top:5px; display:block;">
+                <input type="checkbox" id="music-loop" style="width:auto;"> Döngü (Loop)
             </label>
         </div>
-        <div id="music-status" style="margin-top:10px; font-size:0.8rem; color:#aaa; text-align:center;">Müzik Durduruldu</div>
-        <div style="margin-top:5px;">
-            <label style="font-size:0.7rem;">Ses Seviyesi: <span id="vol-display">50</span>%</label>
-            <input type="range" id="music-vol" min="0" max="100" value="50" oninput="setVolume(this.value)">
+        <div style="margin-top:10px;">
+            <div style="font-size:0.7rem; color:var(--gold-text);" id="music-status">Durum: Bekliyor...</div>
+            <input type="range" id="music-volume" min="0" max="100" value="50" onchange="setVolume(this.value)">
         </div>
     </div>
 
+    <div id="panel-initiative" class="glass-panel float-panel"><div class="float-header">TUR SIRASI <span id="round-display">T:1</span></div><div id="init-list" class="list-container"></div><div class="gm-only"><input type="text" id="init-name" placeholder="İsim"><input type="number" id="init-val" placeholder="Init"><button onclick="addToInit()">EKLE</button><button onclick="nextTurn()">İLERİ</button><button onclick="clearInit()">SİL</button></div></div>
     <div id="panel-inspiration" class="glass-panel float-panel visible"><div class="float-header">İLHAM</div><div id="insp-list" class="list-container" style="max-height:100px;"></div><div class="gm-only"><button onclick="resetInsp()">SIFIRLA</button></div></div>
     <div id="panel-log" class="glass-panel float-panel visible"><div class="float-header">GÜNLÜK <button onclick="clearLog()" style="font-size:0.6rem;">TEMİZLE</button></div><div id="log-content" class="list-container"></div></div>
     <div id="panel-journal" class="glass-panel float-panel"><div class="float-header">ÖZEL GÜNLÜK <button onclick="togglePanel('panel-journal')">X</button></div><textarea id="journal-text" style="flex-grow:1; background:rgba(0,0,0,0.3); color:#ddd; font-family:'Lato'; padding:10px; border:none; resize:none;" placeholder="Sadece siz görürsünüz..."></textarea></div>
-    
-    <div id="panel-album" class="glass-panel float-panel"><div class="float-header">TOKEN ALBÜMÜ <button onclick="togglePanel('panel-album')">X</button></div><div id="album-grid" class="album-grid list-container"></div><div style="font-size:0.7rem; color:#aaa; padding:5px; text-align:center;">Tıkla -> Haritaya Ekle</div></div>
-
+    <div id="panel-album" class="glass-panel float-panel"><div class="float-header">TOKEN ALBÜMÜ <button onclick="togglePanel('panel-album')">X</button></div><div id="album-grid" class="album-grid list-container"></div></div>
     <div id="panel-chat" class="glass-panel float-panel">
         <div class="float-header">SOHBET</div>
         <div id="chat-content" class="list-container" style="background:rgba(0,0,0,0.3); padding:5px;"></div>
@@ -444,23 +447,7 @@
         </div>
     </div>
 
-    <!-- YOUTUBE API LOADER -->
-    <script src="https://www.youtube.com/iframe_api"></script>
-
     <script>
-        // --- FIREBASE CONF ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAjw9J7HcIKG01Sdjv5euTCzXZlFsG-nLI",
-            authDomain: "ikilievrenvtt.firebaseapp.com",
-            projectId: "ikilievrenvtt",
-            storageBucket: "ikilievrenvtt.firebasestorage.app",
-            messagingSenderId: "936507038276",
-            appId: "1:936507038276:web:8d96057ad709bad5883a11",
-            measurementId: "G-9XNKZWRBBS"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
         // --- CONSTANTS ---
         const CREDENTIALS = { 'gm1': 'gm111', 'player1': '111', 'player2': '222', 'player3': '333', 'player4': '444', 'player5': '555' };
         const ATTRS = { 'Strength': 'KUVVET', 'Dexterity': 'ÇEVİKLİK', 'Constitution': 'DAYANIKLILIK', 'Intelligence': 'ZEKA', 'Wisdom': 'İRFAN', 'Charisma': 'KARİZMA' };
@@ -475,19 +462,16 @@
             activity: {paused:false, scores:{}, speaking:null},
             inspiration: {}, chat: [], 
             tokens: [], tokenLibrary: [],
-            music: { type: 'none', src: '', status: 'paused', loop: false }
+            music: { type: 'none', src: '', status: 'paused', loop: false, volume: 50, timestamp: 0 }
         };
 
-        // Local State
         let activeTokenId=null, sheetLocked=false, selAttr=null, selSkill=null;
         let rulerMode=false, rulerStartPoint=null, tempStart=null, isDraggingRuler=false;
         let mapTransform = { x: 0, y: 0, scale: 1 };
         let showTooltips = true;
-        let mousePos = {x:0, y:0};
-        
-        // Media Players
-        let ytPlayer = null, ytReady = false;
         let jitsiApi = null;
+        let ytPlayer = null;
+        let audioPlayer = new Audio();
 
         // --- GİRİŞ ---
         async function attemptLogin() {
@@ -502,7 +486,7 @@
                 const doc = await ref.get();
                 if(!doc.exists) {
                     if(pass !== CREDENTIALS[role]) throw new Error("Yeni oda için varsayılan şifreleri kullanın.");
-                    await ref.set({ users:CREDENTIALS, mapSrc:null, grid:{show:true,size:50,scale:1.5}, weather:"", initiative:{list:[],round:1,currentIdx:0}, activity:{paused:false,scores:{},speaking:null}, inspiration:{}, chat:[], tokens:[], tokenLibrary:[], music:{type:'none',src:'',status:'paused',loop:false} });
+                    await ref.set({ users:CREDENTIALS, mapSrc:null, grid:{show:true,size:50,scale:1.5}, weather:"", initiative:{list:[],round:1,currentIdx:0}, activity:{paused:false,scores:{},speaking:null}, inspiration:{}, chat:[], tokens:[], tokenLibrary:[], music:{type:'none',src:'',status:'paused'} });
                 } else {
                     const data = doc.data();
                     if(data.users && data.users[role] !== pass) throw new Error("Hatalı Şifre");
@@ -521,13 +505,14 @@
 
                 ref.onSnapshot(snap => { 
                     if(snap.exists) { 
+                        const prevMusic = gameState.music;
                         gameState=snap.data(); 
                         renderAll(); 
                         if(document.getElementById('char-sheet-modal').style.display === 'flex' && activeTokenId) {
                             const t = gameState.tokens.find(x=>x.id===activeTokenId);
                             if(t && sheetLocked) renderStats(t);
                         }
-                        syncMusic();
+                        handleMusicSync(prevMusic, gameState.music);
                     } 
                 });
                 
@@ -539,7 +524,119 @@
         function showLoading(s) { document.getElementById('loading-overlay').style.display=s?'flex':'none'; }
         document.getElementById('journal-text').addEventListener('input', function(){ if(currentUser&&currentRoom) localStorage.setItem('vtt_journal_'+currentUser+'_'+currentRoom, this.value); });
 
-        // --- MAP URL & TOKEN BULK ---
+        // --- MÜZİK SİSTEMİ ---
+        function playMusic() {
+            if(!isGM) return;
+            const url = document.getElementById('music-url').value;
+            const loop = document.getElementById('music-loop').checked;
+            let type = 'none', src = '';
+
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                type = 'youtube';
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                const match = url.match(regExp);
+                src = (match && match[2].length === 11) ? match[2] : url; // ID or Playlist ID
+            } else if (url.endsWith('.mp3')) {
+                type = 'mp3'; src = url;
+            }
+
+            gameState.music = { type, src, status: 'playing', loop, volume: 50, timestamp: Date.now() };
+            updateState();
+        }
+
+        function pauseMusic() {
+            if(!isGM) return;
+            gameState.music.status = 'paused';
+            updateState();
+        }
+
+        function setVolume(val) {
+            if (ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(val);
+            if (audioPlayer) audioPlayer.volume = val / 100;
+        }
+
+        function handleMusicSync(prev, curr) {
+            if (!curr) return;
+            document.getElementById('music-status').innerText = `Çalıyor: ${curr.type} (${curr.status})`;
+            
+            // YouTube
+            if (curr.type === 'youtube') {
+                if(audioPlayer) audioPlayer.pause();
+                if (!ytPlayer) {
+                    onYouTubeIframeAPIReady(); // Try init
+                } else if (prev.src !== curr.src) {
+                    if(curr.src.length > 15) // Playlist assumption
+                        ytPlayer.loadPlaylist({list:curr.src, listType:'playlist'});
+                    else
+                        ytPlayer.loadVideoById(curr.src);
+                }
+                
+                if (ytPlayer && ytPlayer.getPlayerState) {
+                    if (curr.status === 'playing' && ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo();
+                    if (curr.status === 'paused' && ytPlayer.getPlayerState() === 1) ytPlayer.pauseVideo();
+                    ytPlayer.setLoop(curr.loop);
+                }
+            }
+            
+            // MP3
+            if (curr.type === 'mp3') {
+                if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+                if (prev.src !== curr.src) {
+                    audioPlayer.src = curr.src;
+                    audioPlayer.loop = curr.loop;
+                }
+                if (curr.status === 'playing') audioPlayer.play().catch(e=>console.log("Autoplay blocked",e));
+                else audioPlayer.pause();
+            }
+            
+            // Stop
+            if (curr.type === 'none') {
+                if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+                audioPlayer.pause();
+            }
+        }
+
+        // YT API
+        function onYouTubeIframeAPIReady() {
+            if(document.getElementById('youtube-player-hidden')) {
+                ytPlayer = new YT.Player('youtube-player-hidden', {
+                    height: '1', width: '1',
+                    playerVars: { 'playsinline': 1, 'controls': 0 },
+                    events: {
+                        'onReady': (event) => { if(gameState.music.status==='playing') event.target.playVideo(); },
+                        'onStateChange': (event) => {
+                            if (event.data === YT.PlayerState.ENDED && gameState.music.loop) {
+                                event.target.playVideo(); 
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // --- SESLI SOHBET (JITSI) ---
+        function toggleVoiceChat() {
+            const btn = document.getElementById('btn-voice');
+            if (jitsiApi) {
+                jitsiApi.dispose(); jitsiApi = null;
+                btn.classList.remove('active-mode');
+            } else {
+                const domain = "meet.jit.si";
+                const options = {
+                    roomName: "ikilievren_vtt_" + currentRoom,
+                    width: 1, height: 1,
+                    parentNode: document.querySelector('#voice-chat-frame'),
+                    configOverwrite: { startWithAudioMuted: false, startWithVideoMuted: true },
+                    interfaceConfigOverwrite: { TOOLBAR_BUTTONS: ['microphone'] }
+                };
+                jitsiApi = new JitsiMeetExternalAPI(domain, options);
+                btn.classList.add('active-mode');
+            }
+        }
+
+        // --- CORE FUNCTIONS (Previously implemented) ---
+        // (Due to length limit, condensed versions of previous logic are kept)
+        
         function setMapURL() { const u=document.getElementById('map-url').value; if(u){ gameState.mapSrc=u; updateState(); } }
         function addTokenBulk() {
             const txt = document.getElementById('token-url-area').value;
@@ -553,38 +650,24 @@
             document.getElementById('token-url-area').value = "";
             updateState();
         }
-
-        // --- RENDER ---
-        function renderAll() { 
-            renderMap(); renderInit(); renderInsp(); renderChat(); renderAlbum(); applyWeather();
-            if(!isGM){ document.getElementById('grid-size').value=gameState.grid.size; document.getElementById('grid-scale').value=gameState.grid.scale; }
-        }
-
-        // --- MAP RENDER ---
+        function renderAll() { renderMap(); renderInit(); renderAct(); renderInsp(); renderChat(); renderAlbum(); applyWeather(); if(!isGM){ document.getElementById('grid-size').value=gameState.grid.size; document.getElementById('grid-scale').value=gameState.grid.scale; } }
         function renderMap() {
             const m = document.getElementById('game-map');
             if(gameState.mapSrc && m.src!==gameState.mapSrc) { m.src=gameState.mapSrc; m.onload=()=>{resizeCvs();drawGrid();drawFog();}; m.style.display='block'; }
             else if(!gameState.mapSrc) { m.style.display='none'; clearCvs(); }
             else { drawGrid(); drawFog(); }
-
             const mc = document.getElementById('map-container');
             document.querySelectorAll('.token').forEach(e=>e.remove());
-            
             gameState.tokens.forEach(t=>{
                 const size=70*(t.scale||1);
                 const el=document.createElement('div'); el.className='token';
                 el.style.width=size+'px'; el.style.height=size+'px';
                 el.style.left=t.x+'px'; el.style.top=t.y+'px';
                 el.style.backgroundImage=`url(${t.imgSrc})`;
-                
                 const isOwn = t.owner===currentUser || isGM;
                 let vis=isGM;
-                if(!vis) {
-                    const mines=gameState.tokens.filter(x=>x.owner===currentUser);
-                    for(let m of mines) { const rad=((m.vision||10)/gameState.grid.scale)*gameState.grid.size; if(Math.hypot(t.x-m.x,t.y-m.y)<rad) vis=true; }
-                }
+                if(!vis) { const mines=gameState.tokens.filter(x=>x.owner===currentUser); for(let m of mines) { const rad=((m.vision||10)/gameState.grid.scale)*gameState.grid.size; if(Math.hypot(t.x-m.x,t.y-m.y)<rad) vis=true; } }
                 if(!vis) el.classList.add('hidden-in-fog');
-
                 if(isOwn) {
                     el.classList.add('my-token');
                     if(t.locked && !isGM) el.classList.add('locked-token'); else addDrag(el,t.id);
@@ -593,172 +676,39 @@
                     g.onmousedown=e=>e.stopPropagation(); g.ontouchstart=e=>e.stopPropagation();
                     el.appendChild(g);
                 } else el.classList.add('other-token');
-
                 const n=document.createElement('div'); n.className='token-name'; n.innerText=(t.name||t.owner).toUpperCase(); el.appendChild(n);
-                if(t.statuses?.length>0) {
-                    if(t.statuses.includes("Öldü")) el.classList.add('is-dead');
-                    const sb=document.createElement('div'); sb.className='token-statuses';
-                    t.statuses.forEach(s=>{if(s!=="Öldü")sb.innerHTML+=`<span class="status-badge">${s}</span>`}); el.appendChild(sb);
-                }
-                if(showTooltips) {
-                    const tip=document.createElement('div'); tip.className='token-tooltip';
-                    const hp=t.stats['Constitution']?t.stats['Constitution'].split(',')[0]*2+10:10;
-                    const traits=t.meta?.traits?t.meta.traits.filter(x=>x).join(', '):'-';
-                    tip.innerHTML=`<div class="tt-header">${(t.name||"Adsız")}</div><div class="tt-row"><span>Yön:</span> <span>${t.meta?.align||"-"}</span></div><div class="tt-row"><span>Kişilik:</span> <span style="font-size:0.65rem">${traits}</span></div>`;
-                    el.appendChild(tip);
-                }
-                el.addEventListener('click', () => { activeTokenId = t.id; });
-                mc.appendChild(el);
+                if(t.statuses?.length>0) { if(t.statuses.includes("Öldü")) el.classList.add('is-dead'); const sb=document.createElement('div'); sb.className='token-statuses'; t.statuses.forEach(s=>{if(s!=="Öldü")sb.innerHTML+=`<span class="status-badge">${s}</span>`}); el.appendChild(sb); }
+                if(showTooltips) { const tip=document.createElement('div'); tip.className='token-tooltip'; const hp=t.stats['Constitution']?t.stats['Constitution'].split(',')[0]*2+10:10; const traits=t.meta?.traits?t.meta.traits.filter(x=>x).join(', '):'-'; tip.innerHTML=`<div class="tt-header">${(t.name||"Adsız")}</div><div class="tt-row"><span>Yön:</span> <span>${t.meta?.align||"-"}</span></div><div class="tt-row"><span>Kişilik:</span> <span style="font-size:0.65rem">${traits}</span></div>`; el.appendChild(tip); }
+                el.addEventListener('click', () => { activeTokenId = t.id; }); mc.appendChild(el);
             });
         }
-
         function addDrag(el, id) {
             let start=null, initPos=null; const img=document.getElementById('game-map');
             const startD=(x,y)=>{if(rulerMode)return false;start={x,y};initPos={left:parseInt(el.style.left||0),top:parseInt(el.style.top||0)};return true;}
-            const moveD=(x,y)=>{
-                if(!start)return;
-                let dx = (x-start.x)/mapTransform.scale;
-                let dy = (y-start.y)/mapTransform.scale;
-                let nx = initPos.left + dx;
-                let ny = initPos.top + dy;
-                // Move current token
-                el.style.left=nx+'px'; el.style.top=ny+'px';
-            }
-            const endD=(x,y)=>{
-                if(!start)return; 
-                let dx = (x-start.x)/mapTransform.scale;
-                let dy = (y-start.y)/mapTransform.scale;
-                start=null;
-                const t=gameState.tokens.find(x=>x.id===id);
-                if(t){ 
-                    t.x += dx; t.y += dy;
-                    // Move Attached Tokens
-                    const riders = gameState.tokens.filter(tk => tk.attachTo === t.id);
-                    riders.forEach(r => { r.x += dx; r.y += dy; });
-                    updateState(); 
-                }
-            }
+            const moveD=(x,y)=>{if(!start)return;let dx = (x-start.x)/mapTransform.scale;let dy = (y-start.y)/mapTransform.scale;let nx = initPos.left + dx;let ny = initPos.top + dy;el.style.left=nx+'px'; el.style.top=ny+'px';}
+            const endD=(x,y)=>{if(!start)return; let dx = (x-start.x)/mapTransform.scale; let dy = (y-start.y)/mapTransform.scale; start=null; const t=gameState.tokens.find(x=>x.id===id); if(t){ t.x += dx; t.y += dy; const riders = gameState.tokens.filter(tk => tk.attachTo === t.id); riders.forEach(r => { r.x += dx; r.y += dy; }); updateState(); } }
             el.onmousedown=e=>{if(e.button===0&&startD(e.clientX,e.clientY)){const mm=ev=>moveD(ev.clientX,ev.clientY);const mu=ev=>{endD(ev.clientX,ev.clientY);window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu)};window.addEventListener('mousemove',mm);window.addEventListener('mouseup',mu)}};
-            el.ontouchstart=e=>{startD(e.touches[0].clientX,e.touches[0].clientY)};
-            el.ontouchmove=e=>{if(start){e.preventDefault();moveD(e.touches[0].clientX,e.touches[0].clientY)}};
-            el.ontouchend=e=>{endD(e.changedTouches[0].clientX,e.changedTouches[0].clientY)};
+            el.ontouchstart=e=>{startD(e.touches[0].clientX,e.touches[0].clientY)};el.ontouchmove=e=>{if(start){e.preventDefault();moveD(e.touches[0].clientX,e.touches[0].clientY)}};el.ontouchend=e=>{endD(e.changedTouches[0].clientX,e.changedTouches[0].clientY)};
         }
-
-        // --- MUSIC PLAYER ---
-        function onYouTubeIframeAPIReady() {
-            ytPlayer = new YT.Player('yt-player', { height: '0', width: '0', events: { 'onReady': () => { ytReady=true; } } });
-        }
-        function playMusic() {
-            if(!isGM) return;
-            const url = document.getElementById('music-url').value;
-            let type = 'none'; let src = '';
-            if(url.includes('youtube.com') || url.includes('youtu.be')) {
-                type = 'youtube';
-                // Extract ID
-                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-                const match = url.match(regExp);
-                if (match && match[2].length == 11) src = match[2]; else return alert("Geçersiz YT Linki");
-            } else if (url.endsWith('.mp3')) {
-                type = 'mp3'; src = url;
-            } else { return alert("Sadece YouTube veya .mp3 desteklenir."); }
-            
-            gameState.music = { type: type, src: src, status: 'playing', loop: document.getElementById('music-loop').checked };
-            updateState();
-        }
-        function stopMusic() { if(isGM) { gameState.music.status = 'paused'; updateState(); } }
-        function toggleLoop() { if(isGM) { gameState.music.loop = document.getElementById('music-loop').checked; updateState(); } }
-        function setVolume(v) { 
-            document.getElementById('vol-display').innerText = v;
-            if(ytPlayer && ytPlayer.setVolume) ytPlayer.setVolume(v);
-            const audio = document.getElementById('audio-player');
-            audio.volume = v / 100;
-        }
-        
-        function syncMusic() {
-            const m = gameState.music;
-            const statusDiv = document.getElementById('music-status');
-            const audio = document.getElementById('audio-player');
-            
-            if(m.status === 'playing') {
-                statusDiv.innerText = "Çalıyor: " + m.type.toUpperCase();
-                statusDiv.style.color = "#2ecc71";
-                
-                if(m.type === 'youtube' && ytReady) {
-                    audio.pause();
-                    const currentSrc = ytPlayer.getVideoData ? ytPlayer.getVideoData().video_id : "";
-                    if(currentSrc !== m.src) {
-                        if(m.src.includes('list=')) { /* Playlist logic complex, simplified to video */ }
-                        ytPlayer.loadVideoById(m.src);
-                        ytPlayer.setLoop(m.loop);
-                    }
-                    if(ytPlayer.getPlayerState() !== 1) ytPlayer.playVideo();
-                } else if (m.type === 'mp3') {
-                    if(ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
-                    if(audio.src !== m.src) audio.src = m.src;
-                    audio.loop = m.loop;
-                    if(audio.paused) audio.play().catch(e=>console.log("Autoplay blocked, interact first"));
-                }
-            } else {
-                statusDiv.innerText = "Durduruldu";
-                statusDiv.style.color = "#aaa";
-                if(ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo();
-                audio.pause();
-            }
-        }
-
-        // --- VOICE CHAT (JITSI) ---
-        function connectVoice() {
-            if(jitsiApi) return;
-            const domain = "meet.jit.si";
-            const options = {
-                roomName: "ikilievren_vtt_" + currentRoom,
-                width: '100%', height: '100%',
-                parentNode: document.querySelector('#jitsi-container'),
-                configOverwrite: { startWithAudioMuted: true, startWithVideoMuted: true },
-                interfaceConfigOverwrite: { TOOLBAR_BUTTONS: ['microphone', 'camera', 'tileview', 'hangup'] }
-            };
-            jitsiApi = new JitsiMeetExternalAPI(domain, options);
-            jitsiApi.addEventListener('videoConferenceLeft', () => {
-                jitsiApi.dispose(); jitsiApi = null;
-                document.getElementById('jitsi-container').innerHTML = "";
-            });
-            document.getElementById('btn-voice-connect').style.display='none';
-        }
-
-        // --- SHEET, ZAR, COPY/PASTE, ETC. (PREVIOUS LOGIC PRESERVED) ---
-        function openSheet(id) { activeTokenId=id; const t=gameState.tokens.find(x=>x.id===id); if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']}; if(!t.statuses)t.statuses=[]; document.getElementById('char-sheet-modal').style.display='flex'; document.getElementById('sheet-name').innerText=(t.name||t.owner).toUpperCase(); document.getElementById('sheet-token-name').value=t.name||""; document.getElementById('sheet-token-scale').value=t.scale||1; document.getElementById('sheet-align').value=t.meta.align||""; const ts=document.querySelectorAll('.trait-select'); ts.forEach((s,i)=>s.value=t.meta.traits[i]||""); document.getElementById('btn-attach').innerText=t.attachTo?"AYIR":"BAĞLA"; if(isGM){document.getElementById('gm-vision').value=t.vision||10;document.getElementById('btn-gm-pos').style.background=t.locked?"var(--accent-red)":"#333";renderStatusGrid(t);} sheetLocked=false; toggleLock(); toggleLock(); renderStats(t); }
+        function openSheet(id) { activeTokenId=id; const t=gameState.tokens.find(x=>x.id===id); if(!t.stats)t.stats={}; if(!t.meta)t.meta={align:"", traits:['','','']}; if(!t.statuses)t.statuses=[]; document.getElementById('char-sheet-modal').style.display='flex'; document.getElementById('sheet-name').innerText=(t.name||t.owner).toUpperCase(); document.getElementById('sheet-token-name').value=t.name||""; document.getElementById('sheet-token-scale').value=t.scale||1; document.getElementById('sheet-align').value=t.meta.align||""; const ts=document.querySelectorAll('.trait-select'); ts.forEach((s,i)=>s.value=t.meta.traits[i]||""); document.getElementById('btn-attach').innerText = t.attachTo ? "AYIR" : "BAĞLA"; if(isGM){document.getElementById('gm-vision').value=t.vision||10;document.getElementById('btn-gm-pos').style.background=t.locked?"var(--accent-red)":"#333";renderStatusGrid(t);} sheetLocked=false; toggleLock(); toggleLock(); renderStats(t); }
         function closeSheet(){document.getElementById('char-sheet-modal').style.display='none';updateState()}
         function saveSheetMeta(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.name=document.getElementById('sheet-token-name').value;t.scale=parseFloat(document.getElementById('sheet-token-scale').value);t.meta.align=document.getElementById('sheet-align').value;const ts=document.querySelectorAll('.trait-select');t.meta.traits=[ts[0].value,ts[1].value,ts[2].value];updateState()}
-        function duplicateToken(){const t=gameState.tokens.find(x=>x.id===activeTokenId);if(t){const n=JSON.parse(JSON.stringify(t));n.id=Date.now();n.x+=20;n.y+=20;n.attachTo=null;gameState.tokens.push(n);updateState();closeSheet()}}
-        function attachTokenPrompt(){const t=gameState.tokens.find(x=>x.id===activeTokenId);if(t.attachTo){t.attachTo=null;alert("Ayrıldı")}else{let c=null,md=Infinity;gameState.tokens.forEach(tk=>{if(tk.id!==t.id){const d=Math.hypot(t.x-tk.x,t.y-tk.y);if(d<100&&d<md){md=d;c=tk}}});if(c){t.attachTo=c.id;alert("Bağlandı: "+c.name)}else alert("Yakında token yok")}updateState()}
-        
-        // ... (Standard Render & Logic functions same as V3) ...
-        // Keeping it concise:
-        function renderStatusGrid(t){const g=document.getElementById('status-grid');g.innerHTML="";CONDITIONS.forEach(c=>{const a=t.statuses.includes(c);const b=document.createElement('button');b.className=`status-btn ${a?'active-status':''}`;b.innerText=c;b.onclick=()=>{if(a)t.statuses=t.statuses.filter(x=>x!==c);else t.statuses.push(c);renderStatusGrid(t);updateState()};g.appendChild(b)})}
-        function gmDeleteToken(){if(confirm("Sil?")){gameState.tokens=gameState.tokens.filter(x=>x.id!==activeTokenId);closeSheet();updateState()}}
-        function gmTogglePosLock(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.locked=!t.locked;openSheet(activeTokenId);updateState()}
-        function gmUpdateToken(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.vision=parseFloat(document.getElementById('gm-vision').value)||10;updateState()}
-        function renderStats(t){const al=document.getElementById('attr-list'), sl=document.getElementById('skill-list'); al.innerHTML=""; sl.innerHTML=""; const cr=(k,tr,tp)=>{const s=getS(t,k);return `<div class="stat-row"><span style="color:var(--gold-text);font-size:0.75rem">${tr}</span><div class="input-group"><input type="number" min="1" max="5" value="${s.b}" onchange="upS('${k}',this.value,'${s.a}')"></div><div class="input-group"><input type="number" min="0" value="${s.a}" onchange="upS('${k}','${s.b}',this.value)"></div><button class="stat-btn-locked" onclick="selS('${k}','${tp}',this)">${tr}: ${s.b} + ${s.a}</button></div>`}; for(let k in ATTRS)al.innerHTML+=cr(k,ATTRS[k],'attr'); for(let k in SKILLS)sl.innerHTML+=cr(k,SKILLS[k],'skill');}
-        window.upS=function(k,b,a){setS(gameState.tokens.find(x=>x.id===activeTokenId),k,b,a)}
-        window.selS=function(k,tp,btn){if(!sheetLocked)return;if(tp==='attr'){selAttr=(selAttr===k)?null:k;document.querySelectorAll('#attr-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selAttr)btn.classList.add('selected')}else{selSkill=(selSkill===k)?null:k;document.querySelectorAll('#skill-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selSkill)btn.classList.add('selected')}document.getElementById('sheet-status').innerText=`Seçim: ${selAttr?ATTRS[selAttr]:'-'} + ${selSkill?SKILLS[selSkill]:'-'}`}
-        function toggleLock(){sheetLocked=!sheetLocked;const b=document.querySelector('.sheet-body'),btn=document.getElementById('btn-lock');if(sheetLocked){b.classList.add('locked-mode');btn.innerText="AÇ";renderStats(gameState.tokens.find(x=>x.id===activeTokenId))}else{b.classList.remove('locked-mode');btn.innerText="KİLİTLE";selAttr=null;selSkill=null}}
-        function getS(t,k){const v=t.stats[k]||"1,0";const p=v.split(',');return{b:parseInt(p[0])||1,a:parseInt(p[1])||0}}
-        function setS(t,k,b,a){t.stats[k]=`${b},${a}`; updateState(); }
-        function rollStats(){if(!selAttr&&!selSkill)return;const t=gameState.tokens.find(x=>x.id===activeTokenId);let b=0,a=0;if(selAttr){const s=getS(t,selAttr);b+=s.b;a+=s.a}if(selSkill){const s=getS(t,selSkill);b+=s.b;a+=s.a}let res=rollD(b);let total=res.h+a; const logHtml=`<div style="border-left:3px solid var(--accent-green); padding-left:5px;"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${res.d}]<br>Sonuç: ${res.h} + ${a} (Oto) = <b style="color:var(--gold-text)">${total} BAŞARI</b><div class="log-actions"><button onclick="actPush(${b}, ${a}, ${total})">ZORLA</button><button onclick="actInsp(${b}, ${a})">İLHAM</button><button onclick="actCombo(${b}, ${a})">ZORLA & İLHAM</button></div></div>`; addLog(logHtml); gameState.chat.push({u:"SİSTEM", t:logHtml, type:'html'}); updateState();}
-        window.actPush=function(b,a,p){let ph=p-a;let f=b-ph;if(f<=0)return alert("Zorlanamaz");let r=rollD(f);let n=p+r.h;const h=`<div style="border-left:2px dashed #aaa; padding-left:5px; margin-top:5px;"><i>Zorlama...</i> [${r.d}] (+${r.h})<br>YENİ SONUÇ: <b style="color:var(--gold-text)">${n} BAŞARI</b><div class="log-actions"><button onclick="actInsp(${b},${a})">İLHAM</button></div></div>`;addLog(h);gameState.chat.push({u:"SİSTEM",t:h,type:'html'});updateState()}
-        window.actInsp=function(b,a){useInsp(1);let r=rollD(b);let t=r.h+a;const h=`<div style="border-top:1px solid #555; padding-top:5px; margin-top:5px;"><b>✨ İLHAM</b> (Harcanan: 1)<br>Yeni Atış: [${r.d}]<br>Sonuç: <b style="color:var(--gold-text)">${t} BAŞARI</b><div class="log-actions"><button onclick="actPush(${b},${a},${t})">ZORLA</button></div></div>`;addLog(h);gameState.chat.push({u:"SİSTEM",t:h,type:'html'});updateState()}
-        window.actCombo=function(b,a){const tg=parseInt(prompt("Hedef?",4));if(!tg)return;const lm=parseInt(prompt("Limit?",5));if(!lm)return;let s=0,bt=0,lt="";while(s<lm){s++;let r1=rollD(b),h=r1.h,f=b-h,p=0;if(f>0){let r2=rollD(f);p=r2.h}let t=h+p+a;lt+=`[#${s}:${t}] `;if(t>=tg){bt=t;break}if(t>bt)bt=t}useInsp(s);const h=`<div style="background:rgba(200,150,0,0.1); padding:5px; margin-top:5px;"><b>🔥 COMBO</b> (Harc: ${s})<br><small>${lt}</small><br>SONUÇ: <b style="color:${bt>=tg?'#2ecc71':'#e74c3c'}">${bt} BAŞARI</b></div>`;addLog(h);gameState.chat.push({u:"SİSTEM",t:h,type:'html'});updateState()}
-        function rollD(n){let h=0,d=[];for(let i=0;i<n;i++){let r=Math.floor(Math.random()*6)+1;d.push(r);if(r===6)h++}return{h,d}}
-        function useInsp(n){if(!gameState.inspiration[currentUser])gameState.inspiration[currentUser]=0;gameState.inspiration[currentUser]+=n}
-        
-        let clipboard=null; document.addEventListener('mousemove',e=>{const r=document.getElementById('map-container').getBoundingClientRect();mousePos={x:(e.clientX-r.left)/mapTransform.scale,y:(e.clientY-r.top)/mapTransform.scale}});
-        document.addEventListener('keydown',e=>{if(!isGM)return;if((e.ctrlKey||e.metaKey)&&e.key==='c'&&activeTokenId){const t=gameState.tokens.find(x=>x.id===activeTokenId);if(t)clipboard=JSON.parse(JSON.stringify(t))}if((e.ctrlKey||e.metaKey)&&e.key==='v'&&clipboard){const n=JSON.parse(JSON.stringify(clipboard));n.id=Date.now();n.x=mousePos.x||100;n.y=mousePos.y||100;n.attachTo=null;gameState.tokens.push(n);updateState()}});
-        
+        function duplicateToken(){const t=gameState.tokens.find(x=>x.id===activeTokenId);if(t){ const n=JSON.parse(JSON.stringify(t)); n.id=Date.now(); n.x+=20; n.y+=20; n.attachTo=null; gameState.tokens.push(n); updateState(); closeSheet(); }}
+        function attachTokenPrompt(){const t=gameState.tokens.find(x=>x.id===activeTokenId);if(t.attachTo) { t.attachTo=null; alert("Ayrıldı."); } else { let closeT=null, minDist=Infinity; gameState.tokens.forEach(tk => { if(tk.id!==t.id) { const d=Math.hypot(t.x-tk.x, t.y-tk.y); if(d<100 && d<minDist) { minDist=d; closeT=tk; } } }); if(closeT){ t.attachTo=closeT.id; alert("Bağlandı."); } else alert("Yakında token yok."); } updateState();}
+        function rollStats() { if(!selAttr && !selSkill) return; const t = gameState.tokens.find(x=>x.id===activeTokenId); let b=0, a=0; if(selAttr) { const s=getS(t,selAttr); b+=s.b; a+=s.a; } if(selSkill) { const s=getS(t,selSkill); b+=s.b; a+=s.a; } let res = rollD(b); let total = res.h + a; const logHtml = `<div style="border-left:3px solid var(--accent-green); padding-left:5px;"><b>${(t.name||t.owner).toUpperCase()}</b><br>Zar: [${res.d}]<br>Sonuç: ${res.h} + ${a} (Oto) = <b style="color:var(--gold-text)">${total} BAŞARI</b><div class="log-actions"><button onclick="actPush(${b}, ${a}, ${total})">ZORLA</button><button onclick="actInsp(${b}, ${a})">İLHAM</button><button onclick="actCombo(${b}, ${a})">ZORLA & İLHAM</button></div></div>`; addLog(logHtml); gameState.chat.push({u:"SİSTEM", t:logHtml, type:'html'}); updateState(); }
+        // ... (Zorla/Insp/Combo functions same as before) ...
+        function rollD(n) { let h=0, d=[]; for(let i=0;i<n;i++){let r=Math.floor(Math.random()*6)+1; d.push(r); if(r===6)h++;} return {h,d}; }
+        window.actPush = function(base, auto, prevTotal) { let prevHits = prevTotal - auto; let fails = base - prevHits; if(fails <= 0) return alert("Zorlanacak zar yok!"); let res = rollD(fails); let newTotal = prevTotal + res.h; const html=`<div style="border-left:2px dashed #aaa; padding-left:5px; margin-top:5px;"><i>Zorlama...</i> [${res.d}] (+${res.h})<br>YENİ SONUÇ: <b style="color:var(--gold-text)">${newTotal} BAŞARI</b><div class="log-actions"><button onclick="actInsp(${base}, ${auto})">İLHAM</button></div></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
+        window.actInsp = function(base, auto) { if(!gameState.inspiration[currentUser]) gameState.inspiration[currentUser]=0; gameState.inspiration[currentUser]+=1; let res = rollD(base); let total = res.h + auto; const html=`<div style="border-top:1px solid #555; padding-top:5px; margin-top:5px;"><b>✨ İLHAM</b> (Harcanan: 1)<br>Yeni Atış: [${res.d}]<br>Sonuç: <b style="color:var(--gold-text)">${total} BAŞARI</b><div class="log-actions"><button onclick="actPush(${base}, ${auto}, ${total})">ZORLA</button></div></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
+        window.actCombo = function(base, auto) { const target = parseInt(prompt("Hedef?", 4)); if(!target) return; const limit = parseInt(prompt("Limit?", 5)); if(!limit) return; let spent=0, bestTotal=0, logTxt = ""; while(spent < limit) { spent++; let r1 = rollD(base); let hits = r1.h; let fails = base - hits; let pushed = 0; if(fails > 0) { let r2 = rollD(fails); pushed = r2.h; } let total = hits + pushed + auto; logTxt += `[#${spent}: ${total}] `; if(total >= target) { bestTotal=total; break; } if(total > bestTotal) bestTotal=total; } if(!gameState.inspiration[currentUser]) gameState.inspiration[currentUser]=0; gameState.inspiration[currentUser]+=spent; const html=`<div style="background:rgba(200,150,0,0.1); padding:5px; margin-top:5px;"><b>🔥 COMBO</b> (Harc: ${spent})<br><small>${logTxt}</small><br>SONUÇ: <b style="color:${bestTotal>=target?'#2ecc71':'#e74c3c'}">${bestTotal} BAŞARI</b></div>`; addLog(html); gameState.chat.push({u:"SİSTEM", t:html, type:'html'}); updateState(); }
+
+        // Core UI helpers
         function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
         function togglePanel(id){document.getElementById(id).classList.toggle('visible')}
         function toggleTooltips(){showTooltips=document.getElementById('show-tooltips').checked; renderMap();}
-        function addLog(h){const c=document.getElementById('log-content');const d=document.createElement('div');d.className='log-entry';d.innerHTML=h;c.prepend(d)}
+        function addLog(h){const c=document.getElementById('log-content'); const d=document.createElement('div'); d.className='log-entry'; d.innerHTML=h; c.prepend(d);}
         function clearLog(){document.getElementById('log-content').innerHTML=""}
+        // ... (Grid, Fog, Canvas resize, Init, Act, Insp helpers same as before) ...
         function resizeCvs(){const i=document.getElementById('game-map'),w=i.naturalWidth||800,h=i.naturalHeight||600;['grid-canvas','fog-canvas','ruler-canvas'].forEach(id=>{const c=document.getElementById(id);c.width=w;c.height=h})}
         function clearCvs(){['grid-canvas','fog-canvas'].forEach(id=>document.getElementById(id).getContext('2d').clearRect(0,0,9999,9999))}
         function drawGrid(){const c=document.getElementById('grid-canvas'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);if(!gameState.grid.show)return;x.beginPath();x.strokeStyle='rgba(255,255,255,0.1)';for(let i=0;i<=c.width;i+=gameState.grid.size){x.moveTo(i,0);x.lineTo(i,c.height)}for(let j=0;j<=c.height;j+=gameState.grid.size){x.moveTo(0,j);x.lineTo(c.width,j)}x.stroke()}
@@ -774,20 +724,51 @@
         function nextTurn(){if(!isGM)return;gameState.initiative.currentIdx++;if(gameState.initiative.currentIdx>=gameState.initiative.list.length){gameState.initiative.currentIdx=0;gameState.initiative.round++}updateState();}
         function rmInit(id){if(!isGM)return;gameState.initiative.list=gameState.initiative.list.filter(x=>x.id!==id);updateState();}
         function clearInit(){if(!isGM)return;gameState.initiative={list:[],round:1,currentIdx:0};updateState();}
+        function renderAct(){const l=document.getElementById('act-list');l.innerHTML="";Object.entries(gameState.activity.scores).sort((a,b)=>b[1]-a[1]).forEach(([u,t])=>{l.innerHTML+=`<div class="list-item"><span>${u.toUpperCase()}</span><span>${Math.floor(t/60)}:${Math.floor(t%60).toString().padStart(2,'0')}</span></div>`})}
+        function resetAct(){if(isGM){gameState.activity.scores={};updateState();}}
         function renderInsp(){const l=document.getElementById('insp-list');l.innerHTML="";Object.entries(gameState.inspiration).forEach(([u,v])=>{if(v>0)l.innerHTML+=`<div class="list-item"><span>${u.toUpperCase()}</span><span style="color:var(--gold-text);font-weight:bold">${v}</span></div>`})}
         function resetInsp(){if(isGM){gameState.inspiration={};updateState();}}
-        function resetAll(){if(isGM&&confirm("Emin misin?")){gameState={mapSrc:null,grid:{show:true,size:50,scale:1.5},weather:"",initiative:{list:[],round:1,currentIdx:0},activity:{paused:false,scores:{}},inspiration:{},chat:[],tokens:[],tokenLibrary:[],music:{type:'none',src:'',status:'paused',loop:false}};updateState();}}
+        function resetAll(){if(isGM&&confirm("Emin misin?")){gameState={mapSrc:null,grid:{show:true,size:50,scale:1.5},weather:"",initiative:{list:[],round:1,currentIdx:0},activity:{paused:false,scores:{}},inspiration:{},chat:[],tokens:[],tokenLibrary:[],music:{type:'none',src:'',status:'paused'}};updateState();}}
         function renderAlbum(){const g=document.getElementById('album-grid');g.innerHTML="";if(!gameState.tokenLibrary)return;gameState.tokenLibrary.forEach(u=>{const i=document.createElement('div');i.className='album-item';i.style.backgroundImage=`url(${u})`;i.onclick=()=>{gameState.tokens.push({id:Date.now(),owner:currentUser,x:100,y:100,imgSrc:u,scale:1,stats:{},meta:{align:"",traits:['','','']},vision:10,locked:false,statuses:[],attachTo:null});updateState()};if(isGM){const d=document.createElement('button');d.innerText="X";d.onclick=e=>{e.stopPropagation();gameState.tokenLibrary=gameState.tokenLibrary.filter(x=>x!==u);updateState()};i.appendChild(d)}g.appendChild(i)})}
+        // ... (Clipboard logic same as before) ...
+        let clipboard=null, mousePos={x:0,y:0}; document.addEventListener('mousemove',e=>{const r=document.getElementById('map-container').getBoundingClientRect();mousePos={x:(e.clientX-r.left)/mapTransform.scale,y:(e.clientY-r.top)/mapTransform.scale}}); document.addEventListener('keydown',e=>{if(!isGM)return;if((e.ctrlKey||e.metaKey)&&e.key==='c'&&activeTokenId){const t=gameState.tokens.find(x=>x.id===activeTokenId);if(t)clipboard=JSON.parse(JSON.stringify(t))}if((e.ctrlKey||e.metaKey)&&e.key==='v'&&clipboard){const n=JSON.parse(JSON.stringify(clipboard));n.id=Date.now();n.x=mousePos.x||100;n.y=mousePos.y||100;gameState.tokens.push(n);updateState()}});
         
-        // ZOOM/PAN & RULER
-        function initZoomPan(){const a=document.getElementById('game-area'),c=document.getElementById('map-container');let iP=false,sX=0,sY=0;function app(){c.style.transform=`translate(${mapTransform.x}px,${mapTransform.y}px) scale(${mapTransform.scale})`} a.addEventListener('wheel',e=>{e.preventDefault();const d=e.deltaY>0?0.9:1.1;const ns=Math.min(Math.max(0.1,mapTransform.scale*d),10);const r=a.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;mapTransform.x=mx-(mx-mapTransform.x)*(ns/mapTransform.scale);mapTransform.y=my-(my-mapTransform.y)*(ns/mapTransform.scale);mapTransform.scale=ns;app()},{passive:false}); a.addEventListener('contextmenu',e=>e.preventDefault()); a.addEventListener('mousedown',e=>{if(e.button===2){iP=true;sX=e.clientX-mapTransform.x;sY=e.clientY-mapTransform.y;a.style.cursor='grabbing'}}); window.addEventListener('mousemove',e=>{if(iP){e.preventDefault();mapTransform.x=e.clientX-sX;mapTransform.y=e.clientY-sY;app()}}); window.addEventListener('mouseup',()=>{iP=false;a.style.cursor='default'}); let iD=0,iS=1; a.addEventListener('touchstart',e=>{if(e.touches.length===2){iD=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);iS=mapTransform.scale}},{passive:false}); a.addEventListener('touchmove',e=>{if(e.touches.length===2){e.preventDefault();const d=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);const dt=d/iD;mapTransform.scale=Math.min(Math.max(0.1,iS*dt),10);app()}},{passive:false})}
+        // ... (Sheet Render) ...
+        function getS(t,k){const v=t.stats[k]||"1,0";const p=v.split(',');return{b:parseInt(p[0])||1,a:parseInt(p[1])||0}}
+        function setS(t,k,b,a){t.stats[k]=`${b},${a}`; updateState(); }
+        function renderStats(t){const al=document.getElementById('attr-list'), sl=document.getElementById('skill-list'); al.innerHTML=""; sl.innerHTML=""; const cr=(k,tr,tp)=>{const s=getS(t,k);return `<div class="stat-row"><span style="color:var(--gold-text);font-size:0.75rem">${tr}</span><div class="input-group"><input type="number" min="1" max="5" value="${s.b}" onchange="upS('${k}',this.value,'${s.a}')"></div><div class="input-group"><input type="number" min="0" value="${s.a}" onchange="upS('${k}','${s.b}',this.value)"></div><button class="stat-btn-locked" onclick="selS('${k}','${tp}',this)">${tr}: ${s.b} + ${s.a}</button></div>`}; for(let k in ATTRS)al.innerHTML+=cr(k,ATTRS[k],'attr'); for(let k in SKILLS)sl.innerHTML+=cr(k,SKILLS[k],'skill');}
+        window.upS=function(k,b,a){setS(gameState.tokens.find(x=>x.id===activeTokenId),k,b,a)}
+        window.selS=function(k,tp,btn){if(!sheetLocked)return;if(tp==='attr'){selAttr=(selAttr===k)?null:k;document.querySelectorAll('#attr-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selAttr)btn.classList.add('selected')}else{selSkill=(selSkill===k)?null:k;document.querySelectorAll('#skill-list .stat-btn-locked').forEach(b=>b.classList.remove('selected'));if(selSkill)btn.classList.add('selected')}document.getElementById('sheet-status').innerText=`Seçim: ${selAttr?ATTRS[selAttr]:'-'} + ${selSkill?SKILLS[selSkill]:'-'}`}
+        function toggleLock(){sheetLocked=!sheetLocked;const b=document.querySelector('.sheet-body'),btn=document.getElementById('btn-lock');if(sheetLocked){b.classList.add('locked-mode');btn.innerText="AÇ";renderStats(gameState.tokens.find(x=>x.id===activeTokenId))}else{b.classList.remove('locked-mode');btn.innerText="KİLİTLE";selAttr=null;selSkill=null}}
+        function renderStatusGrid(t){const g=document.getElementById('status-grid');g.innerHTML="";CONDITIONS.forEach(c=>{const a=t.statuses.includes(c);const b=document.createElement('button');b.className=`status-btn ${a?'active-status':''}`;b.innerText=c;b.onclick=()=>{if(a)t.statuses=t.statuses.filter(x=>x!==c);else t.statuses.push(c);renderStatusGrid(t);updateState()};g.appendChild(b)})}
+        function gmDeleteToken(){if(confirm("Sil?")){gameState.tokens=gameState.tokens.filter(x=>x.id!==activeTokenId);closeSheet();updateState()}}
+        function gmTogglePosLock(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.locked=!t.locked;openSheet(activeTokenId);updateState()}
+        function gmUpdateToken(){const t=gameState.tokens.find(x=>x.id===activeTokenId);t.vision=parseFloat(document.getElementById('gm-vision').value)||10;updateState()}
+
+        // --- RULER FIX (Condensed) ---
         function toggleRuler(){rulerMode=!rulerMode;rulerStartPoint=null;const b=document.getElementById('btn-ruler'),a=document.getElementById('game-area'),c=document.getElementById('ruler-canvas').getContext('2d');if(rulerMode){b.classList.add('active-mode');a.classList.add('ruler-active')}else{b.classList.remove('active-mode');a.classList.remove('ruler-active');c.clearRect(0,0,c.canvas.width,c.canvas.height);document.getElementById('ruler-info').style.display='none'}}
         function getMapPt(e){const r=document.getElementById('map-container').getBoundingClientRect();let cx=e.clientX,cy=e.clientY;if(e.touches&&e.touches[0]){cx=e.touches[0].clientX;cy=e.touches[0].clientY;}return{x:(cx-r.left)/mapTransform.scale,y:(cy-r.top)/mapTransform.scale}}
-        const gArea=document.getElementById('game-area'); gArea.addEventListener('mousedown',e=>{if(!rulerMode||e.button!==0)return;tempStart=getMapPt(e);isDraggingRuler=false});
+        const gArea=document.getElementById('game-area');
+        gArea.addEventListener('mousedown',e=>{if(!rulerMode||e.button!==0)return;tempStart=getMapPt(e);isDraggingRuler=false});
         window.addEventListener('mousemove',e=>{if(!rulerMode)return;const c=getMapPt(e),ctx=document.getElementById('ruler-canvas').getContext('2d'),o=rulerStartPoint||tempStart;if(!o)return;if(tempStart)isDraggingRuler=true;ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);ctx.beginPath();ctx.strokeStyle='#f1c40f';ctx.lineWidth=3/mapTransform.scale;ctx.setLineDash([10,5]);ctx.moveTo(o.x,o.y);ctx.lineTo(c.x,c.y);ctx.stroke();const m=(Math.hypot(c.x-o.x,c.y-o.y)/gameState.grid.size)*gameState.grid.scale;const i=document.getElementById('ruler-info');i.style.display='block';i.innerText=m.toFixed(1)+"m"});
         window.addEventListener('mouseup',e=>{if(!rulerMode)return;const ctx=document.getElementById('ruler-canvas').getContext('2d'); if(tempStart&&isDraggingRuler&&!rulerStartPoint){tempStart=null;ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);document.getElementById('ruler-info').style.display='none'}else if(tempStart&&!isDraggingRuler){if(!rulerStartPoint)rulerStartPoint=tempStart;else{rulerStartPoint=null;ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);document.getElementById('ruler-info').style.display='none'}tempStart=null}});
         gArea.addEventListener('touchstart',e=>{if(rulerMode){tempStart=getMapPt(e);isDraggingRuler=false}});
         gArea.addEventListener('touchend',e=>{if(rulerMode){if(tempStart&&!isDraggingRuler){if(!rulerStartPoint)rulerStartPoint=tempStart;else{rulerStartPoint=null;document.getElementById('ruler-canvas').getContext('2d').clearRect(0,0,9999,9999);}}tempStart=null}});
+        
+        // --- ZOOM & PAN ---
+        function initZoomPan(){
+            const area=document.getElementById('game-area'), cont=document.getElementById('map-container');
+            let isPanning=false, startX=0, startY=0;
+            function apply() { cont.style.transform = `translate(${mapTransform.x}px, ${mapTransform.y}px) scale(${mapTransform.scale})`; }
+            area.addEventListener('wheel', e => { e.preventDefault(); const delta = e.deltaY>0?0.9:1.1; const newScale = Math.min(Math.max(0.1, mapTransform.scale*delta), 10); const rect=area.getBoundingClientRect(), mx=e.clientX-rect.left, my=e.clientY-rect.top; mapTransform.x = mx - (mx - mapTransform.x)*(newScale/mapTransform.scale); mapTransform.y = my - (my - mapTransform.y)*(newScale/mapTransform.scale); mapTransform.scale = newScale; apply(); }, {passive:false});
+            area.addEventListener('contextmenu',e=>e.preventDefault());
+            area.addEventListener('mousedown',e=>{if(e.button===2){isPanning=true;startX=e.clientX-mapTransform.x;startY=e.clientY-mapTransform.y;area.style.cursor='grabbing';}});
+            window.addEventListener('mousemove',e=>{if(isPanning){e.preventDefault();mapTransform.x=e.clientX-startX;mapTransform.y=e.clientY-startY;apply();}});
+            window.addEventListener('mouseup',()=>{isPanning=false;area.style.cursor='default';});
+            let initDist=0, initScale=1;
+            area.addEventListener('touchstart',e=>{if(e.touches.length===2){initDist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);initScale=mapTransform.scale;}},{passive:false});
+            area.addEventListener('touchmove',e=>{if(e.touches.length===2){e.preventDefault();const dist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY);const delta=dist/initDist;mapTransform.scale=Math.min(Math.max(0.1,initScale*delta),10);apply();}},{passive:false});
+        }
 
     </script>
 </body>
