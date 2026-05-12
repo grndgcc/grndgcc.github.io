@@ -2,8 +2,9 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <script src="https://cdn.owlbear.rodeo/owlbear-rodeo-sdk-v2.js"></script>
-    <script>
+    <script type="module">
+        import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.2.0/+esm";
+        
         OBR.onReady(() => {
             // Başka bir oyuncudan zar mesajı geldiğinde dinle
             OBR.broadcast.onMessage('yze-roll-event', (event) => {
