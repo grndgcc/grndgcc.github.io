@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "manifest_version": 1,
   "description": "Year Zero Engine için Adil Zar Atma Eklentisi",
-  "icon": "https://grndgcc.github.io//seslisohbet/icon.svg",
-  "background_url": "https://grndgcc.github.io//seslisohbet/background.html",
+  "icon": "icon.svg",
+  "background_url": "background.html",
   "action": {
     "title": "YZE Zar",
-    "icon": "https://grndgcc.github.io//seslisohbet/icon.svg",
-    "popover": "https://grndgcc.github.io//seslisohbet/index.html",
+    "icon": "icon.svg",
+    "popover": "index.html",
     "width": 320,
     "height": 450
   }
