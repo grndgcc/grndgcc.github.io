@@ -1,0 +1,18 @@
+{
+  "name": "YZE Roller",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "description": "Year Zero Engine için Adil Zar Atma Eklentisi",
+  "icon": "icon.svg",
+  "action": {
+    "title": "YZE Zar",
+    "icon": "icon.svg",
+    "popover": {
+      "width": 320,
+      "height": 450
+    }
+  },
+  "background": {
+    "html": "background.html"
+  }
+}
