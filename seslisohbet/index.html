@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taverna Fısıltıları - RPG Sesli İletişim</title>
+    
+    <!-- PeerJS Kütüphanesi (Sunucusuz P2P için) -->
+    <script src="https://unpkg.com/peerjs@1.5.1/dist/peerjs.min.js"></script>
+
+    <!-- CSS (Tasarım Kodları) -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Lora:ital@0;1&display=swap');
+
+        body {
+            background-color: #0a0a0a;
+            background-image: radial-gradient(circle at center, #2a1f1a 0%, #050505 100%);
+            color: #e6d5b8;
+            font-family: 'Lora', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1, h2 {
+            font-family: 'Cinzel', serif;
+            color: #c7a052;
+            text-shadow: 2px 2px 5px #000;
+            margin-bottom: 10px;
+        }
+
+        #login-container, #chat-container {
+            background: rgba(15, 15, 15, 0.95);
+            padding: 40px;
+            border: 2px solid #5a4627;
+            border-radius: 8px;
+            box-shadow: 0 0 30px rgba(199, 160, 82, 0.15);
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #mic-status {
+            color: #c7a052;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: #4a3617;
+            color: #e6d5b8;
+            border: 1px solid #c7a052;
+            padding: 12px 20px;
+            font-family: 'Cinzel', serif;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            width: 100%;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #c7a052;
+            color: #111;
+            box-shadow: 0 0 10px #c7a052;
+        }
+
+        input {
+            width: 85%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: #1a1a1a;
+            border: 1px solid #5a4627;
+            color: #e6d5b8;
+            text-align: center;
+            font-size: 18px;
+            font-family: 'Cinzel', serif;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #c7a052;
+        }
+
+        .divider {
+            margin: 25px 0;
+            border-bottom: 1px solid #5a4627;
+            position: relative;
+        }
+
+        .divider span {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f0f0f;
+            padding: 0 15px;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .hint {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        #mute-btn.muted {
+            background: #5e1919;
+            border-color: #ff4d4d;
+            color: #ffcccc;
+        }
+    </style>
+</head>
+<body>
+    <!-- HTML (Arayüz) -->
+    <div id="login-container">
+        <h1>Taverna Fısıltıları</h1>
+        <p>Anonim, Kayıtsız ve Sunucusuz Sesli İletişim</p>
+        
+        <div id="mic-status">Mikrofon izni bekleniyor...</div>
+
+        <div class="actions" id="action-buttons" style="display: none;">
+            <button id="create-room-btn">Yeni Taverna Masası Kur (Hancı Ol)</button>
+            <div class="divider"><span>veya</span></div>
+            <input type="text" id="room-input" placeholder="Masa (Oda) Kodunu Girin">
+            <button id="join-room-btn">Masaya Katıl</button>
+        </div>
+    </div>
+
+    <div id="chat-container" class="hidden">
+        <h2>Oda Kodu: <span id="current-room-id"></span></h2>
+        <p class="hint">Bu kodu konuşmak istediğin kişilerle paylaş.<br><small>(Not: Odayı kuran "Hancı" masadan kalkarsa, masaya yeni biri katılamaz.)</small></p>
+        
+        <div id="controls">
+            <button id="mute-btn" class="active">Mikrofonu Kapat</button>
+            <button id="leave-btn">Masadan Kalk</button>
+        </div>
+
+        <div id="audio-grid">
+            <!-- Bağlanan kişilerin ses elementleri buraya eklenecek -->
+        </div>
+    </div>
+
+    <!-- JavaScript (İşlevsellik Kodları) -->
+    <script>
+        const audioGrid = document.getElementById('audio-grid');
+        const loginContainer = document.getElementById('login-container');
+        const chatContainer = document.getElementById('chat-container');
+        const roomIdDisplay = document.getElementById('current-room-id');
+        const micStatus = document.getElementById('mic-status');
+        const actionButtons = document.getElementById('action-buttons');
+
+        let myStream;
+        let peer;
+        const connectedPeers = {}; // Bağlı olan kullanıcıları takip etmek için
+        let isHost = false;
+        const guestIds =[]; // Sadece Hancı (Host) tarafından kullanılır
+
+        // 1. Önce mikrofon iznini alıyoruz
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+            myStream = stream;
+            micStatus.style.display = 'none';
+            actionButtons.style.display = 'block';
+        }).catch(err => {
+            micStatus.innerText = "Mikrofon izni reddedildi! Lütfen izin verip sayfayı yenileyin.";
+            micStatus.style.color = "red";
+        });
+
+        // YENİ ODA KUR (HANCI OL)
+        document.getElementById('create-room-btn').addEventListener('click', () => {
+            isHost = true;
+            const roomId = 'MASA-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+            
+            // Hancının Peer ID'si doğrudan oda kodu olur
+            initializePeer(roomId);
+        });
+
+        // ODAYA KATIL (MİSAFİR)
+        document.getElementById('join-room-btn').addEventListener('click', () => {
+            const roomId = document.getElementById('room-input').value.trim().toUpperCase();
+            if(roomId) {
+                // Misafirlere rastgele ID atanır
+                initializePeer(null, roomId);
+            }
+        });
+
+        function initializePeer(customId, hostRoomId = null) {
+            // PeerJS'in ücretsiz açık kaynaklı bulut sunucusunu kullanıyoruz
+            peer = customId ? new Peer(customId) : new Peer();
+
+            peer.on('open', id => {
+                loginContainer.classList.add('hidden');
+                chatContainer.classList.remove('hidden');
+
+                if (isHost) {
+                    roomIdDisplay.innerText = customId;
+                    setupHostLogic();
+                } else {
+                    roomIdDisplay.innerText = hostRoomId;
+                    setupGuestLogic(hostRoomId);
+                }
+            });
+
+            // Biri bizi sesli aradığında (Odadaki diğer kişiler)
+            peer.on('call', call => {
+                call.answer(myStream); // Kendi sesimizi onlara gönderiyoruz
+                handleIncomingStream(call);
+            });
+        }
+
+        // ================= HANCI (HOST) MANTIĞI =================
+        function setupHostLogic() {
+            // Yeni biri odaya (Hancıya) data bağlantısı kurduğunda
+            peer.on('connection', conn => {
+                conn.on('open', () => {
+                    // Hancı, yeni gelene odadaki mevcut kişilerin listesini atar
+                    conn.send({ type: 'peer-list', peers: guestIds });
+                    guestIds.push(conn.peer);
+                });
+            });
+        }
+
+        // ================= MİSAFİR (GUEST) MANTIĞI =================
+        function setupGuestLogic(hostRoomId) {
+            // Misafir, odaya girmek için Hancıya data bağlantısı atar
+            const conn = peer.connect(hostRoomId);
+            
+            conn.on('open', () => {
+                // Hancıdan odadaki diğer kişilerin listesini bekler
+                conn.on('data', data => {
+                    if (data.type === 'peer-list') {
+                        // Önce Hancıyı ara
+                        callPeer(hostRoomId);
+                        // Sonra odadaki diğer kişileri tek tek ara
+                        data.peers.forEach(peerId => {
+                            callPeer(peerId);
+                        });
+                    }
+                });
+            });
+
+            conn.on('error', () => {
+                alert("Oda bulunamadı veya Hancı masadan kalkmış!");
+                location.reload();
+            });
+        }
+
+        // BELİRLİ BİR KİŞİYİ SESLİ ARAMA FONKSİYONU
+        function callPeer(peerId) {
+            const call = peer.call(peerId, myStream);
+            handleIncomingStream(call);
+        }
+
+        // GELEN SESİ OYNATMA FONKSİYONU
+        function handleIncomingStream(call) {
+            if (connectedPeers[call.peer]) return; // Zaten bağlıysak ekleme
+            
+            const audio = document.createElement('audio');
+            
+            call.on('stream', userAudioStream => {
+                audio.srcObject = userAudioStream;
+                audio.addEventListener('loadedmetadata', () => {
+                    audio.play().catch(e => console.log("Otomatik oynatma hatası:", e));
+                });
+                if(!connectedPeers[call.peer]) {
+                    audioGrid.append(audio);
+                    connectedPeers[call.peer] = call;
+                }
+            });
+
+            call.on('close', () => {
+                audio.remove();
+                delete connectedPeers[call.peer];
+            });
+        }
+
+        // MUTE (Sustur) Tuşu
+        const muteBtn = document.getElementById('mute-btn');
+        muteBtn.addEventListener('click', () => {
+            if (!myStream) return;
+            const audioTrack = myStream.getAudioTracks()[0];
+            if (audioTrack.enabled) {
+                audioTrack.enabled = false;
+                muteBtn.innerText = "Mikrofonu Aç";
+                muteBtn.classList.add('muted');
+            } else {
+                audioTrack.enabled = true;
+                muteBtn.innerText = "Mikrofonu Kapat";
+                muteBtn.classList.remove('muted');
+            }
+        });
+
+        // ÇIKIŞ Tuşu
+        document.getElementById('leave-btn').addEventListener('click', () => {
+            location.reload(); // Sayfayı yenilemek bağlantıyı ve anonimliği sıfırlar
+        });
+    </script>
+</body>
+</html>
