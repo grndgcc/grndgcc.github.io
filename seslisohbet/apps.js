@@ -1,3 +1,6 @@
+// Owlbear Rodeo kütüphanesini doğru şekilde projeye dahil ediyoruz
+import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.2.0/+esm";
+
 let currentRolls = { base: [], skill: [], gear:[] };
 let hasPushed = false;
 let playerName = "Oyuncu";
@@ -68,22 +71,25 @@ function broadcastRoll(isPush) {
 
     const payload = { message: msg, successes: totalSuccesses };
 
-    // Diğer oyunculara gönder
+    // Diğer oyunculara (Arka plan dosyasına) gönder
     OBR.broadcast.sendMessage('yze-roll-event', payload);
-    // Kendi ekranında da göster
+    // Zar atanın kendi ekranında göster
     OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "WARNING");
 }
-OBR.onReady(async () => {
-    // Eklenti penceresinin boyutlarını belirle
-    OBR.action.setWidth(320);
-    OBR.action.setHeight(450);
 
-    playerName = await OBR.player.getName();
+OBR.onReady(async () => {
+    try {
+        playerName = await OBR.player.getName() || "Oyuncu";
+    } catch(e) {
+        console.log("İsim alınamadı, Oyuncu kullanılacak.");
+    }
 
     document.getElementById('rollBtn').addEventListener('click', () => {
         const baseCount = parseInt(document.getElementById('baseDice').value) || 0;
         const skillCount = parseInt(document.getElementById('skillDice').value) || 0;
         const gearCount = parseInt(document.getElementById('gearDice').value) || 0;
+
+        if (baseCount === 0 && skillCount === 0 && gearCount === 0) return;
 
         currentRolls.base = rollDicePool(baseCount);
         currentRolls.skill = rollDicePool(skillCount);
@@ -99,13 +105,13 @@ OBR.onReady(async () => {
     document.getElementById('pushBtn').addEventListener('click', () => {
         if (hasPushed) return;
 
-        // YZE Zorlama Kuralları: Başarılar (6) ve zararlı 1'ler (Temel ve Eşya için) tutulur, gerisi yeniden atılır.
+        // YZE Zorlama Kuralları: Başarılar (6) ve zararlı 1'ler (Temel ve Eşya) tutulur, gerisi yeniden atılır.
         currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : getFairD6());
         currentRolls.skill = currentRolls.skill.map(r => (r === 6) ? r : getFairD6());
         currentRolls.gear = currentRolls.gear.map(r => (r === 6 || r === 1) ? r : getFairD6());
 
         hasPushed = true;
-        document.getElementById('pushBtn').disabled = true; // Sadece bir kere zorlanabilir
+        document.getElementById('pushBtn').disabled = true;
 
         updateUI();
         broadcastRoll(true);
