@@ -7,10 +7,7 @@
   "action": {
     "title": "YZE Zar",
     "icon": "icon.svg",
-    "popover": {
-      "width": 320,
-      "height": 450
-    }
+    "popover": "index.html"
   },
   "background": {
     "html": "background.html"
