@@ -73,8 +73,11 @@ function broadcastRoll(isPush) {
     // Kendi ekranında da göster
     OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "WARNING");
 }
-
 OBR.onReady(async () => {
+    // Eklenti penceresinin boyutlarını belirle
+    OBR.action.setWidth(320);
+    OBR.action.setHeight(450);
+
     playerName = await OBR.player.getName();
 
     document.getElementById('rollBtn').addEventListener('click', () => {
