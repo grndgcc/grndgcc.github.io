@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YZE Zar</title>
 
+    <!-- Asla hata vermeyecek standart kütüphane -->
+    <script src="https://unpkg.com/@owlbear-rodeo/sdk@3.2.0/lib/index.umd.js"></script>
+
     <style>
         body { font-family: Arial, sans-serif; background-color: #242424; color: #ffffff; margin: 0; padding: 15px; }
         .container { display: flex; flex-direction: column; gap: 12px; }
@@ -48,10 +51,8 @@
         <div id="connStatus">Bağlantı Bekleniyor...</div>
     </div>
 
-    <!-- Doğrudan Import Yöntemi (Asla hata vermez) -->
-    <script type="module">
-        import OBR from "https://esm.sh/@owlbear-rodeo/sdk@3.2.0";
-
+    <!-- Modül (import) sistemini çöpe attık, direkt script kullanıyoruz -->
+    <script>
         let currentRolls = { base: [], skill: [], gear:[] };
         let hasPushed = false;
         let playerName = "Oyuncu";
@@ -111,7 +112,8 @@
         }
 
         function broadcastRoll(isPush) {
-            if (!isObrReady) return;
+            // Eğer Owlbear bağlı değilse sadece konsola yaz, HATA VERİP SİSTEMİ DURDURMA!
+            if (!isObrReady || typeof window.OBR === "undefined") return;
 
             const totalSuccesses = countSuccesses();
             let msg = `${playerName} ${isPush ? 'zarları ZORLADI!' : 'zar attı!'} -> ${totalSuccesses} BAŞARI.\n`;
@@ -120,10 +122,12 @@
             if(currentRolls.skill.length > 0) msg += `Yetenek:[${currentRolls.skill.join(',')}] `;
             if(currentRolls.gear.length > 0) msg += `Eşya:[${currentRolls.gear.join(',')}]`;
 
-            OBR.broadcast.sendMessage('yze-roll-event', { message: msg, successes: totalSuccesses });
-            OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "DEFAULT");
+            // OBR nesnesi artık window üzerinden güvenli şekilde çağırılıyor
+            window.OBR.broadcast.sendMessage('yze-roll-event', { message: msg, successes: totalSuccesses });
+            window.OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "DEFAULT");
         }
 
+        // ZAR ATMA BUTONU (Bağlantı kopsa bile %100 çalışır)
         document.getElementById('rollBtn').addEventListener('click', () => {
             const b = parseInt(document.getElementById('baseDice').value) || 0;
             const s = parseInt(document.getElementById('skillDice').value) || 0;
@@ -141,6 +145,7 @@
             broadcastRoll(false);
         });
 
+        // ZORLAMA BUTONU
         document.getElementById('pushBtn').addEventListener('click', () => {
             if (hasPushed) return;
             currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : rollD6());
@@ -153,22 +158,23 @@
             broadcastRoll(true);
         });
 
-        // Owlbear Başlatma
-        OBR.onReady(() => {
-            isObrReady = true;
-            document.getElementById('connStatus').innerHTML = "🟢 Masaya Bağlı (Herkes Görebilir)";
-            
-            // İsim almayı sistemi kitlememesi için ayrı çalıştırıyoruz
-            OBR.player.getName().then(name => {
-                if (name) playerName = name;
-            }).catch(() => {
-                playerName = "Oyuncu";
+        // OBR Yüklenmişse (Bağlantı Başarılıysa)
+        if (typeof window.OBR !== "undefined") {
+            window.OBR.onReady(() => {
+                isObrReady = true;
+                document.getElementById('connStatus').innerHTML = "🟢 Masaya Bağlı (Diğerleri Görebilir)";
+                
+                window.OBR.player.getName().then(name => {
+                    if (name) playerName = name;
+                }).catch(() => {
+                    playerName = "Oyuncu";
+                });
             });
-        });
+        }
 
         // Test uyarısı
         setTimeout(() => {
-            if(!isObrReady) document.getElementById('connStatus').innerHTML = "🔴 Eklentiyi boş sekmede açtınız. Owlbear içinde açın.";
+            if(!isObrReady) document.getElementById('connStatus').innerHTML = "🔴 Sadece siz görüyorsunuz (Kendi pencerenizde).";
         }, 3000);
     </script>
 </body>
