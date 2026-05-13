@@ -1,14 +1,9 @@
-// Arayüze başlangıç mesajı atıyoruz
-document.getElementById('results').innerHTML = "<i>1. Kütüphane yükleniyor...</i>";
-
-import OBR from "https://esm.sh/@owlbear-rodeo/sdk@3.2.0";
-
-document.getElementById('results').innerHTML = "<i>2. Owlbear masası bekleniyor... (Tek başına sekmede açtıysanız çalışmaz)</i>";
-
 let currentRolls = { base: [], skill: [], gear:[] };
 let hasPushed = false;
 let playerName = "Oyuncu";
+let isObrReady = false;
 
+// Kriptografik Zar Fonksiyonu
 function getFairD6() {
     const array = new Uint32Array(1);
     const maxValid = 4294967295 - (4294967295 % 6);
@@ -32,6 +27,7 @@ function countSuccesses(rolls) {
            rolls.gear.filter(r => r === 6).length;
 }
 
+// ZARLARI KUTU İÇİNDE GÖSTEREN FONKSİYON
 function updateUI() {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
@@ -43,8 +39,10 @@ function updateUI() {
         rolls.forEach(r => {
             const die = document.createElement('div');
             die.className = `die ${color}`;
+            // Başarılar ve Başarısızlıklar
             if (r === 6) die.classList.add('success');
             if (r === 1 && (type === 'base' || type === 'gear')) die.classList.add('bane');
+            
             die.textContent = r;
             row.appendChild(die);
         });
@@ -58,12 +56,22 @@ function updateUI() {
     const totalSuccesses = countSuccesses(currentRolls);
     const successText = document.createElement('h3');
     successText.textContent = `Toplam Başarı: ${totalSuccesses}`;
+    
+    // Owlbear bağlantı durumunu da küçükçe gösterelim
+    const connStatus = document.createElement('div');
+    connStatus.style.fontSize = "10px";
+    connStatus.style.marginTop = "10px";
+    connStatus.textContent = isObrReady ? "🟢 Owlbear'a Bağlı (Herkes görüyor)" : "🔴 Owlbear'a Bağlı Değil (Sadece siz görüyorsunuz)";
+    
     resultsDiv.appendChild(successText);
+    resultsDiv.appendChild(connStatus);
 }
 
+// DİĞER OYUNCULARA BİLDİRİM GÖNDERME FONKSİYONU
 function broadcastRoll(isPush) {
+    if (!isObrReady) return; // Owlbear bağlı değilse yayın yapmaya çalışma
+
     const totalSuccesses = countSuccesses(currentRolls);
-    
     let msg = `${playerName} ${isPush ? 'zarları ZORLADI!' : 'zar attı!'} -> ${totalSuccesses} BAŞARI.\n`;
     if(currentRolls.base.length > 0) msg += `Temel:[${currentRolls.base.join(',')}] `;
     if(currentRolls.skill.length > 0) msg += `Yetenek:[${currentRolls.skill.join(',')}] `;
@@ -73,51 +81,51 @@ function broadcastRoll(isPush) {
     OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "INFO");
 }
 
-try {
-    OBR.onReady(async () => {
-        document.getElementById('results').innerHTML = "<i>Zar atmaya hazır!</i>";
+// ZAR ATMA BUTONU (Owlbear'dan bağımsız her zaman çalışır)
+document.getElementById('rollBtn').addEventListener('click', () => {
+    const baseCount = parseInt(document.getElementById('baseDice').value) || 0;
+    const skillCount = parseInt(document.getElementById('skillDice').value) || 0;
+    const gearCount = parseInt(document.getElementById('gearDice').value) || 0;
 
+    if (baseCount === 0 && skillCount === 0 && gearCount === 0) {
+        alert("Lütfen en az 1 zar seçin!");
+        return;
+    }
+
+    currentRolls.base = rollDicePool(baseCount);
+    currentRolls.skill = rollDicePool(skillCount);
+    currentRolls.gear = rollDicePool(gearCount);
+
+    hasPushed = false;
+    document.getElementById('pushBtn').disabled = false;
+
+    updateUI(); // Arayüzde zarları çiz
+    broadcastRoll(false); // Diğer oyunculara gönder
+});
+
+// ZORLAMA (PUSH) BUTONU
+document.getElementById('pushBtn').addEventListener('click', () => {
+    if (hasPushed) return;
+
+    currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : getFairD6());
+    currentRolls.skill = currentRolls.skill.map(r => (r === 6) ? r : getFairD6());
+    currentRolls.gear = currentRolls.gear.map(r => (r === 6 || r === 1) ? r : getFairD6());
+
+    hasPushed = true;
+    document.getElementById('pushBtn').disabled = true;
+
+    updateUI(); // Arayüzde yeni zarları çiz
+    broadcastRoll(true); // Diğer oyunculara gönder
+});
+
+// OWLBEAR BAĞLANTISI (Zar atmanın çalışmasını engellemez)
+if (typeof OBR !== "undefined") {
+    OBR.onReady(async () => {
+        isObrReady = true;
         try {
             playerName = await OBR.player.getName() || "Oyuncu";
         } catch(e) {
             playerName = "Oyuncu";
         }
-
-        document.getElementById('rollBtn').addEventListener('click', () => {
-            const baseCount = parseInt(document.getElementById('baseDice').value) || 0;
-            const skillCount = parseInt(document.getElementById('skillDice').value) || 0;
-            const gearCount = parseInt(document.getElementById('gearDice').value) || 0;
-
-            if (baseCount === 0 && skillCount === 0 && gearCount === 0) {
-                alert("Lütfen en az 1 zar seçin!");
-                return;
-            }
-
-            currentRolls.base = rollDicePool(baseCount);
-            currentRolls.skill = rollDicePool(skillCount);
-            currentRolls.gear = rollDicePool(gearCount);
-
-            hasPushed = false;
-            document.getElementById('pushBtn').disabled = false;
-
-            updateUI();
-            broadcastRoll(false);
-        });
-
-        document.getElementById('pushBtn').addEventListener('click', () => {
-            if (hasPushed) return;
-
-            currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : getFairD6());
-            currentRolls.skill = currentRolls.skill.map(r => (r === 6) ? r : getFairD6());
-            currentRolls.gear = currentRolls.gear.map(r => (r === 6 || r === 1) ? r : getFairD6());
-
-            hasPushed = true;
-            document.getElementById('pushBtn').disabled = true;
-
-            updateUI();
-            broadcastRoll(true);
-        });
     });
-} catch (error) {
-    document.getElementById('results').innerHTML = `<i style="color:red;">Kritik Hata: ${error.message}</i>`;
 }
