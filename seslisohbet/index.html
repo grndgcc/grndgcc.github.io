@@ -2,17 +2,38 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <script type="module">
-        import OBR from "https://esm.sh/@owlbear-rodeo/sdk@3.2.0";
-        
-        OBR.onReady(() => {
-            OBR.broadcast.onMessage('yze-roll-event', (event) => {
-                const data = event.data;
-                const variant = data.successes > 0 ? "SUCCESS" : "INFO";
-                OBR.notification.show(data.message, variant);
-            });
-        });
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YZE Zar</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Kesin çalışan standart kütüphane bağlantısı -->
+    <script src="https://unpkg.com/@owlbear-rodeo/sdk@3.2.0/lib/index.umd.js"></script>
 </head>
-<body></body>
+<body>
+    <div class="container">
+        <h3>Year Zero Engine Zar</h3>
+        <div class="input-group">
+            <label>Temel (Base):</label>
+            <input type="number" id="baseDice" min="0" value="0">
+        </div>
+        <div class="input-group">
+            <label>Yetenek (Skill):</label>
+            <input type="number" id="skillDice" min="0" value="0">
+        </div>
+        <div class="input-group">
+            <label>Eşya (Gear):</label>
+            <input type="number" id="gearDice" min="0" value="0">
+        </div>
+
+        <button id="rollBtn">Zar At</button>
+        <button id="pushBtn" disabled>Zorla (Push)</button>
+
+        <div id="results">
+            <!-- Zar sonuçları anında buraya çizilecek -->
+            <i style="color: gray;">Zar atmak için sayı girip butona basın.</i>
+        </div>
+    </div>
+    
+    <!-- ES Module (type="module") kaldırıldı, standart script -->
+    <script src="app.js"></script>
+</body>
 </html>
