@@ -1,20 +1,17 @@
-// Owlbear Rodeo kütüphanesini doğru şekilde projeye dahil ediyoruz
-import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.2.0/+esm";
+import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
 
 let currentRolls = { base: [], skill: [], gear:[] };
 let hasPushed = false;
 let playerName = "Oyuncu";
 
-// Tamamen adil (Kriptografik) 6 yüzlü zar atma fonksiyonu
 function getFairD6() {
     const array = new Uint32Array(1);
-    // Modulo sapmasını önlemek için geçerli maksimum değeri buluyoruz
     const maxValid = 4294967295 - (4294967295 % 6);
     let random;
     do {
         window.crypto.getRandomValues(array);
         random = array[0];
-    } while (random >= maxValid); // Sapma yaratacak aralıktaysa tekrar üret
+    } while (random >= maxValid);
     return (random % 6) + 1;
 }
 
@@ -41,7 +38,6 @@ function updateUI() {
         rolls.forEach(r => {
             const die = document.createElement('div');
             die.className = `die ${color}`;
-            // YZE'de 6 başarı, Temel/Eşya için 1 ise özel durumdur
             if (r === 6) die.classList.add('success');
             if (r === 1 && (type === 'base' || type === 'gear')) die.classList.add('bane');
             die.textContent = r;
@@ -63,25 +59,27 @@ function updateUI() {
 function broadcastRoll(isPush) {
     const totalSuccesses = countSuccesses(currentRolls);
     
-    // Bildirim metni oluştur
-    let msg = `${playerName} ${isPush ? 'zarları zorladı (PUSH)!' : 'zar attı!'} -> ${totalSuccesses} BAŞARI.\n`;
-    if(currentRolls.base.length > 0) msg += `Temel: [${currentRolls.base.join(',')}] `;
-    if(currentRolls.skill.length > 0) msg += `Yetenek: [${currentRolls.skill.join(',')}] `;
-    if(currentRolls.gear.length > 0) msg += `Eşya: [${currentRolls.gear.join(',')}]`;
+    // Mesajı hazırlıyoruz
+    let msg = `${playerName} ${isPush ? 'zarları ZORLADI!' : 'zar attı!'} -> ${totalSuccesses} BAŞARI.\n`;
+    if(currentRolls.base.length > 0) msg += `Temel:[${currentRolls.base.join(',')}] `;
+    if(currentRolls.skill.length > 0) msg += `Yetenek:[${currentRolls.skill.join(',')}] `;
+    if(currentRolls.gear.length > 0) msg += `Eşya:[${currentRolls.gear.join(',')}]`;
 
-    const payload = { message: msg, successes: totalSuccesses };
-
-    // Diğer oyunculara (Arka plan dosyasına) gönder
-    OBR.broadcast.sendMessage('yze-roll-event', payload);
-    // Zar atanın kendi ekranında göster
-    OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "WARNING");
+    // Herkesin ekranının altına mesaj gönder (Arka plan dosyası yakalayacak)
+    OBR.broadcast.sendMessage('yze-roll-event', { message: msg, successes: totalSuccesses });
+    
+    // Kendi ekranında pop-up göster
+    OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "INFO");
 }
 
 OBR.onReady(async () => {
+    // Eklenti hazır olduğunda sistemi aktifleştir
+    document.getElementById('results').innerHTML = "<i>Zar atmaya hazır!</i>";
+
     try {
         playerName = await OBR.player.getName() || "Oyuncu";
     } catch(e) {
-        console.log("İsim alınamadı, Oyuncu kullanılacak.");
+        playerName = "Oyuncu";
     }
 
     document.getElementById('rollBtn').addEventListener('click', () => {
@@ -89,7 +87,10 @@ OBR.onReady(async () => {
         const skillCount = parseInt(document.getElementById('skillDice').value) || 0;
         const gearCount = parseInt(document.getElementById('gearDice').value) || 0;
 
-        if (baseCount === 0 && skillCount === 0 && gearCount === 0) return;
+        if (baseCount === 0 && skillCount === 0 && gearCount === 0) {
+            alert("Lütfen en az 1 zar seçin!");
+            return;
+        }
 
         currentRolls.base = rollDicePool(baseCount);
         currentRolls.skill = rollDicePool(skillCount);
@@ -105,7 +106,6 @@ OBR.onReady(async () => {
     document.getElementById('pushBtn').addEventListener('click', () => {
         if (hasPushed) return;
 
-        // YZE Zorlama Kuralları: Başarılar (6) ve zararlı 1'ler (Temel ve Eşya) tutulur, gerisi yeniden atılır.
         currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : getFairD6());
         currentRolls.skill = currentRolls.skill.map(r => (r === 6) ? r : getFairD6());
         currentRolls.gear = currentRolls.gear.map(r => (r === 6 || r === 1) ? r : getFairD6());
