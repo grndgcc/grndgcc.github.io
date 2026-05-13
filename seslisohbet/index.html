@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YZE Zar</title>
 
-    <!-- Asla hata vermeyecek standart kütüphane -->
+    <!-- Owlbear Kütüphanesi -->
     <script src="https://unpkg.com/@owlbear-rodeo/sdk@3.2.0/lib/index.umd.js"></script>
 
     <style>
@@ -13,7 +13,7 @@
         .container { display: flex; flex-direction: column; gap: 12px; }
         h3 { margin: 0 0 10px 0; text-align: center; border-bottom: 2px solid #444; padding-bottom: 10px; }
         .input-group { display: flex; justify-content: space-between; align-items: center; background: #333; padding: 8px 12px; border-radius: 6px; }
-        input { width: 50px; padding: 5px; background-color: #1a1a1a; border: 1px solid #555; color: #fff; border-radius: 4px; text-align: center; font-size: 16px; }
+        input { width: 50px; padding: 5px; background-color: #1a1a1a; border: 1px solid #555; color: #fff; border-radius: 4px; text-align: center; font-size: 16px; font-weight: bold;}
         .btn-group { display: flex; gap: 10px; margin-top: 5px; }
         
         button { flex: 1; padding: 12px; background-color: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
@@ -35,34 +35,48 @@
 
         .result-text { font-size: 18px; font-weight: bold; color: #eccc68; text-align: center; margin: 10px 0 0 0; }
         #connStatus { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; }
+        
+        #debugBox { font-size: 10px; color: #ff6b6b; margin-top: 15px; text-align: left; }
     </style>
 </head>
 <body>
     <div class="container">
         <h3>YZE Zar Sistemi</h3>
-        <div class="input-group"><label>Temel Zar:</label><input type="number" id="baseDice" min="0" value="0"></div>
-        <div class="input-group"><label>Yetenek Zarı:</label><input type="number" id="skillDice" min="0" value="0"></div>
-        <div class="input-group"><label>Eşya Zarı:</label><input type="number" id="gearDice" min="0" value="0"></div>
+        <div class="input-group"><label>Temel Zar (Beyaz):</label><input type="number" id="baseDice" min="0" value="0"></div>
+        <div class="input-group"><label>Yetenek (Yeşil):</label><input type="number" id="skillDice" min="0" value="0"></div>
+        <div class="input-group"><label>Eşya Zarı (Siyah):</label><input type="number" id="gearDice" min="0" value="0"></div>
         <div class="btn-group">
             <button id="rollBtn">ZAR AT</button>
             <button id="pushBtn" disabled>ZORLA</button>
         </div>
         <div id="results"><i style="color: gray;">Zar atmak için sayı girip butona basın.</i></div>
         <div id="connStatus">Bağlantı Bekleniyor...</div>
+        <div id="debugBox"></div>
     </div>
 
-    <!-- Modül (import) sistemini çöpe attık, direkt script kullanıyoruz -->
     <script>
+        // Hata Yakalayıcı
+        function logError(msg) {
+            const dbg = document.getElementById('debugBox');
+            if(dbg) dbg.innerHTML += `<div>> ${msg}</div>`;
+        }
+        window.onerror = function(msg, url, line) { logError(`Hata: ${msg} (Satır: ${line})`); return false; };
+
         let currentRolls = { base: [], skill: [], gear:[] };
         let hasPushed = false;
         let playerName = "Oyuncu";
         let isObrReady = false;
 
         function rollD6() {
-            const array = new Uint32Array(1);
-            const maxValid = 4294967295 - (4294967295 % 6);
-            let random; do { window.crypto.getRandomValues(array); random = array[0]; } while (random >= maxValid);
-            return (random % 6) + 1;
+            try {
+                if (window.crypto && window.crypto.getRandomValues) {
+                    const array = new Uint32Array(1);
+                    const maxValid = 4294967295 - (4294967295 % 6);
+                    let random; do { window.crypto.getRandomValues(array); random = array[0]; } while (random >= maxValid);
+                    return (random % 6) + 1;
+                }
+            } catch(e) { logError("Zar atma hatası, klasik zar kullanılıyor."); }
+            return Math.floor(Math.random() * 6) + 1;
         }
 
         function rollPool(count) {
@@ -72,11 +86,9 @@
         }
 
         function countSuccesses() {
-            let s = 0;
-            currentRolls.base.forEach(r => { if(r === 6) s++; });
-            currentRolls.skill.forEach(r => { if(r === 6) s++; });
-            currentRolls.gear.forEach(r => { if(r === 6) s++; });
-            return s;
+            return currentRolls.base.filter(r=>r===6).length +
+                   currentRolls.skill.filter(r=>r===6).length +
+                   currentRolls.gear.filter(r=>r===6).length;
         }
 
         function drawUI() {
@@ -112,28 +124,33 @@
         }
 
         function broadcastRoll(isPush) {
-            // Eğer Owlbear bağlı değilse sadece konsola yaz, HATA VERİP SİSTEMİ DURDURMA!
-            if (!isObrReady || typeof window.OBR === "undefined") return;
+            try {
+                if (!isObrReady || typeof window.OBR === "undefined") return;
 
-            const totalSuccesses = countSuccesses();
-            let msg = `${playerName} ${isPush ? 'zarları ZORLADI!' : 'zar attı!'} -> ${totalSuccesses} BAŞARI.\n`;
-            
-            if(currentRolls.base.length > 0) msg += `Temel:[${currentRolls.base.join(',')}] `;
-            if(currentRolls.skill.length > 0) msg += `Yetenek:[${currentRolls.skill.join(',')}] `;
-            if(currentRolls.gear.length > 0) msg += `Eşya:[${currentRolls.gear.join(',')}]`;
+                const totalSuccesses = countSuccesses();
+                let msg = `${playerName} ${isPush ? 'zarları ZORLADI!' : 'zar attı!'} -> ${totalSuccesses} BAŞARI.\n`;
+                
+                if(currentRolls.base.length > 0) msg += `Temel:[${currentRolls.base.join(',')}] `;
+                if(currentRolls.skill.length > 0) msg += `Yetenek:[${currentRolls.skill.join(',')}] `;
+                if(currentRolls.gear.length > 0) msg += `Eşya:[${currentRolls.gear.join(',')}]`;
 
-            // OBR nesnesi artık window üzerinden güvenli şekilde çağırılıyor
-            window.OBR.broadcast.sendMessage('yze-roll-event', { message: msg, successes: totalSuccesses });
-            window.OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "DEFAULT");
+                // Diğer oyunculara yayını gönder
+                window.OBR.broadcast.sendMessage('yze-roll-event', { message: msg, successes: totalSuccesses });
+                // Kendi ekranınızda pop-up göster
+                window.OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "DEFAULT");
+            } catch(e) { logError("Yayınlanamadı: " + e.message); }
         }
 
-        // ZAR ATMA BUTONU (Bağlantı kopsa bile %100 çalışır)
+        // ZAR ATMA 
         document.getElementById('rollBtn').addEventListener('click', () => {
             const b = parseInt(document.getElementById('baseDice').value) || 0;
             const s = parseInt(document.getElementById('skillDice').value) || 0;
             const g = parseInt(document.getElementById('gearDice').value) || 0;
 
-            if (b === 0 && s === 0 && g === 0) return;
+            if (b === 0 && s === 0 && g === 0) {
+                document.getElementById('results').innerHTML = '<i style="color:#ff6b6b;">Lütfen zar sayısı girin!</i>';
+                return;
+            }
 
             currentRolls.base = rollPool(b);
             currentRolls.skill = rollPool(s);
@@ -145,7 +162,7 @@
             broadcastRoll(false);
         });
 
-        // ZORLAMA BUTONU
+        // ZORLAMA
         document.getElementById('pushBtn').addEventListener('click', () => {
             if (hasPushed) return;
             currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : rollD6());
@@ -158,24 +175,29 @@
             broadcastRoll(true);
         });
 
-        // OBR Yüklenmişse (Bağlantı Başarılıysa)
-        if (typeof window.OBR !== "undefined") {
-            window.OBR.onReady(() => {
-                isObrReady = true;
-                document.getElementById('connStatus').innerHTML = "🟢 Masaya Bağlı (Diğerleri Görebilir)";
-                
-                window.OBR.player.getName().then(name => {
-                    if (name) playerName = name;
-                }).catch(() => {
-                    playerName = "Oyuncu";
-                });
-            });
-        }
+        // OWLBEAR BAĞLANTISI VE DİNLEYİCİSİ (Bütün sırrımız bu kısımda)
+        try {
+            if (typeof window.OBR !== "undefined") {
+                window.OBR.onReady(() => {
+                    isObrReady = true;
+                    const statusEl = document.getElementById('connStatus');
+                    if(statusEl) statusEl.innerHTML = "🟢 Masaya Bağlı (Herkes Görebilir)";
+                    
+                    window.OBR.player.getName().then(name => {
+                        if (name) playerName = name;
+                    }).catch(err => { playerName = "Oyuncu"; });
 
-        // Test uyarısı
-        setTimeout(() => {
-            if(!isObrReady) document.getElementById('connStatus').innerHTML = "🔴 Sadece siz görüyorsunuz (Kendi pencerenizde).";
-        }, 3000);
+                    // BÜYÜK DEĞİŞİKLİK: Dinleyiciyi arka plan yerine direkt buraya koyduk!
+                    // Owlbear görünmez olarak bu dosyayı çalıştırdığında zarları yakalayacak.
+                    window.OBR.broadcast.onMessage('yze-roll-event', (event) => {
+                        const data = event.data;
+                        const variant = data.successes > 0 ? "SUCCESS" : "DEFAULT";
+                        window.OBR.notification.show(data.message, variant);
+                    });
+                });
+            }
+        } catch(e) { logError("Bağlantı hatası: " + e.message); }
+
     </script>
 </body>
 </html>
