@@ -1,4 +1,9 @@
-import OBR from "https://cdn.jsdelivr.net/npm/@owlbear-rodeo/sdk@3.1.0/+esm";
+// Arayüze başlangıç mesajı atıyoruz
+document.getElementById('results').innerHTML = "<i>1. Kütüphane yükleniyor...</i>";
+
+import OBR from "https://esm.sh/@owlbear-rodeo/sdk@3.2.0";
+
+document.getElementById('results').innerHTML = "<i>2. Owlbear masası bekleniyor... (Tek başına sekmede açtıysanız çalışmaz)</i>";
 
 let currentRolls = { base: [], skill: [], gear:[] };
 let hasPushed = false;
@@ -59,61 +64,60 @@ function updateUI() {
 function broadcastRoll(isPush) {
     const totalSuccesses = countSuccesses(currentRolls);
     
-    // Mesajı hazırlıyoruz
     let msg = `${playerName} ${isPush ? 'zarları ZORLADI!' : 'zar attı!'} -> ${totalSuccesses} BAŞARI.\n`;
     if(currentRolls.base.length > 0) msg += `Temel:[${currentRolls.base.join(',')}] `;
     if(currentRolls.skill.length > 0) msg += `Yetenek:[${currentRolls.skill.join(',')}] `;
     if(currentRolls.gear.length > 0) msg += `Eşya:[${currentRolls.gear.join(',')}]`;
 
-    // Herkesin ekranının altına mesaj gönder (Arka plan dosyası yakalayacak)
     OBR.broadcast.sendMessage('yze-roll-event', { message: msg, successes: totalSuccesses });
-    
-    // Kendi ekranında pop-up göster
     OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "INFO");
 }
 
-OBR.onReady(async () => {
-    // Eklenti hazır olduğunda sistemi aktifleştir
-    document.getElementById('results').innerHTML = "<i>Zar atmaya hazır!</i>";
+try {
+    OBR.onReady(async () => {
+        document.getElementById('results').innerHTML = "<i>Zar atmaya hazır!</i>";
 
-    try {
-        playerName = await OBR.player.getName() || "Oyuncu";
-    } catch(e) {
-        playerName = "Oyuncu";
-    }
-
-    document.getElementById('rollBtn').addEventListener('click', () => {
-        const baseCount = parseInt(document.getElementById('baseDice').value) || 0;
-        const skillCount = parseInt(document.getElementById('skillDice').value) || 0;
-        const gearCount = parseInt(document.getElementById('gearDice').value) || 0;
-
-        if (baseCount === 0 && skillCount === 0 && gearCount === 0) {
-            alert("Lütfen en az 1 zar seçin!");
-            return;
+        try {
+            playerName = await OBR.player.getName() || "Oyuncu";
+        } catch(e) {
+            playerName = "Oyuncu";
         }
 
-        currentRolls.base = rollDicePool(baseCount);
-        currentRolls.skill = rollDicePool(skillCount);
-        currentRolls.gear = rollDicePool(gearCount);
+        document.getElementById('rollBtn').addEventListener('click', () => {
+            const baseCount = parseInt(document.getElementById('baseDice').value) || 0;
+            const skillCount = parseInt(document.getElementById('skillDice').value) || 0;
+            const gearCount = parseInt(document.getElementById('gearDice').value) || 0;
 
-        hasPushed = false;
-        document.getElementById('pushBtn').disabled = false;
+            if (baseCount === 0 && skillCount === 0 && gearCount === 0) {
+                alert("Lütfen en az 1 zar seçin!");
+                return;
+            }
 
-        updateUI();
-        broadcastRoll(false);
+            currentRolls.base = rollDicePool(baseCount);
+            currentRolls.skill = rollDicePool(skillCount);
+            currentRolls.gear = rollDicePool(gearCount);
+
+            hasPushed = false;
+            document.getElementById('pushBtn').disabled = false;
+
+            updateUI();
+            broadcastRoll(false);
+        });
+
+        document.getElementById('pushBtn').addEventListener('click', () => {
+            if (hasPushed) return;
+
+            currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : getFairD6());
+            currentRolls.skill = currentRolls.skill.map(r => (r === 6) ? r : getFairD6());
+            currentRolls.gear = currentRolls.gear.map(r => (r === 6 || r === 1) ? r : getFairD6());
+
+            hasPushed = true;
+            document.getElementById('pushBtn').disabled = true;
+
+            updateUI();
+            broadcastRoll(true);
+        });
     });
-
-    document.getElementById('pushBtn').addEventListener('click', () => {
-        if (hasPushed) return;
-
-        currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : getFairD6());
-        currentRolls.skill = currentRolls.skill.map(r => (r === 6) ? r : getFairD6());
-        currentRolls.gear = currentRolls.gear.map(r => (r === 6 || r === 1) ? r : getFairD6());
-
-        hasPushed = true;
-        document.getElementById('pushBtn').disabled = true;
-
-        updateUI();
-        broadcastRoll(true);
-    });
-});
+} catch (error) {
+    document.getElementById('results').innerHTML = `<i style="color:red;">Kritik Hata: ${error.message}</i>`;
+}
