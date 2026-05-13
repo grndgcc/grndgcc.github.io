@@ -1,187 +1,147 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YZE Zar</title>
-    <!-- Owlbear Rodeo'nun asla çökmeyen resmi düz bağlantısı -->
-    <script src="https://cdn.owlbear.rodeo/owlbear-rodeo-sdk-v2.js"></script>
-
-    <style>
-        body { font-family: sans-serif; background-color: #242424; color: #fff; margin: 0; padding: 15px; }
-        h3 { text-align: center; border-bottom: 2px solid #444; padding-bottom: 5px; margin-top: 0; }
-        .row { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;}
-        input { width: 50px; text-align: center; font-size: 16px; padding: 5px; border-radius: 5px; border: 1px solid #555; background: #111; color: white;}
-        button { width: 100%; padding: 12px; margin-top: 5px; font-weight: bold; font-size: 15px; cursor: pointer; border-radius: 5px; border: none; }
-        
-        #rollBtn { background: #4CAF50; color: white; }
-        #pushBtn { background: #E53935; color: white; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        
-        #diceContainer { margin-top: 20px; text-align: center; min-height: 100px; background: #333; padding: 10px; border-radius: 8px;}
-        .die { display: inline-flex; width: 40px; height: 40px; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; margin: 5px; border-radius: 6px; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);}
-        
-        /* YZE Zar Renkleri */
-        .base { background: #fff; } /* Temel (Beyaz) */
-        .skill { background: #4CAF50; } /* Yetenek (Yeşil) */
-        .gear { background: #aaa; } /* Eşya (Siyah/Gri) */
-        
-        /* YZE Başarı ve Hasar Parlamaları */
-        .success { background: #FFD700; box-shadow: 0 0 10px #FFD700; color: #000; } /* 6 atanlar altın parlar */
-        .bane { background: #E53935; color: white; box-shadow: 0 0 10px #E53935; } /* 1 atanlar kırmızı parlar */
-
-        #status { text-align: center; font-size: 12px; color: #aaa; margin-top: 15px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>YZE Zar Atıcı</title>
+  <style>
+    /* Owlbear Rodeo temasına uygun karanlık, şık arayüz */
+    :root {
+      --bg-color: #24242e;
+      --text-color: #f0f0f0;
+      --accent: #9c64e8;
+      --btn-hover: #bb86fc;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .container {
+      text-align: center;
+      width: 100%;
+      padding: 0 20px;
+    }
+    h2 { margin: 0 0 15px 0; font-size: 1.3rem; letter-spacing: 1px;}
+    .input-group {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    label { font-size: 0.95rem; color: #ccc; }
+    input {
+      width: 80px;
+      padding: 10px;
+      font-size: 1.2rem;
+      text-align: center;
+      border: 1px solid #444;
+      border-radius: 6px;
+      background: #181820;
+      color: #fff;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    button {
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    button:hover { background-color: var(--btn-hover); }
+    #last-roll {
+      margin-top: 15px;
+      font-size: 0.9rem;
+      color: #aaa;
+      min-height: 40px;
+    }
+  </style>
 </head>
 <body>
-
-    <h3>YZE Zar Sistemi</h3>
-
-    <div class="row">
-        <label>Temel (Beyaz):</label>
-        <input type="number" id="b" value="0" min="0">
-    </div>
-    <div class="row">
-        <label>Yetenek (Yeşil):</label>
-        <input type="number" id="s" value="0" min="0">
-    </div>
-    <div class="row">
-        <label>Eşya (Siyah):</label>
-        <input type="number" id="g" value="0" min="0">
-    </div>
-
-    <button id="rollBtn">ZAR AT</button>
-    <button id="pushBtn" disabled>ZORLA (PUSH)</button>
-
-    <div id="diceContainer">
-        <div style="color:#aaa; font-size: 14px; margin-top: 30px;">Zarlar burada görünecek...</div>
-    </div>
+  <div class="container">
+    <h2>YZE Zar Atıcı</h2>
     
-    <div id="status">Owlbear Rodeo aranıyor...</div>
+    <div class="input-group">
+      <label for="dice-count">Kaç Adet Zar (d6) Atılacak?</label>
+      <input type="number" id="dice-count" value="1" min="1" max="50">
+    </div>
 
-    <script>
-        let rolls = { b: [], s: [], g:[] };
-        let hasPushed = false;
-        let myName = "Oyuncu";
+    <button id="roll-btn">Zarları Fırlat</button>
+    <div id="last-roll"></div>
+  </div>
 
-        // Güvenlik duvarlarına takılmayan standart zar atıcı
-        function rollD6() {
-            return Math.floor(Math.random() * 6) + 1;
+  <script type="module">
+    // Gereksiz JS dosyaları yerine Owlbear SDK'sını doğrudan ESM modülü olarak çekiyoruz.
+    import OBR from "https://esm.sh/@owlbear-rodeo/sdk@3.0.0";
+
+    const CHANNEL_ID = "com.custom.yze-dice-channel";
+
+    OBR.onReady(async () => {
+      // Zar atan oyuncunun adını çekiyoruz
+      const playerName = await OBR.player.getName();
+
+      // DİĞER oyunculardan gelen zar bildirimlerini (broadcast) dinleyip onlara popup çıkarıyoruz
+      OBR.broadcast.onMessage(CHANNEL_ID, (event) => {
+        const { player, rolls, successes, failures } = event.data;
+        showNotification(player, rolls, successes, failures);
+      });
+
+      // Zarları at butonuna tıklandığında çalışacak olan fonksiyon
+      document.getElementById("roll-btn").addEventListener("click", () => {
+        const countInput = document.getElementById("dice-count").value;
+        const count = parseInt(countInput, 10);
+        
+        if (isNaN(count) || count < 1) return;
+
+        const rolls =[];
+        let successes = 0;
+        let failures = 0;
+
+        // Girilen miktar kadar 6'lık zar at ve YZE kurallarını hesapla
+        for (let i = 0; i < count; i++) {
+          const val = Math.floor(Math.random() * 6) + 1;
+          rolls.push(val);
+          if (val === 6) successes++;
+          if (val === 1) failures++;
         }
 
-        // Zarları Ekranda Kutu Olarak Çizdirme
-        function drawDice() {
-            const container = document.getElementById("diceContainer");
-            container.innerHTML = "";
-            let totalSuccess = 0;
+        // Sonuç paketini hazırla
+        const payload = { player: playerName, rolls, successes, failures };
 
-            const createDie = (val, type) => {
-                let el = document.createElement("div");
-                el.className = "die " + type;
-                el.innerText = val;
+        // 1. Sonuçları odadaki diğer tüm oyunculara canlı olarak yayınla
+        OBR.broadcast.sendMessage(CHANNEL_ID, payload);
 
-                // YZE Kuralları
-                if (val === 6) {
-                    el.classList.add("success");
-                    el.innerText = "☢"; // Başarı sembolü
-                    totalSuccess++;
-                } 
-                else if (val === 1 && (type === "base" || type === "gear")) {
-                    el.classList.add("bane"); // Sadece temel ve eşyada 1 kötüdür
-                }
-                container.appendChild(el);
-            };
+        // 2. Kendi ekranında popup çıkar (broadcast atan kişiye geri dönmediği için manuel yapıyoruz)
+        showNotification("Sen", rolls, successes, failures);
 
-            rolls.b.forEach(v => createDie(v, "base"));
-            rolls.s.forEach(v => createDie(v, "skill"));
-            rolls.g.forEach(v => createDie(v, "gear"));
+        // 3. Eklenti popover'ı içerisindeki arayüzü güncelle
+        document.getElementById("last-roll").innerHTML = 
+          `Zarlar: [${rolls.join(', ')}]<br>✅ Başarım: ${successes} | ❌ Başarısızlık: ${failures}`;
+      });
 
-            if (rolls.b.length || rolls.s.length || rolls.g.length) {
-                let res = document.createElement("div");
-                res.style.marginTop = "10px";
-                res.style.fontWeight = "bold";
-                res.style.color = "#FFD700";
-                res.innerText = "TOPLAM BAŞARI: " + totalSuccess;
-                container.appendChild(res);
-            }
-        }
-
-        function countSucc() {
-            let s = 0;
-            rolls.b.forEach(v => { if(v===6) s++ });
-            rolls.s.forEach(v => { if(v===6) s++ });
-            rolls.g.forEach(v => { if(v===6) s++ });
-            return s;
-        }
-
-        // Owlbear'ın YERLEŞİK Pop-up Sistemine Veri Gönderme
-        function sendToOwlbear(isPush) {
-            let succ = countSucc();
-            let msg = `${myName} ${isPush ? 'zarları ZORLADI' : 'zar attı'}! Toplam: ${succ} BAŞARI.\n`;
-            if(rolls.b.length) msg += `Temel: [${rolls.b.join(",")}] `;
-            if(rolls.s.length) msg += `Yetenek: [${rolls.s.join(",")}] `;
-            if(rolls.g.length) msg += `Eşya: [${rolls.g.join(",")}]`;
-
-            try {
-                // Diğer oyuncuların ekranına gönder
-                OBR.broadcast.sendMessage("yze-roll", msg);
-                // Kendi Owlbear ekranınızda pop-up uyarısı çıkar
-                OBR.notification.show(msg, succ > 0 ? "SUCCESS" : "DEFAULT");
-            } catch(e) {}
-        }
-
-        // Zar Atma Tıklaması
-        document.getElementById("rollBtn").onclick = () => {
-            let b = parseInt(document.getElementById("b").value) || 0;
-            let s = parseInt(document.getElementById("s").value) || 0;
-            let g = parseInt(document.getElementById("g").value) || 0;
-
-            if(b===0 && s===0 && g===0) return;
-
-            rolls.b = Array.from({length: b}, rollD6);
-            rolls.s = Array.from({length: s}, rollD6);
-            rolls.g = Array.from({length: g}, rollD6);
-            
-            hasPushed = false;
-            document.getElementById("pushBtn").disabled = false;
-
-            drawDice();
-            sendToOwlbear(false);
-        };
-
-        // Zorlama (Push) Tıklaması
-        document.getElementById("pushBtn").onclick = () => {
-            if(hasPushed) return;
-
-            // YZE Zorlama Kuralları: 6'lar ve 1'ler kilitli kalır, gerisi yeniden atılır
-            rolls.b = rolls.b.map(v => (v===6 || v===1) ? v : rollD6());
-            rolls.s = rolls.s.map(v => (v===6) ? v : rollD6()); // Yetenekteki 1'ler yeniden atılabilir
-            rolls.g = rolls.g.map(v => (v===6 || v===1) ? v : rollD6());
-
-            hasPushed = true;
-            document.getElementById("pushBtn").disabled = true;
-
-            drawDice();
-            sendToOwlbear(true);
-        };
-
-        // Owlbear Rodeo Entegrasyonu
-        if (typeof OBR !== "undefined") {
-            OBR.onReady(async () => {
-                document.getElementById("status").innerText = "🟢 Odaya Bağlandı (Tüm özellikler aktif)";
-                
-                try { myName = await OBR.player.getName() || "Oyuncu"; } 
-                catch(e) {}
-
-                // DİĞER OYUNCULAR İÇİN: Arkada gizlice çalışan bu dosya başkasının zar attığını yakalar.
-                OBR.broadcast.onMessage("yze-roll", (event) => {
-                    let msg = event.data;
-                    let isSuccess = msg.includes("BAŞARI") && !msg.includes(" 0 BAŞARI");
-                    // Owlbear'ın KENDİ yerleşik Pop-up sistemini kullanarak ekranda göster
-                    OBR.notification.show(msg, isSuccess ? "SUCCESS" : "DEFAULT");
-                });
-            });
-        }
-    </script>
+      // Owlbear Rodeo'nun dahili bildirim sistemini kullanarak ekranda Popup çıkaran fonksiyon
+      function showNotification(player, rolls, successes, failures) {
+        const title = `${player} zar attı!`;
+        const details = `Zarlar: [${rolls.join(', ')}] \n✅ Başarım: ${successes} \n❌ Başarısızlık: ${failures}`;
+        
+        // Owlbear ekranında toast popup gösterme komutu
+        OBR.notification.show(title + "\n" + details);
+      }
+    });
+  </script>
 </body>
 </html>
