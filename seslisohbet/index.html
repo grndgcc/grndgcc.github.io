@@ -4,200 +4,184 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YZE Zar</title>
-
-    <!-- Owlbear Kütüphanesi -->
-    <script src="https://unpkg.com/@owlbear-rodeo/sdk@3.2.0/lib/index.umd.js"></script>
+    <!-- Owlbear Rodeo'nun asla çökmeyen resmi düz bağlantısı -->
+    <script src="https://cdn.owlbear.rodeo/owlbear-rodeo-sdk-v2.js"></script>
 
     <style>
-        body { font-family: Arial, sans-serif; background-color: #242424; color: #ffffff; margin: 0; padding: 15px; }
-        .container { display: flex; flex-direction: column; gap: 12px; }
-        h3 { margin: 0 0 10px 0; text-align: center; border-bottom: 2px solid #444; padding-bottom: 10px; }
-        .input-group { display: flex; justify-content: space-between; align-items: center; background: #333; padding: 8px 12px; border-radius: 6px; }
-        input { width: 50px; padding: 5px; background-color: #1a1a1a; border: 1px solid #555; color: #fff; border-radius: 4px; text-align: center; font-size: 16px; font-weight: bold;}
-        .btn-group { display: flex; gap: 10px; margin-top: 5px; }
+        body { font-family: sans-serif; background-color: #242424; color: #fff; margin: 0; padding: 15px; }
+        h3 { text-align: center; border-bottom: 2px solid #444; padding-bottom: 5px; margin-top: 0; }
+        .row { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;}
+        input { width: 50px; text-align: center; font-size: 16px; padding: 5px; border-radius: 5px; border: 1px solid #555; background: #111; color: white;}
+        button { width: 100%; padding: 12px; margin-top: 5px; font-weight: bold; font-size: 15px; cursor: pointer; border-radius: 5px; border: none; }
         
-        button { flex: 1; padding: 12px; background-color: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        button:hover { background-color: #45a049; }
-        button:disabled { background-color: #555; cursor: not-allowed; opacity: 0.7; }
-        #pushBtn { background-color: #d9534f; }
-        #pushBtn:hover:not(:disabled) { background-color: #c9302c; }
-
-        #results { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; align-items: center; background: #1e1e1e; padding: 15px; border-radius: 8px; min-height: 120px; }
-        .dice-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-bottom: 5px; }
+        #rollBtn { background: #4CAF50; color: white; }
+        #pushBtn { background: #E53935; color: white; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         
-        .die { width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; border-radius: 6px; color: #000; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .die-base { background-color: #f1f2f6; } 
-        .die-skill { background-color: #7bed9f; } 
-        .die-gear { background-color: #dfe4ea; border: 2px solid #2f3542; } 
-
-        .die.success { background-color: #eccc68; box-shadow: 0 0 12px #eccc68; color: #2f3542; }
-        .die.bane { background-color: #ff4757; box-shadow: 0 0 12px #ff4757; color: white; }
-
-        .result-text { font-size: 18px; font-weight: bold; color: #eccc68; text-align: center; margin: 10px 0 0 0; }
-        #connStatus { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; }
+        #diceContainer { margin-top: 20px; text-align: center; min-height: 100px; background: #333; padding: 10px; border-radius: 8px;}
+        .die { display: inline-flex; width: 40px; height: 40px; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; margin: 5px; border-radius: 6px; color: black; box-shadow: 2px 2px 5px rgba(0,0,0,0.5);}
         
-        #debugBox { font-size: 10px; color: #ff6b6b; margin-top: 15px; text-align: left; }
+        /* YZE Zar Renkleri */
+        .base { background: #fff; } /* Temel (Beyaz) */
+        .skill { background: #4CAF50; } /* Yetenek (Yeşil) */
+        .gear { background: #aaa; } /* Eşya (Siyah/Gri) */
+        
+        /* YZE Başarı ve Hasar Parlamaları */
+        .success { background: #FFD700; box-shadow: 0 0 10px #FFD700; color: #000; } /* 6 atanlar altın parlar */
+        .bane { background: #E53935; color: white; box-shadow: 0 0 10px #E53935; } /* 1 atanlar kırmızı parlar */
+
+        #status { text-align: center; font-size: 12px; color: #aaa; margin-top: 15px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h3>YZE Zar Sistemi</h3>
-        <div class="input-group"><label>Temel Zar (Beyaz):</label><input type="number" id="baseDice" min="0" value="0"></div>
-        <div class="input-group"><label>Yetenek (Yeşil):</label><input type="number" id="skillDice" min="0" value="0"></div>
-        <div class="input-group"><label>Eşya Zarı (Siyah):</label><input type="number" id="gearDice" min="0" value="0"></div>
-        <div class="btn-group">
-            <button id="rollBtn">ZAR AT</button>
-            <button id="pushBtn" disabled>ZORLA</button>
-        </div>
-        <div id="results"><i style="color: gray;">Zar atmak için sayı girip butona basın.</i></div>
-        <div id="connStatus">Bağlantı Bekleniyor...</div>
-        <div id="debugBox"></div>
+
+    <h3>YZE Zar Sistemi</h3>
+
+    <div class="row">
+        <label>Temel (Beyaz):</label>
+        <input type="number" id="b" value="0" min="0">
+    </div>
+    <div class="row">
+        <label>Yetenek (Yeşil):</label>
+        <input type="number" id="s" value="0" min="0">
+    </div>
+    <div class="row">
+        <label>Eşya (Siyah):</label>
+        <input type="number" id="g" value="0" min="0">
     </div>
 
+    <button id="rollBtn">ZAR AT</button>
+    <button id="pushBtn" disabled>ZORLA (PUSH)</button>
+
+    <div id="diceContainer">
+        <div style="color:#aaa; font-size: 14px; margin-top: 30px;">Zarlar burada görünecek...</div>
+    </div>
+    
+    <div id="status">Owlbear Rodeo aranıyor...</div>
+
     <script>
-        // Hata Yakalayıcı
-        function logError(msg) {
-            const dbg = document.getElementById('debugBox');
-            if(dbg) dbg.innerHTML += `<div>> ${msg}</div>`;
-        }
-        window.onerror = function(msg, url, line) { logError(`Hata: ${msg} (Satır: ${line})`); return false; };
-
-        let currentRolls = { base: [], skill: [], gear:[] };
+        let rolls = { b: [], s: [], g:[] };
         let hasPushed = false;
-        let playerName = "Oyuncu";
-        let isObrReady = false;
+        let myName = "Oyuncu";
 
+        // Güvenlik duvarlarına takılmayan standart zar atıcı
         function rollD6() {
-            try {
-                if (window.crypto && window.crypto.getRandomValues) {
-                    const array = new Uint32Array(1);
-                    const maxValid = 4294967295 - (4294967295 % 6);
-                    let random; do { window.crypto.getRandomValues(array); random = array[0]; } while (random >= maxValid);
-                    return (random % 6) + 1;
-                }
-            } catch(e) { logError("Zar atma hatası, klasik zar kullanılıyor."); }
             return Math.floor(Math.random() * 6) + 1;
         }
 
-        function rollPool(count) {
-            let pool =[];
-            for (let i = 0; i < count; i++) pool.push(rollD6());
-            return pool;
-        }
+        // Zarları Ekranda Kutu Olarak Çizdirme
+        function drawDice() {
+            const container = document.getElementById("diceContainer");
+            container.innerHTML = "";
+            let totalSuccess = 0;
 
-        function countSuccesses() {
-            return currentRolls.base.filter(r=>r===6).length +
-                   currentRolls.skill.filter(r=>r===6).length +
-                   currentRolls.gear.filter(r=>r===6).length;
-        }
+            const createDie = (val, type) => {
+                let el = document.createElement("div");
+                el.className = "die " + type;
+                el.innerText = val;
 
-        function drawUI() {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
-
-            const renderDice = (type, rolls, colorClass) => {
-                if (rolls.length === 0) return;
-                const row = document.createElement('div');
-                row.className = 'dice-row';
-                
-                rolls.forEach(r => {
-                    const die = document.createElement('div');
-                    die.className = `die ${colorClass}`;
-                    die.textContent = r;
-
-                    if (r === 6) { die.classList.add('success'); die.textContent = "☢"; } 
-                    else if (r === 1 && (type === 'base' || type === 'gear')) { die.classList.add('bane'); die.textContent = "1"; }
-                    row.appendChild(die);
-                });
-                resultsDiv.appendChild(row);
+                // YZE Kuralları
+                if (val === 6) {
+                    el.classList.add("success");
+                    el.innerText = "☢"; // Başarı sembolü
+                    totalSuccess++;
+                } 
+                else if (val === 1 && (type === "base" || type === "gear")) {
+                    el.classList.add("bane"); // Sadece temel ve eşyada 1 kötüdür
+                }
+                container.appendChild(el);
             };
 
-            renderDice('base', currentRolls.base, 'die-base');
-            renderDice('skill', currentRolls.skill, 'die-skill');
-            renderDice('gear', currentRolls.gear, 'die-gear');
+            rolls.b.forEach(v => createDie(v, "base"));
+            rolls.s.forEach(v => createDie(v, "skill"));
+            rolls.g.forEach(v => createDie(v, "gear"));
 
-            const totalSuccesses = countSuccesses();
-            const successText = document.createElement('div');
-            successText.className = 'result-text';
-            successText.innerHTML = `TOPLAM BAŞARI: ${totalSuccesses}`;
-            resultsDiv.appendChild(successText);
+            if (rolls.b.length || rolls.s.length || rolls.g.length) {
+                let res = document.createElement("div");
+                res.style.marginTop = "10px";
+                res.style.fontWeight = "bold";
+                res.style.color = "#FFD700";
+                res.innerText = "TOPLAM BAŞARI: " + totalSuccess;
+                container.appendChild(res);
+            }
         }
 
-        function broadcastRoll(isPush) {
+        function countSucc() {
+            let s = 0;
+            rolls.b.forEach(v => { if(v===6) s++ });
+            rolls.s.forEach(v => { if(v===6) s++ });
+            rolls.g.forEach(v => { if(v===6) s++ });
+            return s;
+        }
+
+        // Owlbear'ın YERLEŞİK Pop-up Sistemine Veri Gönderme
+        function sendToOwlbear(isPush) {
+            let succ = countSucc();
+            let msg = `${myName} ${isPush ? 'zarları ZORLADI' : 'zar attı'}! Toplam: ${succ} BAŞARI.\n`;
+            if(rolls.b.length) msg += `Temel: [${rolls.b.join(",")}] `;
+            if(rolls.s.length) msg += `Yetenek: [${rolls.s.join(",")}] `;
+            if(rolls.g.length) msg += `Eşya: [${rolls.g.join(",")}]`;
+
             try {
-                if (!isObrReady || typeof window.OBR === "undefined") return;
-
-                const totalSuccesses = countSuccesses();
-                let msg = `${playerName} ${isPush ? 'zarları ZORLADI!' : 'zar attı!'} -> ${totalSuccesses} BAŞARI.\n`;
-                
-                if(currentRolls.base.length > 0) msg += `Temel:[${currentRolls.base.join(',')}] `;
-                if(currentRolls.skill.length > 0) msg += `Yetenek:[${currentRolls.skill.join(',')}] `;
-                if(currentRolls.gear.length > 0) msg += `Eşya:[${currentRolls.gear.join(',')}]`;
-
-                // Diğer oyunculara yayını gönder
-                window.OBR.broadcast.sendMessage('yze-roll-event', { message: msg, successes: totalSuccesses });
-                // Kendi ekranınızda pop-up göster
-                window.OBR.notification.show(msg, totalSuccesses > 0 ? "SUCCESS" : "DEFAULT");
-            } catch(e) { logError("Yayınlanamadı: " + e.message); }
+                // Diğer oyuncuların ekranına gönder
+                OBR.broadcast.sendMessage("yze-roll", msg);
+                // Kendi Owlbear ekranınızda pop-up uyarısı çıkar
+                OBR.notification.show(msg, succ > 0 ? "SUCCESS" : "DEFAULT");
+            } catch(e) {}
         }
 
-        // ZAR ATMA 
-        document.getElementById('rollBtn').addEventListener('click', () => {
-            const b = parseInt(document.getElementById('baseDice').value) || 0;
-            const s = parseInt(document.getElementById('skillDice').value) || 0;
-            const g = parseInt(document.getElementById('gearDice').value) || 0;
+        // Zar Atma Tıklaması
+        document.getElementById("rollBtn").onclick = () => {
+            let b = parseInt(document.getElementById("b").value) || 0;
+            let s = parseInt(document.getElementById("s").value) || 0;
+            let g = parseInt(document.getElementById("g").value) || 0;
 
-            if (b === 0 && s === 0 && g === 0) {
-                document.getElementById('results').innerHTML = '<i style="color:#ff6b6b;">Lütfen zar sayısı girin!</i>';
-                return;
-            }
+            if(b===0 && s===0 && g===0) return;
 
-            currentRolls.base = rollPool(b);
-            currentRolls.skill = rollPool(s);
-            currentRolls.gear = rollPool(g);
-            hasPushed = false;
-            document.getElementById('pushBtn').disabled = false;
-
-            drawUI();
-            broadcastRoll(false);
-        });
-
-        // ZORLAMA
-        document.getElementById('pushBtn').addEventListener('click', () => {
-            if (hasPushed) return;
-            currentRolls.base = currentRolls.base.map(r => (r === 6 || r === 1) ? r : rollD6());
-            currentRolls.skill = currentRolls.skill.map(r => (r === 6) ? r : rollD6());
-            currentRolls.gear = currentRolls.gear.map(r => (r === 6 || r === 1) ? r : rollD6());
-            hasPushed = true;
-            document.getElementById('pushBtn').disabled = true;
+            rolls.b = Array.from({length: b}, rollD6);
+            rolls.s = Array.from({length: s}, rollD6);
+            rolls.g = Array.from({length: g}, rollD6);
             
-            drawUI();
-            broadcastRoll(true);
-        });
+            hasPushed = false;
+            document.getElementById("pushBtn").disabled = false;
 
-        // OWLBEAR BAĞLANTISI VE DİNLEYİCİSİ (Bütün sırrımız bu kısımda)
-        try {
-            if (typeof window.OBR !== "undefined") {
-                window.OBR.onReady(() => {
-                    isObrReady = true;
-                    const statusEl = document.getElementById('connStatus');
-                    if(statusEl) statusEl.innerHTML = "🟢 Masaya Bağlı (Herkes Görebilir)";
-                    
-                    window.OBR.player.getName().then(name => {
-                        if (name) playerName = name;
-                    }).catch(err => { playerName = "Oyuncu"; });
+            drawDice();
+            sendToOwlbear(false);
+        };
 
-                    // BÜYÜK DEĞİŞİKLİK: Dinleyiciyi arka plan yerine direkt buraya koyduk!
-                    // Owlbear görünmez olarak bu dosyayı çalıştırdığında zarları yakalayacak.
-                    window.OBR.broadcast.onMessage('yze-roll-event', (event) => {
-                        const data = event.data;
-                        const variant = data.successes > 0 ? "SUCCESS" : "DEFAULT";
-                        window.OBR.notification.show(data.message, variant);
-                    });
+        // Zorlama (Push) Tıklaması
+        document.getElementById("pushBtn").onclick = () => {
+            if(hasPushed) return;
+
+            // YZE Zorlama Kuralları: 6'lar ve 1'ler kilitli kalır, gerisi yeniden atılır
+            rolls.b = rolls.b.map(v => (v===6 || v===1) ? v : rollD6());
+            rolls.s = rolls.s.map(v => (v===6) ? v : rollD6()); // Yetenekteki 1'ler yeniden atılabilir
+            rolls.g = rolls.g.map(v => (v===6 || v===1) ? v : rollD6());
+
+            hasPushed = true;
+            document.getElementById("pushBtn").disabled = true;
+
+            drawDice();
+            sendToOwlbear(true);
+        };
+
+        // Owlbear Rodeo Entegrasyonu
+        if (typeof OBR !== "undefined") {
+            OBR.onReady(async () => {
+                document.getElementById("status").innerText = "🟢 Odaya Bağlandı (Tüm özellikler aktif)";
+                
+                try { myName = await OBR.player.getName() || "Oyuncu"; } 
+                catch(e) {}
+
+                // DİĞER OYUNCULAR İÇİN: Arkada gizlice çalışan bu dosya başkasının zar attığını yakalar.
+                OBR.broadcast.onMessage("yze-roll", (event) => {
+                    let msg = event.data;
+                    let isSuccess = msg.includes("BAŞARI") && !msg.includes(" 0 BAŞARI");
+                    // Owlbear'ın KENDİ yerleşik Pop-up sistemini kullanarak ekranda göster
+                    OBR.notification.show(msg, isSuccess ? "SUCCESS" : "DEFAULT");
                 });
-            }
-        } catch(e) { logError("Bağlantı hatası: " + e.message); }
-
+            });
+        }
     </script>
 </body>
 </html>
