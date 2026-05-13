@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>YZE Zar Atıcı</title>
   <style>
-    /* Owlbear Rodeo temasına uygun karanlık, şık arayüz */
     :root {
       --bg-color: #24242e;
       --text-color: #f0f0f0;
@@ -19,37 +18,46 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
+      padding: 15px;
       box-sizing: border-box;
     }
-    .container {
-      text-align: center;
+    h2 { margin: 0 0 15px 0; font-size: 1.2rem; letter-spacing: 1px; text-align: center;}
+    
+    .dice-grid {
+      display: grid;
+      grid-template-columns: 1fr 60px;
+      gap: 12px;
       width: 100%;
-      padding: 0 20px;
-    }
-    h2 { margin: 0 0 15px 0; font-size: 1.3rem; letter-spacing: 1px;}
-    .input-group {
       margin-bottom: 20px;
+      align-items: center;
+    }
+    
+    .dice-label {
+      font-size: 0.95rem;
+      color: #ccc;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 8px;
     }
-    label { font-size: 0.95rem; color: #ccc; }
-    input {
-      width: 80px;
-      padding: 10px;
-      font-size: 1.2rem;
+    
+    .dice-label small {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      font-size: 1.1rem;
       text-align: center;
       border: 1px solid #444;
       border-radius: 6px;
       background: #181820;
       color: #fff;
       outline: none;
+      box-sizing: border-box;
     }
-    input:focus { border-color: var(--accent); }
+    input[type="number"]:focus { border-color: var(--accent); }
+    
     button {
       background-color: var(--accent);
       color: #fff;
@@ -63,83 +71,151 @@
       transition: background 0.2s;
     }
     button:hover { background-color: var(--btn-hover); }
+    
     #last-roll {
       margin-top: 15px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       color: #aaa;
-      min-height: 40px;
+      width: 100%;
+      text-align: left;
+      line-height: 1.4;
     }
+    .success-text { color: #4ade80; font-weight: bold; }
+    .fail-text { color: #f87171; font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>YZE Zar Atıcı</h2>
-    
-    <div class="input-group">
-      <label for="dice-count">Kaç Adet Zar (d6) Atılacak?</label>
-      <input type="number" id="dice-count" value="1" min="1" max="50">
-    </div>
+  <h2>YZE Zar Atıcı</h2>
+  
+  <div class="dice-grid">
+    <div class="dice-label">D6 (Standart)<small>1: Başarısızlık | 6: 1 Başarım</small></div>
+    <input type="number" id="d6-count" value="1" min="0" max="50">
 
-    <button id="roll-btn">Zarları Fırlat</button>
-    <div id="last-roll"></div>
+    <div class="dice-label">D8 (Mighty)<small>6+: 1 Başarım</small></div>
+    <input type="number" id="d8-count" value="0" min="0" max="10">
+
+    <div class="dice-label">D10 (Epic)<small>6+: 1 Başarım | 10: 2 Başarım</small></div>
+    <input type="number" id="d10-count" value="0" min="0" max="10">
+
+    <div class="dice-label">D12 (Legendary)<small>6+: 1 Başarım | 10+: 2 Başarım</small></div>
+    <input type="number" id="d12-count" value="0" min="0" max="10">
   </div>
 
+  <button id="roll-btn">Zarları Fırlat</button>
+  <div id="last-roll"></div>
+
   <script type="module">
-    // Gereksiz JS dosyaları yerine Owlbear SDK'sını doğrudan ESM modülü olarak çekiyoruz.
     import OBR from "https://esm.sh/@owlbear-rodeo/sdk@3.0.0";
 
     const CHANNEL_ID = "com.custom.yze-dice-channel";
 
     OBR.onReady(async () => {
-      // Zar atan oyuncunun adını çekiyoruz
       const playerName = await OBR.player.getName();
 
-      // DİĞER oyunculardan gelen zar bildirimlerini (broadcast) dinleyip onlara popup çıkarıyoruz
+      // Diğer oyunculardan gelen zar paketlerini dinle
       OBR.broadcast.onMessage(CHANNEL_ID, (event) => {
-        const { player, rolls, successes, failures } = event.data;
-        showNotification(player, rolls, successes, failures);
+        showNotification(event.data);
       });
 
-      // Zarları at butonuna tıklandığında çalışacak olan fonksiyon
       document.getElementById("roll-btn").addEventListener("click", () => {
-        const countInput = document.getElementById("dice-count").value;
-        const count = parseInt(countInput, 10);
-        
-        if (isNaN(count) || count < 1) return;
+        // Zarların sayısını inputlardan çekiyoruz
+        const counts = {
+          d6: parseInt(document.getElementById("d6-count").value) || 0,
+          d8: parseInt(document.getElementById("d8-count").value) || 0,
+          d10: parseInt(document.getElementById("d10-count").value) || 0,
+          d12: parseInt(document.getElementById("d12-count").value) || 0
+        };
 
-        const rolls =[];
+        if (counts.d6 === 0 && counts.d8 === 0 && counts.d10 === 0 && counts.d12 === 0) return;
+
         let successes = 0;
         let failures = 0;
+        let rollResults = {};
 
-        // Girilen miktar kadar 6'lık zar at ve YZE kurallarını hesapla
-        for (let i = 0; i < count; i++) {
-          const val = Math.floor(Math.random() * 6) + 1;
-          rolls.push(val);
-          if (val === 6) successes++;
-          if (val === 1) failures++;
+        // Zar atma yardımcısı
+        const rollDice = (sides, count) => {
+          let results =[];
+          for (let i = 0; i < count; i++) {
+            results.push(Math.floor(Math.random() * sides) + 1);
+          }
+          return results;
+        };
+
+        // --- D6 (Standart) Hesabı ---
+        if (counts.d6 > 0) {
+          rollResults.d6 = rollDice(6, counts.d6);
+          rollResults.d6.forEach(val => {
+            if (val === 6) successes += 1;
+            if (val === 1) failures += 1;
+          });
         }
 
-        // Sonuç paketini hazırla
-        const payload = { player: playerName, rolls, successes, failures };
+        // --- D8 (Mighty) Hesabı ---
+        if (counts.d8 > 0) {
+          rollResults.d8 = rollDice(8, counts.d8);
+          rollResults.d8.forEach(val => {
+            if (val >= 6) successes += 1; 
+            // Max 8 olduğu için 10'a ulaşamaz.
+          });
+        }
 
-        // 1. Sonuçları odadaki diğer tüm oyunculara canlı olarak yayınla
+        // --- D10 (Epic) Hesabı ---
+        if (counts.d10 > 0) {
+          rollResults.d10 = rollDice(10, counts.d10);
+          rollResults.d10.forEach(val => {
+            if (val >= 10) successes += 2;
+            else if (val >= 6) successes += 1;
+          });
+        }
+
+        // --- D12 (Legendary) Hesabı ---
+        if (counts.d12 > 0) {
+          rollResults.d12 = rollDice(12, counts.d12);
+          rollResults.d12.forEach(val => {
+            if (val >= 10) successes += 2;
+            else if (val >= 6) successes += 1;
+          });
+        }
+
+        const payload = { player: playerName, rollResults, successes, failures };
+
+        // 1. Odadaki diğer oyunculara gönder
         OBR.broadcast.sendMessage(CHANNEL_ID, payload);
 
-        // 2. Kendi ekranında popup çıkar (broadcast atan kişiye geri dönmediği için manuel yapıyoruz)
-        showNotification(${player}, rolls, successes, failures);
+        // 2. Kendi ekranında Owlbear bildirimi olarak göster
+        showNotification({ player: "Sen", rollResults, successes, failures });
 
-        // 3. Eklenti popover'ı içerisindeki arayüzü güncelle
-        document.getElementById("last-roll").innerHTML = 
-          `Zarlar: [${rolls.join(', ')}]<br>✅ Başarım: ${successes} | ❌ Başarısızlık: ${failures}`;
+        // 3. Eklenti menüsündeki özet ekranını güncelle
+        updatePanelUI(rollResults, successes, failures);
       });
 
-      // Owlbear Rodeo'nun dahili bildirim sistemini kullanarak ekranda Popup çıkaran fonksiyon
-      function showNotification(player, rolls, successes, failures) {
-        const title = `${player} zar attı!`;
-        const details = `Zarlar: [${rolls.join(', ')}] \n✅ Başarım: ${successes} \n❌ Başarısızlık: ${failures}`;
+      // Owlbear bildirimini (Toast) gösteren fonksiyon
+      function showNotification(data) {
+        const { player, rollResults, successes, failures } = data;
+        let detailsText = "";
+
+        if (rollResults.d6) detailsText += `D6: [${rollResults.d6.join(', ')}]\n`;
+        if (rollResults.d8) detailsText += `D8 (Mighty): [${rollResults.d8.join(', ')}]\n`;
+        if (rollResults.d10) detailsText += `D10 (Epic): [${rollResults.d10.join(', ')}]\n`;
+        if (rollResults.d12) detailsText += `D12 (Legendary): [${rollResults.d12.join(', ')}]\n`;
         
-        // Owlbear ekranında toast popup gösterme komutu
-        OBR.notification.show(title + "\n" + details);
+        detailsText += `\n✅ Başarım: ${successes} \n❌ Başarısızlık: ${failures}`;
+        
+        OBR.notification.show(`${player} zar attı!\n\n${detailsText}`);
+      }
+
+      // Eklenti içi arayüz metnini (HTML) güncelleyen fonksiyon
+      function updatePanelUI(rollResults, successes, failures) {
+        let htmlText = "";
+        if (rollResults.d6) htmlText += `D6: [${rollResults.d6.join(', ')}]<br>`;
+        if (rollResults.d8) htmlText += `D8: [${rollResults.d8.join(', ')}]<br>`;
+        if (rollResults.d10) htmlText += `D10: [${rollResults.d10.join(', ')}]<br>`;
+        if (rollResults.d12) htmlText += `D12: [${rollResults.d12.join(', ')}]<br>`;
+        
+        htmlText += `<br><span class="success-text">✅ Toplam Başarım: ${successes}</span><br>`;
+        htmlText += `<span class="fail-text">❌ Başarısızlık: ${failures}</span>`;
+        
+        document.getElementById("last-roll").innerHTML = htmlText;
       }
     });
   </script>
