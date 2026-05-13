@@ -2,16 +2,17 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <script type="module">
-        import OBR from "https://esm.sh/@owlbear-rodeo/sdk@3.2.0";
-        
-        OBR.onReady(() => {
-            OBR.broadcast.onMessage('yze-roll-event', (event) => {
-                const data = event.data;
-                const variant = data.successes > 0 ? "SUCCESS" : "DEFAULT";
-                OBR.notification.show(data.message, variant);
+    <script src="https://unpkg.com/@owlbear-rodeo/sdk@3.2.0/lib/index.umd.js"></script>
+    <script>
+        if (typeof window.OBR !== "undefined") {
+            window.OBR.onReady(() => {
+                window.OBR.broadcast.onMessage('yze-roll-event', (event) => {
+                    const data = event.data;
+                    const variant = data.successes > 0 ? "SUCCESS" : "DEFAULT";
+                    window.OBR.notification.show(data.message, variant);
+                });
             });
-        });
+        }
     </script>
 </head>
 <body></body>
