@@ -2,15 +2,8 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <script type="importmap">
-        {
-            "imports": {
-                "@owlbear-rodeo/sdk": "https://esm.sh/@owlbear-rodeo/sdk@3.2.0"
-            }
-        }
-    </script>
     <script type="module">
-        import OBR from "@owlbear-rodeo/sdk";
+        import OBR from "https://esm.sh/@owlbear-rodeo/sdk@3.2.0";
         
         OBR.onReady(() => {
             OBR.broadcast.onMessage('yze-roll-event', (event) => {
