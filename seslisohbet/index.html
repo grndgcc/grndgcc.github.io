@@ -9,29 +9,15 @@
 <body>
     <div class="container">
         <h3>Year Zero Engine Zar</h3>
-        
-        <div class="input-group">
-            <label>Temel (Base):</label>
-            <input type="number" id="baseDice" min="0" value="0">
-        </div>
-        <div class="input-group">
-            <label>Yetenek (Skill):</label>
-            <input type="number" id="skillDice" min="0" value="0">
-        </div>
-        <div class="input-group">
-            <label>Eşya (Gear):</label>
-            <input type="number" id="gearDice" min="0" value="0">
-        </div>
-
+        <div class="input-group"><label>Temel (Base):</label><input type="number" id="baseDice" min="0" value="0"></div>
+        <div class="input-group"><label>Yetenek (Skill):</label><input type="number" id="skillDice" min="0" value="0"></div>
+        <div class="input-group"><label>Eşya (Gear):</label><input type="number" id="gearDice" min="0" value="0"></div>
         <button id="rollBtn">Zar At</button>
         <button id="pushBtn" disabled>Zorla (Push)</button>
-
         <div id="results">
-            <!-- Zar sonuçları buraya gelecek -->
+            <i>Sistem yükleniyor... Eğer bu yazı gitmiyorsa sayfayı yenileyin. (F5)</i>
         </div>
     </div>
-    
-    <!-- JavaScript dosyasını Module olarak çağırıyoruz -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
