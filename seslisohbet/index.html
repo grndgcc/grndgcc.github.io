@@ -126,7 +126,7 @@
         OBR.broadcast.sendMessage(CHANNEL_ID, payload);
 
         // 2. Kendi ekranında popup çıkar (broadcast atan kişiye geri dönmediği için manuel yapıyoruz)
-        showNotification("Sen", rolls, successes, failures);
+        showNotification(${player}, rolls, successes, failures);
 
         // 3. Eklenti popover'ı içerisindeki arayüzü güncelle
         document.getElementById("last-roll").innerHTML = 
